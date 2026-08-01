@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio 2D - Din Din Gourmet</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+            min-height: 100vh; padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
+        .header {
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+            color: white; padding: 30px; text-align: center; position: relative;
+        }
+        .header .badge-2d {
+            position: absolute; top: 15px; right: 15px;
+            background: rgba(255,255,255,0.3); padding: 8px 15px;
+            border-radius: 20px; font-weight: bold; font-size: 0.9em; animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.2em; opacity: 0.95; }
+        .data-atual { background: #f8f9fa; padding: 15px; text-align: center; border-bottom: 2px solid #e0e0e0; font-weight: bold; color: #666; }
+        .menu-section { padding: 30px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .menu-item {
+            background: #fff; border: 2px solid #f0f0f0; border-radius: 15px;
+            padding: 20px; transition: all 0.3s ease; position: relative;
+        }
+        .menu-item:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-color: #f093fb; }
+        .menu-item.esgotado { opacity: 0.5; pointer-events: none; }
+        .menu-item.esgotado::after {
+            content: "ESGOTADO"; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-20deg);
+            background: rgba(255, 71, 87, 0.9); color: white;
+            padding: 10px 30px; font-size: 1.2em; font-weight: bold; border-radius: 10px; z-index: 10;
+        }
+        .sabor-emoji { font-size: 3em; text-align: center; margin-bottom: 15px; }
+        .menu-item h3 { color: #333; margin-bottom: 10px; font-size: 1.3em; }
+        .menu-item .descricao { color: #666; font-size: 0.9em; margin-bottom: 10px; }
+        .menu-item .preco { font-size: 1.5em; color: #f093fb; font-weight: bold; margin-bottom: 10px; }
+        .menu-item .disponivel { font-size: 0.9em; color: #666; margin-bottom: 10px; }
+        .quantidade-controle { display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-qtd {
+            width: 35px; height: 35px; border-radius: 50%; border: 2px solid #f093fb;
+            background: white; color: #f093fb; font-size: 1.2em; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-qtd:hover { background: #f093fb; color: white; }
+        .quantidade { font-size: 1.2em; font-weight: bold; min-width: 30px; text-align: center; }
+        .carrinho-section { background: #f8f9fa; padding: 30px; border-top: 3px solid #f093fb; }
+        .carrinho-title { font-size: 1.8em; color: #333; margin-bottom: 20px; text-align: center; }
+        .item-carrinho {
+            background: white; padding: 15px; margin-bottom: 10px; border-radius: 10px;
+            display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .btn-remover { background: #ff4757; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; }
+        .form-section { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #333; font-weight: bold; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em;
+        }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #f093fb; }
+        .total-section { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 1.1em; }
+        .total-final { font-size: 1.5em; font-weight: bold; color: #f093fb; border-top: 2px solid #e0e0e0; padding-top: 10px; margin-top: 10px; }
+        .btn-finalizar {
+            width: 100%; padding: 15px; background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+            color: white; border: none; border-radius: 10px; font-size: 1.2em; font-weight: bold; cursor: pointer;
+        }
+        .btn-finalizar:disabled { opacity: 0.5; cursor: not-allowed; }
+        .sem-cardapio { text-align: center; padding: 60px 20px; color: #999; }
+        .sem-cardapio .emoji { font-size: 5em; margin-bottom: 20px; }
+        .pix-info { background: #f0f8ff; padding: 15px; border-radius: 10px; border-left: 4px solid #4CAF50; display: none; }
+        @media (max-width: 600px) {
+            .header h1 { font-size: 2em; }
+            .menu-grid { grid-template-columns: 1fr; }
+            .header .badge-2d { position: static; display: inline-block; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="badge-2d">🔥 2D</span>
+            <h1>🍫 Din Din Gourmet 2D</h1>
+            <p>Sabores exclusivos | Entrega especial</p>
+        </div>
+
+        <div class="data-atual" id="data-atual"></div>
+
+        <div class="menu-section">
+            <div class="menu-grid" id="menu-grid"></div>
+            <div class="sem-cardapio" id="sem-cardapio" style="display: none;">
+                <div class="emoji">😴</div>
+                <h3>Cardápio 2D indisponível</h3>
+                <p>Volte mais tarde!</p>
+            </div>
+        </div>
+
+        <div class="carrinho-section">
+            <h2 class="carrinho-title">🛒 Seu Pedido - Cardápio 2D</h2>
+            <div id="carrinho-itens">
+                <div style="text-align:center;padding:40px;color:#999;">
+                    <div style="font-size:4em;">🛒</div><p>Carrinho vazio</p>
+                </div>
+            </div>
+
+            <div class="total-section" id="total-section" style="display: none;">
+                <div class="total-row"><span>Subtotal:</span><span id="subtotal">R$ 0,00</span></div>
+                <div class="total-row"><span>Taxa de Entrega:</span><span id="taxa-entrega">GRÁTIS</span></div>
+                <div class="total-row total-final"><span>TOTAL:</span><span id="total-geral">R$ 0,00</span></div>
+            </div>
+
+            <div class="form-section" id="form-section" style="display: none;">
+                <h3>📝 Seus Dados</h3>
+                <div class="form-group">
+                    <label>👤 Nome Completo *</label>
+                    <input type="text" id="nome-cliente" placeholder="Seu nome completo">
+                </div>
+                <div class="form-group">
+                    <label>📱 WhatsApp</label>
+                    <input type="tel" id="telefone-cliente" placeholder="(00) 00000-0000">
+                </div>
+                <div class="form-group">
+                    <label>💳 Forma de Pagamento *</label>
+                    <select id="pagamento-select">
+                        <option value="">Selecione...</option>
+                        <option value="PIX">PIX</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                        <option value="Cartão">Cartão</option>
+                    </select>
+                </div>
+                <div class="pix-info" id="pix-info">
+                    <strong>📱 Chave PIX:</strong><br>
+                    <span id="chave-pix"></span>
+                </div>
+            </div>
+
+            <button class="btn-finalizar" id="btn-finalizar" onclick="enviarPedido()" disabled>
+                📱 Enviar Pedido via WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const CARDAPIO_KEY = 'cardapio2';
+        const CARDAPIO_NOME = 'Cardápio 2D';
+        let carrinho = [];
+
+        function inicializar() {
+            document.getElementById('data-atual').textContent = '📅 ' + new Date().toLocaleDateString('pt-BR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+            const config = JSON.parse(localStorage.getItem('adminConfig') || '{}');
+            document.getElementById('chave-pix').textContent = config.pix || 'pix@dindingourmet.com.br';
+            carregarCardapio();
+        }
+
+        function carregarCardapio() {
+            const cardapio = JSON.parse(localStorage.getItem(CARDAPIO_KEY) || '[]');
+            const menuGrid = document.getElementById('menu-grid');
+            const semCardapio = document.getElementById('sem-cardapio');
+
+            if (cardapio.length === 0) {
+                menuGrid.innerHTML = '';
+                semCardapio.style.display = 'block';
+                return;
+            }
+
+            semCardapio.style.display = 'none';
+            menuGrid.innerHTML = cardapio.map(item => `
+                <div class="menu-item ${item.quantidade === 0 ? 'esgotado' : ''}">
+                    <div class="sabor-emoji">${item.emoji || '🍫'}</div>
+                    <h3>${item.nome}</h3>
+                    <p class="descricao">${item.descricao || ''}</p>
+                    <p class="preco">R$ ${item.preco.toFixed(2)}</p>
+                    <p class="disponivel">📦 <strong>Disponível: ${item.quantidade} unid.</strong></p>
+                    ${item.quantidade <= 5 && item.quantidade > 0 ? '<p style="color:#ffa502;font-size:0.85em;">⚠️ Últimas unidades!</p>' : ''}
+                    <div class="quantidade-controle">
+                        <button class="btn-qtd" onclick="addCarrinho('${item.id}', -1)">-</button>
+                        <span class="quantidade" id="qtd-${item.id}">0</span>
+                        <button class="btn-qtd" onclick="addCarrinho('${item.id}', 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addCarrinho(id, qtd) {
+            const cardapio = JSON.parse(localStorage.getItem(CARDAPIO_KEY) || '[]');
+            const item = cardapio.find(i => i.id === id);
+            if (!item) return;
+
+            const noCarrinho = carrinho.find(i => i.id === id);
+            if (noCarrinho) {
+                const nova = noCarrinho.quantidade + qtd;
+                if (nova <= 0) carrinho = carrinho.filter(i => i.id !== id);
+                else if (nova > item.quantidade) { alert('Quantidade máxima: ' + item.quantidade); return; }
+                else noCarrinho.quantidade = nova;
+            } else if (qtd > 0) {
+                if (qtd > item.quantidade) { alert('Quantidade máxima: ' + item.quantidade); return; }
+                carrinho.push({ id: item.id, nome: item.nome, emoji: item.emoji, preco: item.preco, quantidade: qtd });
+            }
+            atualizarInterface();
+        }
+
+        function atualizarInterface() {
+            const cardapio = JSON.parse(localStorage.getItem(CARDAPIO_KEY) || '[]');
+            cardapio.forEach(item => {
+                const el = document.getElementById('qtd-' + item.id);
+                if (el) { const c = carrinho.find(i => i.id === item.id); el.textContent = c ? c.quantidade : 0; }
+            });
+
+            const carrinhoDiv = document.getElementById('carrinho-itens');
+            if (carrinho.length === 0) {
+                carrinhoDiv.innerHTML = '<div style="text-align:center;padding:40px;color:#999;"><div style="font-size:4em;">🛒</div><p>Carrinho vazio</p></div>';
+            } else {
+                carrinhoDiv.innerHTML = carrinho.map(item => `
+                    <div class="item-carrinho">
+                        <div><strong>${item.emoji} ${item.quantidade}x ${item.nome}</strong><br>
+                        <small>R$ ${(item.preco * item.quantidade).toFixed(2)}</small></div>
+                        <button class="btn-remover" onclick="addCarrinho('${item.id}', -${item.quantidade})">🗑️</button>
+                    </div>
+                `).join('');
+            }
+
+            const fs = document.getElementById('form-section');
+            const ts = document.getElementById('total-section');
+            if (carrinho.length > 0) { fs.style.display = 'block'; ts.style.display = 'block'; }
+            else { fs.style.display = 'none'; ts.style.display = 'none'; }
+
+            const subtotal = carrinho.reduce((s,i) => s + (i.preco * i.quantidade), 0);
+            document.getElementById('subtotal').textContent = 'R$ ' + subtotal.toFixed(2);
+            document.getElementById('taxa-entrega').textContent = 'GRÁTIS';
+            document.getElementById('total-geral').textContent = 'R$ ' + subtotal.toFixed(2);
+            validarForm();
+        }
+
+        function validarForm() {
+            const nome = document.getElementById('nome-cliente').value.trim();
+            const pag = document.getElementById('pagamento-select').value;
+            document.getElementById('btn-finalizar').disabled = !(carrinho.length > 0 && nome && pag);
+        }
+
+        document.getElementById('nome-cliente').addEventListener('input', validarForm);
+        document.getElementById('pagamento-select').addEventListener('change', function() {
+            document.getElementById('pix-info').style.display = this.value === 'PIX' ? 'block' : 'none';
+            validarForm();
+        });
+        document.getElementById('telefone-cliente').addEventListener('input', function(e) {
+            let v = e.target.value.replace(/\D/g, '').slice(0,11);
+            if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+            if (v.length > 10) v = `${v.slice(0,10)}-${v.slice(10)}`;
+            e.target.value = v;
+        });
+
+        function enviarPedido() {
+            const nome = document.getElementById('nome-cliente').value.trim();
+            const tel = document.getElementById('telefone-cliente').value.trim();
+            const pag = document.getElementById('pagamento-select').value;
+            if (!nome || !pag || carrinho.length === 0) { alert('Preencha todos os campos!'); return; }
+
+            const cardapio = JSON.parse(localStorage.getItem(CARDAPIO_KEY) || '[]');
+            for (let item of carrinho) {
+                const ci = cardapio.find(c => c.id === item.id);
+                if (!ci || item.quantidade > ci.quantidade) { alert(`"${item.nome}" não tem quantidade suficiente!`); return; }
+            }
+
+            const subtotal = carrinho.reduce((s,i) => s + (i.preco * i.quantidade), 0);
+            const pedido = {
+                id: Date.now(), data: new Date().toISOString(),
+                cardapio: CARDAPIO_KEY, cardapioNome: CARDAPIO_NOME,
+                cliente: nome, telefone: tel,
+                setor: null, taxaEntrega: 0,
+                pagamento: pag,
+                itens: carrinho.map(i => ({ nome:i.nome, emoji:i.emoji, quantidade:i.quantidade, preco:i.preco })),
+                subtotal, total: subtotal, status: 'novo'
+            };
+
+            const todos = JSON.parse(localStorage.getItem('todosPedidos') || '[]');
+            todos.push(pedido);
+            localStorage.setItem('todosPedidos', JSON.stringify(todos));
+
+            carrinho.forEach(item => {
+                const ci = cardapio.find(c => c.id === item.id);
+                if (ci) ci.quantidade = Math.max(0, ci.quantidade - item.quantidade);
+            });
+            localStorage.setItem(CARDAPIO_KEY, JSON.stringify(cardapio));
+
+            const estoque = JSON.parse(localStorage.getItem('estoqueCentral') || '[]');
+            carrinho.forEach(item => {
+                const ci = cardapio.find(c => c.id === item.id);
+                if (ci) {
+                    const ei = estoque.find(e => e.id === ci.estoqueId);
+                    if (ei) ei.alocadoCardapio2 = Math.max(0, ei.alocadoCardapio2 - item.quantidade);
+                }
+            });
+            localStorage.setItem('estoqueCentral', JSON.stringify(estoque));
+
+            let msg = `🍫 *NOVO PEDIDO - ${CARDAPIO_NOME}* 🍫\n\n`;
+            msg += `👤 *Cliente:* ${nome}\n`;
+            if (tel) msg += `📱 *WhatsApp:* ${tel}\n`;
+            msg += `💳 *Pagamento:* ${pag}\n\n📋 *ITENS:*\n`;
+            carrinho.forEach(i => msg += `${i.emoji} ${i.quantidade}x ${i.nome} - R$ ${(i.preco*i.quantidade).toFixed(2)}\n`);
+            msg += `\n💰 *Subtotal:* R$ ${subtotal.toFixed(2)}\n`;
+            msg += `🚚 *Taxa de Entrega:* GRÁTIS\n`;
+            msg += `💵 *TOTAL: R$ ${subtotal.toFixed(2)}*\n`;
+            msg += `\n✅ Pedido #${pedido.id}`;
+
+            const config = JSON.parse(localStorage.getItem('adminConfig') || '{}');
+            const whatsapp = config.whatsapp || '5511999999999';
+            window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
+
+            carrinho = [];
+            ['nome-cliente','telefone-cliente','pagamento-select'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('pix-info').style.display = 'none';
+            atualizarInterface();
+            carregarCardapio();
+            alert('✅ Pedido enviado!');
+        }
+
+        inicializar();
+        atualizarInterface();
+    </script>
+</body>
+</html>

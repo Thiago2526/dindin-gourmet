@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio 1 - Din Din Gourmet</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2em; margin-bottom: 10px; }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        .menu-item {
+            border: 2px solid #f0f0f0;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .menu-item:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .menu-item.esgotado { opacity: 0.5; pointer-events: none; }
+        .sabor-emoji { font-size: 3em; text-align: center; margin-bottom: 10px; }
+        .menu-item h3 { margin-bottom: 5px; }
+        .preco { font-size: 1.5em; color: #f5576c; font-weight: bold; margin: 10px 0; }
+        .qtd-controle { display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-qtd { width: 35px; height: 35px; border-radius: 50%; border: 2px solid #f5576c; background: white; color: #f5576c; font-size: 1.2em; cursor: pointer; }
+        .carrinho-section { background: #f8f9fa; padding: 30px; border-top: 3px solid #f5576c; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em;
+        }
+        .btn-finalizar {
+            width: 100%; padding: 15px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white; border: none; border-radius: 10px; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-top: 10px;
+        }
+        .btn-finalizar:disabled { opacity: 0.5; cursor: not-allowed; }
+        .total { font-size: 1.5em; font-weight: bold; color: #f5576c; text-align: right; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍫 Cardápio Principal</h1>
+            <p>Escolha seus sabores favoritos!</p>
+        </div>
+
+        <div class="menu-grid" id="menu-grid"></div>
+
+        <div class="carrinho-section">
+            <h2 style="text-align:center;margin-bottom:20px;">🛒 Seu Pedido</h2>
+            <div id="carrinho-itens"></div>
+
+            <div class="form-group">
+                <label>📍 Selecione seu Setor/Bairro *</label>
+                <select id="setor-select" onchange="atualizarTotal()">
+                    <option value="">Selecione...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>👤 Nome Completo *</label>
+                <input type="text" id="nome-cliente" placeholder="Seu nome completo">
+            </div>
+
+            <div class="form-group">
+                <label>📱 WhatsApp</label>
+                <input type="tel" id="telefone-cliente" placeholder="(00) 00000-0000">
+            </div>
+
+            <div class="form-group">
+                <label>💳 Forma de Pagamento *</label>
+                <select id="pagamento-select">
+                    <option value="">Selecione...</option>
+                    <option value="PIX">PIX</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Cartão">Cartão</option>
+                </select>
+            </div>
+
+            <div class="total">
+                <div>Subtotal: <span id="subtotal">R$ 0,00</span></div>
+                <div>Taxa de Entrega: <span id="taxa-entrega">R$ 0,00</span></div>
+                <div style="font-size:1.2em;">TOTAL: <span id="total-geral">R$ 0,00</span></div>
+            </div>
+
+            <button class="btn-finalizar" id="btn-finalizar" onclick="enviarPedido()" disabled>
+                📱 Enviar Pedido via WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const CARDAPIO_KEY = 'cardapio1';
+        const CARDAPIO_NOME = 'Cardápio 1';
+        let carrinho = [];
+
+        function carregarCardapio() {
+            const cardapio = JSON.parse(localStorage.getItem(CARDAPIO_KEY) || '[]');
+            const menuGrid = document.getElementById('menu-grid');
+
+            if (cardapio.length === 0) {
+                menuGrid.innerHTML = '<p style="text-align:center;color:#999;grid-column:1/-1;">Cardápio indisponível no momento.</p>';
+                return;
+            }
+
+            menuGrid.innerHTML = cardapio.map(item => `
+                <div class="menu-item ${item.quantidade === 0 ? 'esgotado' : ''}">
+                    <div class="sabor-emoji">${item.emoji}</div>
+                    <h3>${item.nome}</h3>
+                    <p style="color:#666;font-size:0.9em;">${item.descricao}</p>
+                    <p class="preco">R$ ${item.preco.toFixed(2)}</p>
+                    <p style="font-size:0.9em;color:#666;">Disponível: ${item.quantidade}</p>
+                    <div class="qtd-controle">
+                        <button class="btn-qtd" onclick="addCarrinho('${item.id}', -1)">-</button>
+                        <span id="qtd-${item.id}">0</span>
+                        <button class="btn-qtd" onclick="addCarrinho('${item.id}', 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+
+            carregarSetores();
+        }
+
+        function carregarSetores() {
+            const setores = JSON.parse(localStorage.getItem('setores') || '[]');
+            const select = document.getElementById('setor-select');
+            select.innerHTML = '<option value="">Selecione um setor...</option>';
+            setores.forEach(s => {
+                select.innerHTML += `<option value="${s.id}" data-taxa="${s.taxa}" data-nome="${s.nome}">${s.nome} - Taxa: R$ ${s.taxa.toFixed(2)} (${s.tempo})</option>`;
+            });
+        }
+
+        function addCarrinho(id, qtd) {
+            const cardapio = JSON.parse(localStorage.getItem(CARDAPIO_KEY) || '[]');
+            const item = cardapio.find(i => i.id === id);
+            if (!item) return;
+
+            const noCarrinho = carrinho.find(i => i.id === id);
+            if (noCarrinho) {
+                noCarrinho.quantidade += qtd;
+                if (noCarrinho.quantidade <= 0) carrinho = carrinho.filter(i => i.id !== id);
+                else if (noCarrinho.quantidade > item.quantidade) {
+                    noCarrinho.quantidade = item.quantidade;
+                    alert('Quantidade máxima disponível!');
+                }
+            } else if (qtd > 0) {
+                if (qtd > item.quantidade) {
+                    alert('Quantidade máxima disponível!');
+                    return;
+                }
+                carrinho.push({
+                    id: item.id,
+                    nome: item.nome,
+                    emoji: item.emoji,
+                    preco: item.preco,
+                    quantidade: qtd,
+                    maxQtd: item.quantidade
+                });
+            }
+
+            atualizarInterface();
+        }
+
+        function atualizarInterface() {
+            const cardapio = JSON.parse(localStorage.getItem(CARDAPIO_KEY) || '[]');
+            
+            cardapio.forEach(item => {
+                const el = document.getElementById('qtd-' + item.id);
+                if (el) {
+                    const noCarrinho = carrinho.find(i => i.id === item.id);
+                    el.textContent = noCarrinho ? noCarrinho.quantidade : 0;
+                }
+            });
+
+            const carrinhoDiv = document.getElementById('carrinho-itens');
+            if (carrinho.length === 0) {
+                carrinhoDiv.innerHTML = '<p style="text-align:center;color:#999;">Carrinho vazio</p>';
+            } else {
+                carrinhoDiv.innerHTML = carrinho.map(item => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:white;border-radius:8px;margin-bottom:8px;">
+                        <span>${item.emoji} ${item.quantidade}x ${item.nome}</span>
+                        <span>R$ ${(item.preco * item.quantidade).toFixed(2)}</span>
+                        <button onclick="addCarrinho('${item.id}', -${item.quantidade})" style="background:#ff4757;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">🗑️</button>
+                    </div>
+                `).join('');
+            }
+
+            atualizarTotal();
+            validarForm();
+        }
+
+        function atualizarTotal() {
+            const subtotal = carrinho.reduce((s, i) => s + (i.preco * i.quantidade), 0);
+            const select = document.getElementById('setor-select');
+            const option = select.options[select.selectedIndex];
+            const taxa = option && option.dataset ? parseFloat(option.dataset.taxa) || 0 : 0;
+
+            document.getElementById('subtotal').textContent = 'R$ ' + subtotal.toFixed(2);
+            document.getElementById('taxa-entrega').textContent = 'R$ ' + taxa.toFixed(2);
+            document.getElementById('total-geral').textContent = 'R$ ' + (subtotal + taxa).toFixed(2);
+        }
+
+        function validarForm() {
+            const nome = document.getElementById('nome-cliente').value.trim();
+            const setor = document.getElementById('setor-select').value;
+            const pagamento = document.getElementById('pagamento-select').value;
+            document.getElementById('btn-finalizar').disabled = !(carrinho.length > 0 && nome && setor && pagamento);
+        }
+
+        document.getElementById('nome-cliente').addEventListener('input', validarForm);
+        document.getElementById('setor-select').addEventListener('change', () => { atualizarTotal(); validarForm(); });
+        document.getElementById('pagamento-select').addEventListener('change', validarForm);
+
+        function enviarPedido() {
+            const nome = document.getElementById('nome-cliente').value.trim();
+            const telefone = document.getElementById('telefone-cliente').value.trim();
+            const setorSelect = document.getElementById('setor-select');
+            const setorNome = setorSelect.options[setorSelect.selectedIndex].dataset.nome;
+            const taxa = parseFloat(setorSelect.options[setorSelect.selectedIndex].dataset.taxa);
+            const pagamento = document.getElementById('pagamento-select').value;
+            const subtotal = carrinho.reduce((s, i) => s + (i.preco * i.quantidade), 0);
+            const total = subtotal + taxa;
+
+            // Salvar pedido
+            const pedido = {
+                id: Date.now(),
+                data: new Date().toISOString(),
+                cardapio: CARDAPIO_KEY,
+                cliente: nome,
+                telefone,
+                setor: setorNome,
+                taxaEntrega: taxa,
+                pagamento,
+                itens: carrinho.map(i => ({ nome: i.nome, emoji: i.emoji, quantidade: i.quantidade, preco: i.preco })),
+                subtotal,
+                total,
+                status: 'novo'
+            };
+
+            const todosPedidos = JSON.parse(localStorage.getItem('todosPedidos') || '[]');
+            todosPedidos.push(pedido);
+            localStorage.setItem('todosPedidos', JSON.stringify(todosPedidos));
+
+            // Diminuir estoque do cardápio
+            const cardapio = JSON.parse(localStorage.getItem(CARDAPIO_KEY) || '[]');
+            carrinho.forEach(item => {
+                const cardapioItem = cardapio.find(c => c.id === item.id);
+                if (cardapioItem) {
+                    cardapioItem.quantidade = Math.max(0, cardapioItem.quantidade - item.quantidade);
+                }
+            });
+            localStorage.setItem(CARDAPIO_KEY, JSON.stringify(cardapio));
+
+            // Diminuir estoque central
+            const estoqueCentral = JSON.parse(localStorage.getItem('estoqueCentral') || '[]');
+            carrinho.forEach(item => {
+                const cardapioItem = cardapio.find(c => c.id === item.id);
+                if (cardapioItem) {
+                    const estoqueItem = estoqueCentral.find(e => e.id === cardapioItem.estoqueId);
+                    if (estoqueItem) {
+                        if (CARDAPIO_KEY === 'cardapio1') {
+                            estoqueItem.alocadoCardapio1 = Math.max(0, estoqueItem.alocadoCardapio1 - item.quantidade);
+                        } else {
+                            estoqueItem.alocadoCardapio2 = Math.max(0, estoqueItem.alocadoCardapio2 - item.quantidade);
+                        }
+                    }
+                }
+            });
+            localStorage.setItem('estoqueCentral', JSON.stringify(estoqueCentral));
+
+            // Mensagem WhatsApp
+            let msg = `🍫 *NOVO PEDIDO - ${CARDAPIO_NOME}* 🍫\n\n`;
+            msg += `👤 *Cliente:* ${nome}\n`;
+            if (telefone) msg += `📱 *WhatsApp:* ${telefone}\n`;
+            msg += `📍 *Setor:* ${setorNome}\n`;
+            msg += `💳 *Pagamento:* ${pagamento}\n\n`;
+            msg += `📋 *ITENS:*\n`;
+            carrinho.forEach(i => msg += `${i.emoji} ${i.quantidade}x ${i.nome} - R$ ${(i.preco * i.quantidade).toFixed(2)}\n`);
+            msg += `\n💰 Subtotal: R$ ${subtotal.toFixed(2)}\n`;
+            msg += `🚚 Taxa de Entrega: R$ ${taxa.toFixed(2)}\n`;
+            msg += `💵 *TOTAL: R$ ${total.toFixed(2)}*\n`;
+            msg += `\n✅ Pedido #${pedido.id}`;
+
+            const config = JSON.parse(localStorage.getItem('adminConfig') || '{}');
+            const whatsapp = config.whatsapp || '5511999999999';
+            window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
+
+            // Limpar
+            carrinho = [];
+            document.getElementById('nome-cliente').value = '';
+            document.getElementById('telefone-cliente').value = '';
+            document.getElementById('setor-select').value = '';
+            document.getElementById('pagamento-select').value = '';
+            atualizarInterface();
+            carregarCardapio();
+            alert('✅ Pedido enviado com sucesso!');
+        }
+
+        carregarCardapio();
+    </script>
+</body>
+</html>

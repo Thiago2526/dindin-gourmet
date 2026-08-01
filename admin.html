@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Master - Din Din Gourmet | Gestão Completa</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-sair {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .resumo-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .resumo-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .resumo-card .icon { font-size: 2em; margin-bottom: 8px; }
+        .resumo-card h3 { color: #666; font-size: 0.85em; margin-bottom: 8px; }
+        .resumo-card .valor { font-size: 1.8em; font-weight: bold; color: #667eea; }
+
+        .tabs-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            padding: 10px;
+            gap: 8px;
+            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 18px;
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content { display: none; padding: 25px; }
+        .tab-content.active { display: block; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95em;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-success { background: #4CAF50; color: white; }
+        .btn-danger { background: #ff4757; color: white; }
+        .btn-warning { background: #ffa502; color: white; }
+        .btn-info { background: #74b9ff; color: white; }
+        .btn-small { padding: 6px 12px; font-size: 0.8em; border-radius: 6px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        .badge-info { background: #d1ecf1; color: #0c5460; }
+        .badge-primary { background: #cce5ff; color: #004085; }
+
+        .card-info {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .card-warning {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ffa502;
+        }
+
+        .login-container {
+            max-width: 450px;
+            margin: 80px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .permissao-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .permissao-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .estoque-barra {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+
+        .estoque-barra-preenchimento {
+            height: 100%;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .estoque-barra-preenchimento.alta { background: #4CAF50; }
+        .estoque-barra-preenchimento.media { background: #ffa502; }
+        .estoque-barra-preenchimento.baixa { background: #ff4757; }
+
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .tabs { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- TELA DE LOGIN -->
+        <div id="login-screen">
+            <div class="login-container">
+                <div style="text-align:center;margin-bottom:25px;">
+                    <div style="font-size:4em;">🍫</div>
+                    <h2>Din Din Gourmet</h2>
+                    <p style="color:#666;">Painel do Administrador</p>
+                </div>
+                <div class="form-group">
+                    <label>👤 Usuário</label>
+                    <input type="text" id="login-usuario" placeholder="Digite seu usuário">
+                </div>
+                <div class="form-group">
+                    <label>🔒 Senha</label>
+                    <input type="password" id="login-senha" placeholder="Digite sua senha">
+                </div>
+                <button class="btn btn-primary" onclick="fazerLogin()" style="width:100%;">🚀 Entrar</button>
+                <p style="text-align:center;margin-top:15px;color:#999;font-size:0.9em;">
+                    Admin Master: master / admin123
+                </p>
+            </div>
+        </div>
+
+        <!-- PAINEL ADMIN -->
+        <div id="admin-panel" style="display:none;">
+            <div class="admin-container">
+                <div class="header">
+                    <h1>🍫 Din Din Gourmet - <span id="painel-tipo"></span></h1>
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <span id="user-display" style="font-weight:bold;"></span>
+                        <button class="btn-sair" onclick="logout()">🚪 Sair</button>
+                    </div>
+                </div>
+
+                <div class="resumo-cards">
+                    <div class="resumo-card">
+                        <div class="icon">📦</div>
+                        <h3>Estoque Total</h3>
+                        <div class="valor" id="estoque-total">0</div>
+                    </div>
+                    <div class="resumo-card">
+                        <div class="icon">📋</div>
+                        <h3>Cardápio 1 (Disponível)</h3>
+                        <div class="valor" id="cardapio1-qtd">0</div>
+                    </div>
+                    <div class="resumo-card">
+                        <div class="icon">📋</div>
+                        <h3>Cardápio 2D (Alocado)</h3>
+                        <div class="valor" id="cardapio2-qtd">0</div>
+                    </div>
+                    <div class="resumo-card">
+                        <div class="icon">💰</div>
+                        <h3>Faturamento</h3>
+                        <div class="valor" id="faturamento-total">R$0</div>
+                    </div>
+                </div>
+
+                <div class="tabs-container">
+                    <div class="tabs">
+                        <button class="tab active" onclick="mudarTab('estoque')">📦 Estoque Central</button>
+                        <button class="tab" onclick="mudarTab('cardapio1')" id="tab-cardapio1-btn">📋 Cardápio 1</button>
+                        <button class="tab" onclick="mudarTab('cardapio2')" id="tab-cardapio2-btn">📋 Cardápio 2D</button>
+                        <button class="tab" onclick="mudarTab('setores')">🏙️ Setores/Bairros</button>
+                        <button class="tab" onclick="mudarTab('admins')" id="tab-admins-btn">👥 Administradores</button>
+                        <button class="tab" onclick="mudarTab('pedidos')">📦 Pedidos</button>
+                        <button class="tab" onclick="mudarTab('config')">⚙️ Config</button>
+                    </div>
+
+                    <!-- TAB ESTOQUE CENTRAL -->
+                    <div class="tab-content active" id="tab-estoque">
+                        <h2>📦 Estoque Central</h2>
+                        <p style="color:#666;margin-bottom:20px;">Gerencie o estoque total. O Cardápio 1 mostra automaticamente o disponível.</p>
+                        
+                        <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:20px;">
+                            <h3>➕ Adicionar Sabor ao Estoque</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nome do Sabor *</label>
+                                    <input type="text" id="estoque-nome" placeholder="Ex: Chocolate Belga">
+                                </div>
+                                <div class="form-group">
+                                    <label>Emoji</label>
+                                    <input type="text" id="estoque-emoji" placeholder="🍫" maxlength="2">
+                                </div>
+                                <div class="form-group">
+                                    <label>Preço (R$) *</label>
+                                    <input type="number" id="estoque-preco" placeholder="5.00" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label>Quantidade Total *</label>
+                                    <input type="number" id="estoque-qtd" placeholder="50" min="1" value="50">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Descrição</label>
+                                <textarea id="estoque-descricao" rows="2" placeholder="Descreva o sabor..."></textarea>
+                            </div>
+                            <button class="btn btn-primary" onclick="adicionarAoEstoque()">➕ Adicionar ao Estoque</button>
+                        </div>
+
+                        <h3>📊 Sabores em Estoque</h3>
+                        <div id="estoque-lista">
+                            <p style="color:#999;">Nenhum sabor no estoque.</p>
+                        </div>
+                    </div>
+
+                    <!-- TAB CARDÁPIO 1 (Mostra o disponível do estoque) -->
+                    <div class="tab-content" id="tab-cardapio1">
+                        <h2>📋 Cardápio Principal</h2>
+                        
+                        <div class="card-info">
+                            <strong>📋 Cardápio 1 = Estoque Central - Alocado para Cardápio 2D</strong><br>
+                            <small style="color:#666;">Este cardápio mostra automaticamente o que está disponível no estoque central.</small>
+                        </div>
+
+                        <div class="card-warning">
+                            <strong>⚠️ Importante:</strong> Para reduzir a quantidade do Cardápio 1, aloque sabores para o Cardápio 2D. O Cardápio 1 sempre mostra o saldo disponível.
+                        </div>
+
+                        <h3>🍫 Sabores Disponíveis no Cardápio 1</h3>
+                        <div id="cardapio1-lista">
+                            <p style="color:#999;">Nenhum sabor disponível.</p>
+                        </div>
+
+                        <div style="margin-top:20px;text-align:center;">
+                            <button class="btn btn-success" onclick="sincronizarCardapio1()" style="font-size:1.1em;padding:12px 30px;">
+                                🔄 Sincronizar Cardápio 1 com Estoque
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TAB CARDÁPIO 2D -->
+                    <div class="tab-content" id="tab-cardapio2">
+                        <h2>📋 Cardápio 2D</h2>
+                        
+                        <div class="card-info">
+                            <strong>📋 Cardápio 2D:</strong> Aqui você aloca uma quantidade específica do estoque central.<br>
+                            <small style="color:#666;">O que for alocado aqui será deduzido do Cardápio 1 automaticamente.</small>
+                        </div>
+
+                        <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:20px;">
+                            <h3>📤 Alocar do Estoque para Cardápio 2D</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Selecione o Sabor</label>
+                                    <select id="alocar2-sabor"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Quantidade para Cardápio 2D</label>
+                                    <input type="number" id="alocar2-qtd" placeholder="10" min="1" value="10">
+                                </div>
+                            </div>
+                            <button class="btn btn-success" onclick="alocarParaCardapio2()">📤 Alocar para Cardápio 2D</button>
+                            <p style="color:#666;font-size:0.9em;margin-top:10px;">
+                                ⚠️ Esta quantidade será <strong>deduzida</strong> do Cardápio 1 automaticamente.
+                            </p>
+                        </div>
+
+                        <h3>🍫 Sabores Alocados no Cardápio 2D</h3>
+                        <div id="cardapio2-lista">
+                            <p style="color:#999;">Nenhum sabor alocado.</p>
+                        </div>
+                    </div>
+
+                    <!-- TAB SETORES -->
+                    <div class="tab-content" id="tab-setores">
+                        <h2>🏙️ Gerenciar Setores e Bairros</h2>
+                        <p style="color:#666;margin-bottom:20px;">Cadastre setores com taxas de entrega diferentes</p>
+                        
+                        <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:20px;">
+                            <h3>➕ Adicionar Setor</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nome do Setor/Bairro *</label>
+                                    <input type="text" id="setor-nome" placeholder="Ex: Centro">
+                                </div>
+                                <div class="form-group">
+                                    <label>Taxa de Entrega (R$) *</label>
+                                    <input type="number" id="setor-taxa" placeholder="5.00" step="0.01" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Tempo Estimado</label>
+                                    <input type="text" id="setor-tempo" placeholder="Ex: 30-45 min" value="30-45 min">
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="adicionarSetor()">➕ Adicionar Setor</button>
+                        </div>
+
+                        <h3>📍 Setores Cadastrados</h3>
+                        <table>
+                            <thead>
+                                <tr><th>Setor/Bairro</th><th>Taxa de Entrega</th><th>Tempo</th><th>Ações</th></tr>
+                            </thead>
+                            <tbody id="setores-lista">
+                                <tr><td colspan="4" style="color:#999;">Nenhum setor cadastrado.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- TAB ADMINISTRADORES -->
+                    <div class="tab-content" id="tab-admins">
+                        <h2>👥 Gerenciar Administradores</h2>
+                        <p style="color:#666;margin-bottom:20px;">Cadastre administradores com permissão por cardápio</p>
+                        
+                        <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:20px;">
+                            <h3>➕ Cadastrar Novo Administrador</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nome Completo *</label>
+                                    <input type="text" id="admin-nome" placeholder="Ex: João Silva">
+                                </div>
+                                <div class="form-group">
+                                    <label>Nome de Usuário *</label>
+                                    <input type="text" id="admin-usuario" placeholder="Ex: joao">
+                                </div>
+                                <div class="form-group">
+                                    <label>Senha *</label>
+                                    <input type="password" id="admin-senha" placeholder="Mínimo 6 caracteres">
+                                </div>
+                            </div>
+                            
+                            <div style="background:white;padding:15px;border-radius:10px;margin:15px 0;">
+                                <label style="font-weight:bold;margin-bottom:10px;display:block;">📋 Permissão de Acesso:</label>
+                                
+                                <div class="permissao-checkbox">
+                                    <input type="checkbox" id="perm-cardapio1" checked>
+                                    <label for="perm-cardapio1">📋 Cardápio Principal (Cardápio 1)</label>
+                                </div>
+                                
+                                <div class="permissao-checkbox">
+                                    <input type="checkbox" id="perm-cardapio2">
+                                    <label for="perm-cardapio2">📋 Cardápio 2D</label>
+                                </div>
+                                
+                                <div class="permissao-checkbox">
+                                    <input type="checkbox" id="perm-estoque">
+                                    <label for="perm-estoque">📦 Estoque Central</label>
+                                </div>
+                                
+                                <div class="permissao-checkbox">
+                                    <input type="checkbox" id="perm-setores">
+                                    <label for="perm-setores">🏙️ Gerenciar Setores</label>
+                                </div>
+                                
+                                <div class="permissao-checkbox">
+                                    <input type="checkbox" id="perm-admins">
+                                    <label for="perm-admins">👥 Gerenciar Administradores</label>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-success" onclick="cadastrarAdmin()">✅ Cadastrar Administrador</button>
+                        </div>
+
+                        <h3>📋 Administradores Cadastrados</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Usuário</th>
+                                    <th>Permissões</th>
+                                    <th>Último Acesso</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admins-lista">
+                                <tr><td colspan="5" style="color:#999;">Nenhum administrador cadastrado.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- TAB PEDIDOS -->
+                    <div class="tab-content" id="tab-pedidos">
+                        <h2>📦 Todos os Pedidos</h2>
+                        <div id="pedidos-lista">
+                            <p style="color:#999;">Carregando pedidos...</p>
+                        </div>
+                    </div>
+
+                    <!-- TAB CONFIG -->
+                    <div class="tab-content" id="tab-config">
+                        <h2>⚙️ Configurações Gerais</h2>
+                        <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:20px;">
+                            <h3>📱 WhatsApp Principal</h3>
+                            <div class="form-group">
+                                <label>Número WhatsApp (com DDD)</label>
+                                <input type="text" id="config-whatsapp" placeholder="5511999999999">
+                            </div>
+                            <div class="form-group">
+                                <label>Chave PIX</label>
+                                <input type="text" id="config-pix" placeholder="pix@dindingourmet.com.br">
+                            </div>
+                            <button class="btn btn-primary" onclick="salvarConfig()">💾 Salvar</button>
+                        </div>
+                        <div style="background:#f8f9fa;padding:20px;border-radius:12px;">
+                            <h3>🔒 Alterar Minha Senha</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Senha Atual</label>
+                                    <input type="password" id="senha-atual">
+                                </div>
+                                <div class="form-group">
+                                    <label>Nova Senha</label>
+                                    <input type="password" id="nova-senha">
+                                </div>
+                            </div>
+                            <button class="btn btn-warning" onclick="alterarSenha()">🔄 Alterar Senha</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ SISTEMA COMPLETO ============
+        
+        let adminAtual = null;
+
+        function inicializar() {
+            if (!localStorage.getItem('adminMaster')) {
+                localStorage.setItem('adminMaster', JSON.stringify({
+                    usuario: 'master', senha: 'admin123', nome: 'Admin Master', tipo: 'master'
+                }));
+            }
+
+            if (!localStorage.getItem('admins')) {
+                localStorage.setItem('admins', JSON.stringify([
+                    {
+                        id: 'admin_master_001',
+                        nome: 'Admin Master',
+                        usuario: 'master',
+                        senha: 'admin123',
+                        tipo: 'master',
+                        permissoes: { cardapio1: true, cardapio2: true, estoque: true, setores: true, admins: true },
+                        ativo: true,
+                        dataCriacao: new Date().toISOString(),
+                        ultimoAcesso: null
+                    }
+                ]));
+            }
+
+            if (!localStorage.getItem('estoqueCentral')) localStorage.setItem('estoqueCentral', JSON.stringify([]));
+            if (!localStorage.getItem('cardapio1')) localStorage.setItem('cardapio1', JSON.stringify([]));
+            if (!localStorage.getItem('cardapio2')) localStorage.setItem('cardapio2', JSON.stringify([]));
+            if (!localStorage.getItem('setores')) {
+                localStorage.setItem('setores', JSON.stringify([
+                    { id: 'setor1', nome: 'Centro', taxa: 5.00, tempo: '30-45 min' },
+                    { id: 'setor2', nome: 'Bairro A', taxa: 8.00, tempo: '45-60 min' },
+                    { id: 'setor3', nome: 'Bairro B', taxa: 10.00, tempo: '50-70 min' }
+                ]));
+            }
+            if (!localStorage.getItem('todosPedidos')) localStorage.setItem('todosPedidos', JSON.stringify([]));
+        }
+
+        // ============ LOGIN ============
+        function fazerLogin() {
+            const usuario = document.getElementById('login-usuario').value.trim().toLowerCase();
+            const senha = document.getElementById('login-senha').value;
+
+            if (!usuario || !senha) { alert('❌ Preencha usuário e senha!'); return; }
+
+            const admins = JSON.parse(localStorage.getItem('admins') || '[]');
+            const admin = admins.find(a => a.usuario === usuario && a.senha === senha && a.ativo);
+
+            if (!admin) { alert('❌ Usuário ou senha incorretos!'); return; }
+
+            admin.ultimoAcesso = new Date().toISOString();
+            localStorage.setItem('admins', JSON.stringify(admins));
+            adminAtual = admin;
+            localStorage.setItem('adminAtual', JSON.stringify(admin));
+
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            configurarInterface();
+            carregarTudo();
+        }
+
+        function configurarInterface() {
+            if (!adminAtual) return;
+            document.getElementById('user-display').textContent = `👤 ${adminAtual.nome} (${adminAtual.tipo === 'master' ? '👑 Master' : 'Admin'})`;
+            document.getElementById('painel-tipo').textContent = adminAtual.tipo === 'master' ? 'Admin Master' : 'Administrador';
+
+            const p = adminAtual.permissoes || {};
+            const isMaster = adminAtual.tipo === 'master';
+            document.getElementById('tab-cardapio1-btn').style.display = (isMaster || p.cardapio1) ? 'inline-flex' : 'none';
+            document.getElementById('tab-cardapio2-btn').style.display = (isMaster || p.cardapio2) ? 'inline-flex' : 'none';
+            document.getElementById('tab-admins-btn').style.display = (isMaster || p.admins) ? 'inline-flex' : 'none';
+        }
+
+        function logout() {
+            adminAtual = null;
+            localStorage.removeItem('adminAtual');
+            document.getElementById('login-screen').style.display = 'block';
+            document.getElementById('admin-panel').style.display = 'none';
+        }
+
+        // ============ NAVEGAÇÃO ============
+        function mudarTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+
+            if (tab === 'estoque') carregarEstoque();
+            if (tab === 'cardapio1') carregarCardapio1();
+            if (tab === 'cardapio2') carregarCardapio2();
+            if (tab === 'setores') carregarSetores();
+            if (tab === 'admins') carregarListaAdmins();
+            if (tab === 'pedidos') carregarPedidos();
+            if (tab === 'config') carregarConfig();
+        }
+
+        // ============ ESTOQUE CENTRAL ============
+        function adicionarAoEstoque() {
+            const nome = document.getElementById('estoque-nome').value.trim();
+            const emoji = document.getElementById('estoque-emoji').value.trim();
+            const preco = parseFloat(document.getElementById('estoque-preco').value);
+            const qtd = parseInt(document.getElementById('estoque-qtd').value);
+            const descricao = document.getElementById('estoque-descricao').value.trim();
+
+            if (!nome || !preco || !qtd) { alert('Preencha nome, preço e quantidade!'); return; }
+
+            const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
+            estoque.push({
+                id: 'est_' + Date.now(),
+                nome, emoji: emoji || '🍫',
+                descricao: descricao || 'Delicioso din din gourmet',
+                preco,
+                quantidadeTotal: qtd,
+                alocadoCardapio2: 0
+            });
+
+            localStorage.setItem('estoqueCentral', JSON.stringify(estoque));
+            sincronizarCardapio1();
+            carregarEstoque();
+            limparCamposEstoque();
+            atualizarResumo();
+        }
+
+        function limparCamposEstoque() {
+            ['estoque-nome', 'estoque-emoji', 'estoque-preco', 'estoque-qtd', 'estoque-descricao'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('estoque-qtd').value = '50';
+        }
+
+        function carregarEstoque() {
+            const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
+            const lista = document.getElementById('estoque-lista');
+
+            if (estoque.length === 0) {
+                lista.innerHTML = '<p style="color:#999;">Nenhum sabor no estoque.</p>';
+                return;
+            }
+
+            lista.innerHTML = estoque.map(item => {
+                const disponivel = item.quantidadeTotal - item.alocadoCardapio2;
+                const percDisponivel = item.quantidadeTotal > 0 ? (disponivel / item.quantidadeTotal) * 100 : 0;
+                const classeBarra = percDisponivel > 50 ? 'alta' : percDisponivel > 20 ? 'media' : 'baixa';
+
+                return `
+                    <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:10px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                            <div>
+                                <strong>${item.emoji} ${item.nome}</strong>
+                                <small style="color:#666;"> - R$ ${item.preco.toFixed(2)}</small>
+                            </div>
+                            <button class="btn btn-danger btn-small" onclick="removerDoEstoque('${item.id}')">🗑️</button>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <small>Total: ${item.quantidadeTotal} | Cardápio 2D: ${item.alocadoCardapio2} | <strong>Disponível C1: ${disponivel}</strong></small>
+                        </div>
+                        <div class="estoque-barra">
+                            <div class="estoque-barra-preenchimento ${classeBarra}" style="width:${percDisponivel}%;"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            atualizarResumo();
+        }
+
+        function removerDoEstoque(id) {
+            if (confirm('Remover este sabor do estoque? Isso afetará ambos os cardápios.')) {
+                let estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
+                const item = estoque.find(i => i.id === id);
+                
+                // Remover também do cardápio 2 se tiver alocado
+                if (item && item.alocadoCardapio2 > 0) {
+                    let cardapio2 = JSON.parse(localStorage.getItem('cardapio2'));
+                    cardapio2 = cardapio2.filter(c => c.estoqueId !== id);
+                    localStorage.setItem('cardapio2', JSON.stringify(cardapio2));
+                }
+                
+                estoque = estoque.filter(i => i.id !== id);
+                localStorage.setItem('estoqueCentral', JSON.stringify(estoque));
+                sincronizarCardapio1();
+                carregarEstoque();
+                carregarCardapio2();
+            }
+        }
+
+        // ============ SINCRONIZAR CARDÁPIO 1 COM ESTOQUE ============
+        function sincronizarCardapio1() {
+            const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
+            const cardapio1 = [];
+
+            estoque.forEach(item => {
+                const disponivel = item.quantidadeTotal - item.alocadoCardapio2;
+                if (disponivel > 0) {
+                    cardapio1.push({
+                        id: 'c1_' + item.id,
+                        estoqueId: item.id,
+                        nome: item.nome,
+                        emoji: item.emoji,
+                        descricao: item.descricao,
+                        preco: item.preco,
+                        quantidade: disponivel,
+                        quantidadeInicial: disponivel
+                    });
+                }
+            });
+
+            localStorage.setItem('cardapio1', JSON.stringify(cardapio1));
+        }
+
+        function carregarCardapio1() {
+            const cardapio1 = JSON.parse(localStorage.getItem('cardapio1'));
+            const lista = document.getElementById('cardapio1-lista');
+
+            if (cardapio1.length === 0) {
+                lista.innerHTML = '<p style="color:#999;">Nenhum sabor disponível no Cardápio 1.</p>';
+                return;
+            }
+
+            lista.innerHTML = cardapio1.map(item => {
+                const perc = item.quantidadeInicial > 0 ? (item.quantidade / item.quantidadeInicial) * 100 : 0;
+                const cls = perc > 50 ? 'alta' : perc > 20 ? 'media' : 'baixa';
+
+                return `
+                    <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:10px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <div>
+                                <strong>${item.emoji} ${item.nome}</strong> - R$ ${item.preco.toFixed(2)}
+                            </div>
+                            <span class="badge badge-success">${item.quantidade} unid.</span>
+                        </div>
+                        <div class="estoque-barra" style="margin-top:8px;">
+                            <div class="estoque-barra-preenchimento ${cls}" style="width:${perc}%;"></div>
+                        </div>
+                        <small style="color:#666;">Disponível para venda no Cardápio 1</small>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('cardapio1-qtd').textContent = cardapio1.reduce((s, i) => s + i.quantidade, 0);
+        }
+
+        // ============ CARDÁPIO 2D ============
+        function carregarSelectEstoque2() {
+            const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
+            const select = document.getElementById('alocar2-sabor');
+            select.innerHTML = '<option value="">Selecione um sabor...</option>';
+            estoque.forEach(item => {
+                const disponivel = item.quantidadeTotal - item.alocadoCardapio2;
+                select.innerHTML += `<option value="${item.id}">${item.nome} - Disp p/ C2D: ${disponivel}</option>`;
+            });
+        }
+
+        function alocarParaCardapio2() {
+            const saborId = document.getElementById('alocar2-sabor').value;
+            const qtd = parseInt(document.getElementById('alocar2-qtd').value);
+
+            if (!saborId || !qtd || qtd < 1) {
+                alert('Selecione um sabor e quantidade válida!');
+                return;
+            }
+
+            const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
+            const item = estoque.find(i => i.id === saborId);
+            if (!item) { alert('Sabor não encontrado!'); return; }
+
+            const disponivel = item.quantidadeTotal - item.alocadoCardapio2;
+            if (qtd > disponivel) {
+                alert(`Quantidade indisponível! Disponível para alocar: ${disponivel}`);
+                return;
+            }
+
+            // Atualizar estoque central
+            item.alocadoCardapio2 += qtd;
+            localStorage.setItem('estoqueCentral', JSON.stringify(estoque));
+
+            // Adicionar/atualizar cardápio 2
+            const cardapio2 = JSON.parse(localStorage.getItem('cardapio2'));
+            const existente = cardapio2.find(c => c.estoqueId === saborId);
+            if (existente) {
+                existente.quantidade += qtd;
+                existente.quantidadeInicial += qtd;
+            } else {
+                cardapio2.push({
+                    id: 'c2_' + Date.now(),
+                    estoqueId: item.id,
+                    nome: item.nome,
+                    emoji: item.emoji,
+                    descricao: item.descricao,
+                    preco: item.preco,
+                    quantidade: qtd,
+                    quantidadeInicial: qtd
+                });
+            }
+            localStorage.setItem('cardapio2', JSON.stringify(cardapio2));
+
+            // Sincronizar cardápio 1 (vai diminuir automaticamente)
+            sincronizarCardapio1();
+
+            // Limpar campo
+            document.getElementById('alocar2-qtd').value = '10';
+            document.getElementById('alocar2-sabor').value = '';
+
+            carregarEstoque();
+            carregarCardapio1();
+            carregarCardapio2();
+            atualizarResumo();
+            alert('✅ Alocado para Cardápio 2D com sucesso! Cardápio 1 foi atualizado automaticamente.');
+        }
+
+        function carregarCardapio2() {
+            carregarSelectEstoque2();
+            const cardapio2 = JSON.parse(localStorage.getItem('cardapio2'));
+            const lista = document.getElementById('cardapio2-lista');
+
+            if (cardapio2.length === 0) {
+                lista.innerHTML = '<p style="color:#999;">Nenhum sabor alocado para o Cardápio 2D.</p>';
+                return;
+            }
+
+            lista.innerHTML = cardapio2.map(item => `
+                <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <strong>${item.emoji} ${item.nome}</strong> - R$ ${item.preco.toFixed(2)}<br>
+                        <small>Qtd: ${item.quantidade} | Inicial: ${item.quantidadeInicial}</small>
+                    </div>
+                    <div style="display:flex;gap:5px;">
+                        <button class="btn btn-warning btn-small" onclick="devolverDoCardapio2('${item.id}')">🔄 Devolver</button>
+                        <button class="btn btn-danger btn-small" onclick="removerDoCardapio2('${item.id}')">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('cardapio2-qtd').textContent = cardapio2.reduce((s, i) => s + i.quantidade, 0);
+        }
+
+        function devolverDoCardapio2(id) {
+            const qtd = prompt('Quantas unidades devolver ao estoque?', '1');
+            if (!qtd || isNaN(qtd) || parseInt(qtd) < 1) return;
+
+            const cardapio2 = JSON.parse(localStorage.getItem('cardapio2'));
+            const item = cardapio2.find(i => i.id === id);
+            if (!item) return;
+
+            const qtdDevolver = Math.min(parseInt(qtd), item.quantidade);
+            
+            // Atualizar estoque central
+            const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
+            const estoqueItem = estoque.find(e => e.id === item.estoqueId);
+            if (estoqueItem) {
+                estoqueItem.alocadoCardapio2 = Math.max(0, estoqueItem.alocadoCardapio2 - qtdDevolver);
+                localStorage.setItem('estoqueCentral', JSON.stringify(estoque));
+            }
+
+            // Atualizar cardápio 2
+            item.quantidade -= qtdDevolver;
+            if (item.quantidade <= 0) {
+                const novoCardapio = cardapio2.filter(i => i.id !== id);
+                localStorage.setItem('cardapio2', JSON.stringify(novoCardapio));
+            } else {
+                localStorage.setItem('cardapio2', JSON.stringify(cardapio2));
+            }
+
+            sincronizarCardapio1();
+            carregarEstoque();
+            carregarCardapio1();
+            carregarCardapio2();
+            atualizarResumo();
+            alert(`✅ ${qtdDevolver} unidades devolvidas ao estoque!`);
+        }
+
+        function removerDoCardapio2(id) {
+            if (confirm('Remover completamente este sabor do Cardápio 2D?')) {
+                const cardapio2 = JSON.parse(localStorage.getItem('cardapio2'));
+                const item = cardapio2.find(i => i.id === id);
+                
+                if (item) {
+                    const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
+                    const estoqueItem = estoque.find(e => e.id === item.estoqueId);
+                    if (estoqueItem) {
+                        estoqueItem.alocadoCardapio2 = Math.max(0, estoqueItem.alocadoCardapio2 - item.quantidade);
+                        localStorage.setItem('estoqueCentral', JSON.stringify(estoque));
+                    }
+                }
+
+                const novoCardapio = cardapio2.filter(i => i.id !== id);
+                localStorage.setItem('cardapio2', JSON.stringify(novoCardapio));
+                sincronizarCardapio1();
+                carregarEstoque();
+                carregarCardapio1();
+                carregarCardapio2();
+                atualizarResumo();
+            }
+        }
+
+        // ============ SETORES ============
+        function adicionarSetor() {
+            const nome = document.getElementById('setor-nome').value.trim();
+            const taxa = parseFloat(document.getElementById('setor-taxa').value);
+            const tempo = document.getElementById('setor-tempo').value.trim();
+
+            if (!nome || isNaN(taxa)) { alert('Preencha nome e taxa!'); return; }
+
+            const setores = JSON.parse(localStorage.getItem('setores'));
+            setores.push({ id: 'setor_' + Date.now(), nome, taxa, tempo: tempo || '30-45 min' });
+            localStorage.setItem('setores', JSON.stringify(setores));
+            carregarSetores();
+            document.getElementById('setor-nome').value = '';
+            document.getElementById('setor-taxa').value = '0';
+        }
+
+        function carregarSetores() {
+            const setores = JSON.parse(localStorage.getItem('setores'));
+            const lista = document.getElementById('setores-lista');
+            if (setores.length === 0) {
+                lista.innerHTML = '<tr><td colspan="4" style="color:#999;">Nenhum setor.</td></tr>';
+                return;
+            }
+            lista.innerHTML = setores.map(s => `
+                <tr>
+                    <td><strong>${s.nome}</strong></td>
+                    <td>R$ ${s.taxa.toFixed(2)}</td>
+                    <td>${s.tempo}</td>
+                    <td><button class="btn btn-danger btn-small" onclick="removerSetor('${s.id}')">🗑️</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function removerSetor(id) {
+            if (confirm('Remover setor?')) {
+                let setores = JSON.parse(localStorage.getItem('setores'));
+                setores = setores.filter(s => s.id !== id);
+                localStorage.setItem('setores', JSON.stringify(setores));
+                carregarSetores();
+            }
+        }
+
+        // ============ ADMINISTRADORES ============
+        function cadastrarAdmin() {
+            const nome = document.getElementById('admin-nome').value.trim();
+            const usuario = document.getElementById('admin-usuario').value.trim().toLowerCase();
+            const senha = document.getElementById('admin-senha').value;
+
+            if (!nome || !usuario || !senha) { alert('Preencha todos os campos!'); return; }
+            if (senha.length < 6) { alert('Senha muito curta!'); return; }
+
+            const admins = JSON.parse(localStorage.getItem('admins'));
+            if (admins.find(a => a.usuario === usuario)) { alert('Usuário já existe!'); return; }
+
+            const permissoes = {
+                cardapio1: document.getElementById('perm-cardapio1').checked,
+                cardapio2: document.getElementById('perm-cardapio2').checked,
+                estoque: document.getElementById('perm-estoque').checked,
+                setores: document.getElementById('perm-setores').checked,
+                admins: document.getElementById('perm-admins').checked
+            };
+
+            admins.push({
+                id: 'admin_' + Date.now(),
+                nome, usuario, senha,
+                tipo: 'admin',
+                permissoes,
+                ativo: true,
+                dataCriacao: new Date().toISOString(),
+                ultimoAcesso: null
+            });
+
+            localStorage.setItem('admins', JSON.stringify(admins));
+            carregarListaAdmins();
+            limparCamposAdmin();
+            alert('✅ Administrador cadastrado!');
+        }
+
+        function limparCamposAdmin() {
+            ['admin-nome', 'admin-usuario', 'admin-senha'].forEach(id => document.getElementById(id).value = '');
+        }
+
+        function carregarListaAdmins() {
+            const admins = JSON.parse(localStorage.getItem('admins'));
+            const lista = document.getElementById('admins-lista');
+
+            lista.innerHTML = admins.map(a => {
+                const p = a.permissoes || {};
+                const permissoesTexto = [
+                    p.cardapio1 ? '📋C1' : '',
+                    p.cardapio2 ? '📋C2D' : '',
+                    p.estoque ? '📦Est' : '',
+                    p.setores ? '🏙️Set' : '',
+                    p.admins ? '👥Adm' : ''
+                ].filter(Boolean).join(' ');
+
+                return `
+                    <tr>
+                        <td><strong>${a.nome}</strong> ${a.tipo === 'master' ? '<span class="badge badge-warning">👑 Master</span>' : ''}</td>
+                        <td>${a.usuario}</td>
+                        <td><small>${permissoesTexto || 'Nenhuma'}</small></td>
+                        <td><small>${a.ultimoAcesso ? new Date(a.ultimoAcesso).toLocaleString('pt-BR') : 'Nunca'}</small></td>
+                        <td>${a.tipo !== 'master' ? `<button class="btn btn-danger btn-small" onclick="removerAdmin('${a.id}')">🗑️</button>` : '<small>Protegido</small>'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function removerAdmin(id) {
+            if (confirm('Remover administrador?')) {
+                let admins = JSON.parse(localStorage.getItem('admins'));
+                admins = admins.filter(a => a.id !== id);
+                localStorage.setItem('admins', JSON.stringify(admins));
+                carregarListaAdmins();
+            }
+        }
+
+        // ============ PEDIDOS ============
+        function carregarPedidos() {
+            const pedidos = JSON.parse(localStorage.getItem('todosPedidos'));
+            const lista = document.getElementById('pedidos-lista');
+            if (pedidos.length === 0) {
+                lista.innerHTML = '<p style="color:#999;">Nenhum pedido.</p>';
+                return;
+            }
+            lista.innerHTML = pedidos.reverse().map(p => `
+                <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:10px;border-left:4px solid ${p.cardapio === 'cardapio1' ? '#667eea' : '#f5576c'};">
+                    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                        <div>
+                            <strong>👤 ${p.cliente}</strong>
+                            <span class="badge badge-info">${p.cardapio === 'cardapio1' ? 'Cardápio 1' : 'Cardápio 2D'}</span><br>
+                            <small>📅 ${new Date(p.data).toLocaleString('pt-BR')}</small>
+                        </div>
+                        <strong style="color:#f5576c;">R$ ${p.total.toFixed(2)}</strong>
+                    </div>
+                    <div style="margin-top:8px;">
+                        ${p.itens.map(i => `<div>${i.emoji} ${i.quantidade}x ${i.nome}</div>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ============ CONFIG ============
+        function carregarConfig() {
+            const config = JSON.parse(localStorage.getItem('adminConfig') || '{}');
+            document.getElementById('config-whatsapp').value = config.whatsapp || '';
+            document.getElementById('config-pix').value = config.pix || '';
+        }
+
+        function salvarConfig() {
+            localStorage.setItem('adminConfig', JSON.stringify({
+                whatsapp: document.getElementById('config-whatsapp').value,
+                pix: document.getElementById('config-pix').value
+            }));
+            alert('✅ Salvo!');
+        }
+
+        function alterarSenha() {
+            const atual = document.getElementById('senha-atual').value;
+            const nova = document.getElementById('nova-senha').value;
+            if (atual !== adminAtual.senha) { alert('Senha atual incorreta!'); return; }
+            if (nova.length < 6) { alert('Senha muito curta!'); return; }
+
+            const admins = JSON.parse(localStorage.getItem('admins'));
+            const admin = admins.find(a => a.id === adminAtual.id);
+            if (admin) { admin.senha = nova; localStorage.setItem('admins', JSON.stringify(admins)); adminAtual.senha = nova; }
+            alert('✅ Senha alterada!');
+        }
+
+        // ============ RESUMO ============
+        function atualizarResumo() {
+            const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
+            const cardapio1 = JSON.parse(localStorage.getItem('cardapio1'));
+            const cardapio2 = JSON.parse(localStorage.getItem('cardapio2'));
+            const pedidos = JSON.parse(localStorage.getItem('todosPedidos'));
+
+            const totalDisponivel = estoque.reduce((s, i) => s + i.quantidadeTotal - i.alocadoCardapio2, 0);
+            document.getElementById('estoque-total').textContent = estoque.reduce((s, i) => s + i.quantidadeTotal, 0);
+            document.getElementById('cardapio1-qtd').textContent = totalDisponivel;
+            document.getElementById('cardapio2-qtd').textContent = cardapio2.reduce((s, i) => s + i.quantidade, 0);
+            document.getElementById('faturamento-total').textContent = 'R$ ' + pedidos.reduce((s, p) => s + p.total, 0).toFixed(2);
+        }
+
+        function carregarTudo() {
+            sincronizarCardapio1();
+            carregarEstoque();
+            carregarCardapio1();
+            carregarCardapio2();
+            carregarSetores();
+            carregarListaAdmins();
+            atualizarResumo();
+        }
+
+        // Verificar sessão
+        function verificarSessao() {
+            const sessao = localStorage.getItem('adminAtual');
+            if (sessao) {
+                adminAtual = JSON.parse(sessao);
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                configurarInterface();
+                carregarTudo();
+            }
+        }
+
+        document.getElementById('login-senha').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') fazerLogin();
+        });
+
+        inicializar();
+        verificarSessao();
+    </script>
+</body>
+</html>
