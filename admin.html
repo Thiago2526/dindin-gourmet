@@ -3,234 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Master - Din Din Gourmet | Gestão Completa</title>
+    <title>Admin - Dindins Gourmet FX</title>
     <style>
+        :root {
+            --marrom: #5C3317;
+            --marrom-claro: #8B4513;
+            --laranja-queimado: #CC5500;
+            --amarelo-ouro: #FFD700;
+            --dourado: #DAA520;
+            --creme: #FFF8DC;
+            --verde: #228B22;
+            --vermelho: #8B0000;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5C3317 0%, #8B4513 50%, #A0522D 100%);
             min-height: 100vh;
+            font-size: 16px;
         }
 
-        .admin-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        .admin-container { max-width: 1300px; margin: 0 auto; padding: 20px; }
 
         .header {
-            background: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            flex-wrap: wrap;
-            gap: 15px;
+            background: #FFF8DC; padding: 20px 30px; border-radius: 15px;
+            margin-bottom: 20px; display: flex; justify-content: space-between;
+            align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            flex-wrap: wrap; gap: 15px; border: 2px solid #DAA520;
         }
 
-        .header h1 {
-            font-size: 1.8em;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .header-logo {
+            display: flex; align-items: center; gap: 15px;
         }
 
-        .btn-sair {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
+        .logo-img {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: linear-gradient(135deg, #CC5500, #DAA520);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; color: white; font-weight: bold;
         }
 
-        .resumo-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
+        .header h1 { font-size: 1.6em; color: #CC5500; }
+        .btn-sair { background: #CC5500; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1em; }
+        .btn-sair:hover { background: #E0551F; }
+
+        .resumo-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
 
         .resumo-card {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            text-align: center;
+            background: #FFF8DC; padding: 20px; border-radius: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2); text-align: center; border: 2px solid #DAA520;
         }
+        .resumo-card .icon { font-size: 2.2em; margin-bottom: 8px; }
+        .resumo-card h3 { color: #CC5500; font-size: 0.9em; margin-bottom: 8px; }
+        .resumo-card .valor { font-size: 2em; font-weight: bold; color: #8B4513; }
 
-        .resumo-card .icon { font-size: 2em; margin-bottom: 8px; }
-        .resumo-card h3 { color: #666; font-size: 0.85em; margin-bottom: 8px; }
-        .resumo-card .valor { font-size: 1.8em; font-weight: bold; color: #667eea; }
+        .tabs-container { background: #FFF8DC; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); overflow: hidden; border: 2px solid #DAA520; }
 
-        .tabs-container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .tabs {
-            display: flex;
-            background: #f8f9fa;
-            padding: 10px;
-            gap: 8px;
-            border-bottom: 2px solid #e0e0e0;
-            flex-wrap: wrap;
-        }
-
-        .tab {
-            padding: 12px 18px;
-            background: transparent;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        .tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
+        .tabs { display: flex; background: #D2691E; padding: 10px; gap: 8px; border-bottom: 2px solid #DAA520; flex-wrap: wrap; }
+        .tab { padding: 14px 20px; background: transparent; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s; color: #FFD700; font-size: 1em; }
+        .tab:hover { background: rgba(255,215,0,0.2); }
+        .tab.active { background: #FFD700; color: #8B4513; }
         .tab-content { display: none; padding: 25px; }
         .tab-content.active { display: block; }
 
+        h2 { color: #CC5500; margin-bottom: 15px; font-size: 1.5em; }
+        h3 { color: #DAA520; margin-bottom: 10px; font-size: 1.2em; }
+
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #8B4513; font-size: 1em; }
         .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1em;
-            font-family: inherit;
+            width: 100%; padding: 12px 15px; border: 2px solid #DAA520;
+            border-radius: 10px; font-size: 1em; font-family: inherit; background: #FFF8DC;
         }
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #CC5500; }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
 
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.95em;
-        }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .btn-success { background: #4CAF50; color: white; }
-        .btn-danger { background: #ff4757; color: white; }
-        .btn-warning { background: #ffa502; color: white; }
-        .btn-info { background: #74b9ff; color: white; }
-        .btn-small { padding: 6px 12px; font-size: 0.8em; border-radius: 6px; }
+        .btn { padding: 12px 22px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: all 0.3s; font-size: 1em; margin: 3px; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .btn-primary { background: #CC5500; color: white; }
+        .btn-success { background: #228B22; color: white; }
+        .btn-danger { background: #8B0000; color: white; }
+        .btn-warning { background: #DAA520; color: #5C3317; }
+        .btn-info { background: #CD853F; color: white; }
+        .btn-small { padding: 8px 14px; font-size: 0.9em; border-radius: 6px; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th {
-            background: #f8f9fa;
-            padding: 12px;
-            text-align: left;
-            font-weight: bold;
-            border-bottom: 2px solid #e0e0e0;
-        }
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #e0e0e0;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: #D2691E; padding: 14px; text-align: left; font-weight: bold; color: #FFD700; border-bottom: 2px solid #DAA520; font-size: 1em; }
+        td { padding: 12px; border-bottom: 1px solid #DAA520; color: #5C3317; font-size: 0.95em; }
 
-        .badge {
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 0.8em;
-            font-weight: bold;
-        }
-        .badge-success { background: #d4edda; color: #155724; }
-        .badge-warning { background: #fff3cd; color: #856404; }
-        .badge-danger { background: #f8d7da; color: #721c24; }
-        .badge-info { background: #d1ecf1; color: #0c5460; }
-        .badge-primary { background: #cce5ff; color: #004085; }
+        .badge { padding: 5px 14px; border-radius: 15px; font-size: 0.85em; font-weight: bold; }
+        .badge-success { background: #90EE90; color: #006400; }
+        .badge-warning { background: #FFD700; color: #8B4513; }
+        .badge-danger { background: #FFB6C1; color: #8B0000; }
+        .badge-info { background: #FFD700; color: #8B4513; }
 
-        .card-info {
-            background: #e8f5e9;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border-left: 4px solid #4CAF50;
-        }
+        .card-info { background: #FFF8DC; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #DAA520; }
+        .card-warning { background: #FFF8DC; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #FFD700; }
 
-        .card-warning {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border-left: 4px solid #ffa502;
-        }
+        .login-container { max-width: 480px; margin: 80px auto; background: #FFF8DC; padding: 40px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 2px solid #DAA520; }
 
-        .login-container {
-            max-width: 450px;
-            margin: 80px auto;
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
+        .permissao-checkbox { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
+        .permissao-checkbox input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; }
+        .permissao-checkbox label { color: #8B4513; font-size: 1em; }
 
-        .permissao-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 10px 0;
-        }
+        .estoque-barra { width: 100%; height: 12px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin: 5px 0; }
+        .estoque-barra-preenchimento { height: 100%; border-radius: 10px; transition: all 0.3s; }
+        .estoque-barra-preenchimento.alta { background: #228B22; }
+        .estoque-barra-preenchimento.media { background: #DAA520; }
+        .estoque-barra-preenchimento.baixa { background: #8B0000; }
 
-        .permissao-checkbox input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        .estoque-barra {
-            width: 100%;
-            height: 10px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 5px 0;
-        }
-
-        .estoque-barra-preenchimento {
-            height: 100%;
-            border-radius: 10px;
-            transition: all 0.3s;
-        }
-
-        .estoque-barra-preenchimento.alta { background: #4CAF50; }
-        .estoque-barra-preenchimento.media { background: #ffa502; }
-        .estoque-barra-preenchimento.baixa { background: #ff4757; }
+        .historico-item { background: #FFF8DC; padding: 10px 15px; border-radius: 8px; margin-bottom: 5px; border: 1px solid #DAA520; font-size: 0.9em; }
 
         @media (max-width: 768px) {
             .form-row { grid-template-columns: 1fr; }
             .tabs { flex-direction: column; }
+            .header { flex-direction: column; text-align: center; }
+            .header-logo { justify-content: center; }
         }
     </style>
 </head>
@@ -240,9 +131,9 @@
         <div id="login-screen">
             <div class="login-container">
                 <div style="text-align:center;margin-bottom:25px;">
-                    <div style="font-size:4em;">🍫</div>
-                    <h2>Din Din Gourmet</h2>
-                    <p style="color:#666;">Painel do Administrador</p>
+                    <div class="logo-img" style="width:80px;height:80px;font-size:36px;margin:0 auto 15px;">DFX</div>
+                    <h2 style="color:#CC5500;font-size:1.8em;">Dindins Gourmet FX</h2>
+                    <p style="color:#8B4513;font-size:1.1em;">Painel do Administrador</p>
                 </div>
                 <div class="form-group">
                     <label>👤 Usuário</label>
@@ -253,9 +144,7 @@
                     <input type="password" id="login-senha" placeholder="Digite sua senha">
                 </div>
                 <button class="btn btn-primary" onclick="fazerLogin()" style="width:100%;">🚀 Entrar</button>
-                <p style="text-align:center;margin-top:15px;color:#999;font-size:0.9em;">
-                    Admin Master: master / admin123
-                </p>
+                <p style="text-align:center;margin-top:15px;color:#8B4513;font-size:1em;">Admin Master: master / admin123</p>
             </div>
         </div>
 
@@ -263,286 +152,158 @@
         <div id="admin-panel" style="display:none;">
             <div class="admin-container">
                 <div class="header">
-                    <h1>🍫 Din Din Gourmet - <span id="painel-tipo"></span></h1>
+                    <div class="header-logo">
+                        <div class="logo-img">DFX</div>
+                        <h1>Dindins Gourmet FX - <span id="painel-tipo" style="color:#DAA520;"></span></h1>
+                    </div>
                     <div style="display:flex;align-items:center;gap:15px;">
-                        <span id="user-display" style="font-weight:bold;"></span>
+                        <span id="user-display" style="font-weight:bold;color:#8B4513;font-size:1em;"></span>
                         <button class="btn-sair" onclick="logout()">🚪 Sair</button>
                     </div>
                 </div>
 
-                <div class="resumo-cards">
-                    <div class="resumo-card">
-                        <div class="icon">📦</div>
-                        <h3>Estoque Total</h3>
-                        <div class="valor" id="estoque-total">0</div>
+                <div class="resumo-cards" id="resumo-cards">
+                    <div class="resumo-card" id="card-estoque-total">
+                        <div class="icon">📦</div><h3>Estoque Total</h3><div class="valor" id="estoque-total">0</div>
                     </div>
-                    <div class="resumo-card">
-                        <div class="icon">📋</div>
-                        <h3>Cardápio 1 (Disponível)</h3>
-                        <div class="valor" id="cardapio1-qtd">0</div>
+                    <div class="resumo-card" id="card-cardapio1">
+                        <div class="icon">📋</div><h3>Cardápio Principal</h3><div class="valor" id="cardapio1-qtd">0</div>
                     </div>
-                    <div class="resumo-card">
-                        <div class="icon">📋</div>
-                        <h3>Cardápio 2D (Alocado)</h3>
-                        <div class="valor" id="cardapio2-qtd">0</div>
+                    <div class="resumo-card" id="card-cardapio2">
+                        <div class="icon">🔥</div><h3>Dois Marcos</h3><div class="valor" id="cardapio2-qtd">0</div>
                     </div>
-                    <div class="resumo-card">
-                        <div class="icon">💰</div>
-                        <h3>Faturamento</h3>
-                        <div class="valor" id="faturamento-total">R$0</div>
+                    <div class="resumo-card" id="card-faturamento">
+                        <div class="icon">💰</div><h3>Faturamento</h3><div class="valor" id="faturamento-total">R$0</div>
                     </div>
                 </div>
 
                 <div class="tabs-container">
-                    <div class="tabs">
-                        <button class="tab active" onclick="mudarTab('estoque')">📦 Estoque Central</button>
-                        <button class="tab" onclick="mudarTab('cardapio1')" id="tab-cardapio1-btn">📋 Cardápio 1</button>
-                        <button class="tab" onclick="mudarTab('cardapio2')" id="tab-cardapio2-btn">📋 Cardápio 2D</button>
-                        <button class="tab" onclick="mudarTab('setores')">🏙️ Setores/Bairros</button>
-                        <button class="tab" onclick="mudarTab('admins')" id="tab-admins-btn">👥 Administradores</button>
-                        <button class="tab" onclick="mudarTab('pedidos')">📦 Pedidos</button>
-                        <button class="tab" onclick="mudarTab('config')">⚙️ Config</button>
+                    <div class="tabs" id="tabs-menu">
+                        <button class="tab active" id="tab-estoque-btn" onclick="mudarTab('estoque')">📦 Estoque</button>
+                        <button class="tab" id="tab-cardapio1-btn" onclick="mudarTab('cardapio1')">📋 Cardápio</button>
+                        <button class="tab" id="tab-cardapio2-btn" onclick="mudarTab('cardapio2')">🔥 Dois Marcos</button>
+                        <button class="tab" id="tab-setores-btn" onclick="mudarTab('setores')">🏙️ Setores</button>
+                        <button class="tab" id="tab-admins-btn" onclick="mudarTab('admins')">👥 Admins</button>
+                        <button class="tab" id="tab-pedidos-btn" onclick="mudarTab('pedidos')">📋 Pedidos</button>
+                        <button class="tab" id="tab-historico-btn" onclick="mudarTab('historico')">📜 Histórico</button>
+                        <button class="tab" id="tab-config-btn" onclick="mudarTab('config')">⚙️ Config</button>
                     </div>
 
-                    <!-- TAB ESTOQUE CENTRAL -->
+                    <!-- TAB ESTOQUE -->
                     <div class="tab-content active" id="tab-estoque">
                         <h2>📦 Estoque Central</h2>
-                        <p style="color:#666;margin-bottom:20px;">Gerencie o estoque total. O Cardápio 1 mostra automaticamente o disponível.</p>
-                        
-                        <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:20px;">
-                            <h3>➕ Adicionar Sabor ao Estoque</h3>
+                        <div style="background:#FFF8DC;padding:20px;border-radius:12px;margin-bottom:20px;border:1px solid #DAA520;">
+                            <h3>➕ Cadastrar/Atualizar Item</h3>
                             <div class="form-row">
-                                <div class="form-group">
-                                    <label>Nome do Sabor *</label>
-                                    <input type="text" id="estoque-nome" placeholder="Ex: Chocolate Belga">
-                                </div>
-                                <div class="form-group">
-                                    <label>Emoji</label>
-                                    <input type="text" id="estoque-emoji" placeholder="🍫" maxlength="2">
-                                </div>
-                                <div class="form-group">
-                                    <label>Preço (R$) *</label>
-                                    <input type="number" id="estoque-preco" placeholder="5.00" step="0.01">
-                                </div>
-                                <div class="form-group">
-                                    <label>Quantidade Total *</label>
-                                    <input type="number" id="estoque-qtd" placeholder="50" min="1" value="50">
-                                </div>
+                                <div class="form-group"><label>Nome *</label><input type="text" id="estoque-nome" placeholder="Ex: Ninho com Nutella"></div>
+                                <div class="form-group"><label>Emoji</label><input type="text" id="estoque-emoji" placeholder="🍫" maxlength="2"></div>
+                                <div class="form-group"><label>Preço (R$) *</label><input type="number" id="estoque-preco" placeholder="5.00" step="0.01"></div>
                             </div>
-                            <div class="form-group">
-                                <label>Descrição</label>
-                                <textarea id="estoque-descricao" rows="2" placeholder="Descreva o sabor..."></textarea>
+                            <div class="form-row">
+                                <div class="form-group"><label>Adicionar Quantidade</label><input type="number" id="estoque-qtd-add" placeholder="10" min="1" value="10"></div>
+                                <div class="form-group"><label>Remover Quantidade</label><input type="number" id="estoque-qtd-rem" placeholder="0" min="0" value="0"></div>
                             </div>
-                            <button class="btn btn-primary" onclick="adicionarAoEstoque()">➕ Adicionar ao Estoque</button>
+                            <div class="form-group"><label>Descrição</label><textarea id="estoque-descricao" rows="2"></textarea></div>
+                            <button class="btn btn-primary" onclick="gerenciarEstoque()">💾 Salvar / Atualizar</button>
                         </div>
-
-                        <h3>📊 Sabores em Estoque</h3>
-                        <div id="estoque-lista">
-                            <p style="color:#999;">Nenhum sabor no estoque.</p>
-                        </div>
+                        <h3>📊 Itens em Estoque</h3>
+                        <div id="estoque-lista"><p style="color:#8B4513;">Nenhum item.</p></div>
                     </div>
 
-                    <!-- TAB CARDÁPIO 1 (Mostra o disponível do estoque) -->
+                    <!-- TAB CARDÁPIO 1 -->
                     <div class="tab-content" id="tab-cardapio1">
-                        <h2>📋 Cardápio Principal</h2>
-                        
-                        <div class="card-info">
-                            <strong>📋 Cardápio 1 = Estoque Central - Alocado para Cardápio 2D</strong><br>
-                            <small style="color:#666;">Este cardápio mostra automaticamente o que está disponível no estoque central.</small>
-                        </div>
-
-                        <div class="card-warning">
-                            <strong>⚠️ Importante:</strong> Para reduzir a quantidade do Cardápio 1, aloque sabores para o Cardápio 2D. O Cardápio 1 sempre mostra o saldo disponível.
-                        </div>
-
-                        <h3>🍫 Sabores Disponíveis no Cardápio 1</h3>
-                        <div id="cardapio1-lista">
-                            <p style="color:#999;">Nenhum sabor disponível.</p>
-                        </div>
-
-                        <div style="margin-top:20px;text-align:center;">
-                            <button class="btn btn-success" onclick="sincronizarCardapio1()" style="font-size:1.1em;padding:12px 30px;">
-                                🔄 Sincronizar Cardápio 1 com Estoque
-                            </button>
-                        </div>
+                        <h2>📋 Dindins Gourmet Cardápio</h2>
+                        <div class="card-info"><strong>📋 Mostra automaticamente o estoque disponível (Total - Alocado Dois Marcos)</strong></div>
+                        <h3>🍫 Sabores Disponíveis</h3>
+                        <div id="cardapio1-lista"><p style="color:#8B4513;">Nenhum sabor.</p></div>
+                        <button class="btn btn-success" onclick="sincronizarCardapio1()">🔄 Sincronizar com Estoque</button>
                     </div>
 
-                    <!-- TAB CARDÁPIO 2D -->
+                    <!-- TAB CARDÁPIO 2 -->
                     <div class="tab-content" id="tab-cardapio2">
-                        <h2>📋 Cardápio 2D</h2>
-                        
-                        <div class="card-info">
-                            <strong>📋 Cardápio 2D:</strong> Aqui você aloca uma quantidade específica do estoque central.<br>
-                            <small style="color:#666;">O que for alocado aqui será deduzido do Cardápio 1 automaticamente.</small>
-                        </div>
-
-                        <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:20px;">
-                            <h3>📤 Alocar do Estoque para Cardápio 2D</h3>
+                        <h2>🔥 Cardápio Dois Marcos</h2>
+                        <div class="card-info"><strong>📋 Aloque itens do estoque para o Cardápio Dois Marcos</strong></div>
+                        <div style="background:#FFF8DC;padding:20px;border-radius:12px;margin-bottom:20px;border:1px solid #DAA520;">
+                            <h3>📤 Alocar para Dois Marcos</h3>
                             <div class="form-row">
-                                <div class="form-group">
-                                    <label>Selecione o Sabor</label>
-                                    <select id="alocar2-sabor"></select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Quantidade para Cardápio 2D</label>
-                                    <input type="number" id="alocar2-qtd" placeholder="10" min="1" value="10">
-                                </div>
+                                <div class="form-group"><label>Sabor</label><select id="alocar2-sabor"></select></div>
+                                <div class="form-group"><label>Quantidade</label><input type="number" id="alocar2-qtd" value="10" min="1"></div>
                             </div>
-                            <button class="btn btn-success" onclick="alocarParaCardapio2()">📤 Alocar para Cardápio 2D</button>
-                            <p style="color:#666;font-size:0.9em;margin-top:10px;">
-                                ⚠️ Esta quantidade será <strong>deduzida</strong> do Cardápio 1 automaticamente.
-                            </p>
+                            <button class="btn btn-success" onclick="alocarParaCardapio2()">📤 Alocar</button>
+                            <p style="color:#8B4513;margin-top:10px;">⚠️ Ao alocar, a quantidade sai do estoque central e do Cardápio 1</p>
                         </div>
-
-                        <h3>🍫 Sabores Alocados no Cardápio 2D</h3>
-                        <div id="cardapio2-lista">
-                            <p style="color:#999;">Nenhum sabor alocado.</p>
-                        </div>
+                        <h3>🍫 Itens Alocados</h3>
+                        <div id="cardapio2-lista"><p style="color:#8B4513;">Nenhum item.</p></div>
                     </div>
 
                     <!-- TAB SETORES -->
                     <div class="tab-content" id="tab-setores">
-                        <h2>🏙️ Gerenciar Setores e Bairros</h2>
-                        <p style="color:#666;margin-bottom:20px;">Cadastre setores com taxas de entrega diferentes</p>
-                        
-                        <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:20px;">
+                        <h2>🏙️ Setores/Bairros (Cardápio Principal)</h2>
+                        <div style="background:#FFF8DC;padding:20px;border-radius:12px;margin-bottom:20px;border:1px solid #DAA520;">
                             <h3>➕ Adicionar Setor</h3>
                             <div class="form-row">
-                                <div class="form-group">
-                                    <label>Nome do Setor/Bairro *</label>
-                                    <input type="text" id="setor-nome" placeholder="Ex: Centro">
-                                </div>
-                                <div class="form-group">
-                                    <label>Taxa de Entrega (R$) *</label>
-                                    <input type="number" id="setor-taxa" placeholder="5.00" step="0.01" value="0">
-                                </div>
-                                <div class="form-group">
-                                    <label>Tempo Estimado</label>
-                                    <input type="text" id="setor-tempo" placeholder="Ex: 30-45 min" value="30-45 min">
-                                </div>
+                                <div class="form-group"><label>Nome *</label><input type="text" id="setor-nome" placeholder="Centro"></div>
+                                <div class="form-group"><label>Taxa (R$) *</label><input type="number" id="setor-taxa" placeholder="5.00" step="0.01"></div>
+                                <div class="form-group"><label>Tempo</label><input type="text" id="setor-tempo" value="30-45 min"></div>
                             </div>
-                            <button class="btn btn-primary" onclick="adicionarSetor()">➕ Adicionar Setor</button>
+                            <button class="btn btn-primary" onclick="adicionarSetor()">➕ Adicionar</button>
                         </div>
-
-                        <h3>📍 Setores Cadastrados</h3>
-                        <table>
-                            <thead>
-                                <tr><th>Setor/Bairro</th><th>Taxa de Entrega</th><th>Tempo</th><th>Ações</th></tr>
-                            </thead>
-                            <tbody id="setores-lista">
-                                <tr><td colspan="4" style="color:#999;">Nenhum setor cadastrado.</td></tr>
-                            </tbody>
-                        </table>
+                        <table><thead><tr><th>Setor</th><th>Taxa</th><th>Tempo</th><th></th></tr></thead><tbody id="setores-lista"></tbody></table>
                     </div>
 
-                    <!-- TAB ADMINISTRADORES -->
+                    <!-- TAB ADMINS -->
                     <div class="tab-content" id="tab-admins">
-                        <h2>👥 Gerenciar Administradores</h2>
-                        <p style="color:#666;margin-bottom:20px;">Cadastre administradores com permissão por cardápio</p>
-                        
-                        <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:20px;">
-                            <h3>➕ Cadastrar Novo Administrador</h3>
+                        <h2>👥 Administradores</h2>
+                        <div style="background:#FFF8DC;padding:20px;border-radius:12px;margin-bottom:20px;border:1px solid #DAA520;">
+                            <h3>➕ Novo Admin</h3>
                             <div class="form-row">
-                                <div class="form-group">
-                                    <label>Nome Completo *</label>
-                                    <input type="text" id="admin-nome" placeholder="Ex: João Silva">
-                                </div>
-                                <div class="form-group">
-                                    <label>Nome de Usuário *</label>
-                                    <input type="text" id="admin-usuario" placeholder="Ex: joao">
-                                </div>
-                                <div class="form-group">
-                                    <label>Senha *</label>
-                                    <input type="password" id="admin-senha" placeholder="Mínimo 6 caracteres">
-                                </div>
+                                <div class="form-group"><label>Nome *</label><input type="text" id="admin-nome"></div>
+                                <div class="form-group"><label>Usuário *</label><input type="text" id="admin-usuario"></div>
+                                <div class="form-group"><label>Senha *</label><input type="password" id="admin-senha"></div>
                             </div>
-                            
                             <div style="background:white;padding:15px;border-radius:10px;margin:15px 0;">
-                                <label style="font-weight:bold;margin-bottom:10px;display:block;">📋 Permissão de Acesso:</label>
-                                
-                                <div class="permissao-checkbox">
-                                    <input type="checkbox" id="perm-cardapio1" checked>
-                                    <label for="perm-cardapio1">📋 Cardápio Principal (Cardápio 1)</label>
-                                </div>
-                                
-                                <div class="permissao-checkbox">
-                                    <input type="checkbox" id="perm-cardapio2">
-                                    <label for="perm-cardapio2">📋 Cardápio 2D</label>
-                                </div>
-                                
-                                <div class="permissao-checkbox">
-                                    <input type="checkbox" id="perm-estoque">
-                                    <label for="perm-estoque">📦 Estoque Central</label>
-                                </div>
-                                
-                                <div class="permissao-checkbox">
-                                    <input type="checkbox" id="perm-setores">
-                                    <label for="perm-setores">🏙️ Gerenciar Setores</label>
-                                </div>
-                                
-                                <div class="permissao-checkbox">
-                                    <input type="checkbox" id="perm-admins">
-                                    <label for="perm-admins">👥 Gerenciar Administradores</label>
-                                </div>
+                                <label style="font-weight:bold;color:#CC5500;font-size:1.1em;">📋 Permissões:</label>
+                                <div class="permissao-checkbox"><input type="checkbox" id="perm-cardapio1" checked><label>📋 Cardápio Principal + Setores</label></div>
+                                <div class="permissao-checkbox"><input type="checkbox" id="perm-cardapio2"><label>🔥 Cardápio Dois Marcos</label></div>
+                                <div class="permissao-checkbox"><input type="checkbox" id="perm-estoque"><label>📦 Estoque Central</label></div>
+                                <div class="permissao-checkbox"><input type="checkbox" id="perm-admins"><label>👥 Gerenciar Admins</label></div>
                             </div>
-
-                            <button class="btn btn-success" onclick="cadastrarAdmin()">✅ Cadastrar Administrador</button>
+                            <button class="btn btn-success" onclick="cadastrarAdmin()">✅ Cadastrar</button>
                         </div>
-
-                        <h3>📋 Administradores Cadastrados</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>Usuário</th>
-                                    <th>Permissões</th>
-                                    <th>Último Acesso</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admins-lista">
-                                <tr><td colspan="5" style="color:#999;">Nenhum administrador cadastrado.</td></tr>
-                            </tbody>
-                        </table>
+                        <table><thead><tr><th>Nome</th><th>Usuário</th><th>Permissões</th><th>Ações</th></tr></thead><tbody id="admins-lista"></tbody></table>
                     </div>
 
                     <!-- TAB PEDIDOS -->
                     <div class="tab-content" id="tab-pedidos">
-                        <h2>📦 Todos os Pedidos</h2>
-                        <div id="pedidos-lista">
-                            <p style="color:#999;">Carregando pedidos...</p>
-                        </div>
+                        <h2>📋 Pedidos Recebidos</h2>
+                        <div id="pedidos-lista"><p style="color:#8B4513;">Nenhum pedido.</p></div>
+                    </div>
+
+                    <!-- TAB HISTÓRICO -->
+                    <div class="tab-content" id="tab-historico">
+                        <h2>📜 Histórico de Entradas e Saídas</h2>
+                        <div id="historico-lista"><p style="color:#8B4513;">Nenhum registro.</p></div>
                     </div>
 
                     <!-- TAB CONFIG -->
                     <div class="tab-content" id="tab-config">
                         <h2>⚙️ Configurações Gerais</h2>
-                        <div style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:20px;">
-                            <h3>📱 WhatsApp Principal</h3>
-                            <div class="form-group">
-                                <label>Número WhatsApp (com DDD)</label>
-                                <input type="text" id="config-whatsapp" placeholder="5511999999999">
-                            </div>
-                            <div class="form-group">
-                                <label>Chave PIX</label>
-                                <input type="text" id="config-pix" placeholder="pix@dindingourmet.com.br">
-                            </div>
-                            <button class="btn btn-primary" onclick="salvarConfig()">💾 Salvar</button>
-                        </div>
-                        <div style="background:#f8f9fa;padding:20px;border-radius:12px;">
-                            <h3>🔒 Alterar Minha Senha</h3>
+                        <div style="background:#FFF8DC;padding:20px;border-radius:12px;margin-bottom:20px;border:1px solid #DAA520;">
+                            <h3>📱 WhatsApp e PIX</h3>
                             <div class="form-row">
-                                <div class="form-group">
-                                    <label>Senha Atual</label>
-                                    <input type="password" id="senha-atual">
-                                </div>
-                                <div class="form-group">
-                                    <label>Nova Senha</label>
-                                    <input type="password" id="nova-senha">
-                                </div>
+                                <div class="form-group"><label>Número WhatsApp (com DDD)</label><input type="text" id="config-whatsapp" placeholder="5561986471897"></div>
+                                <div class="form-group"><label>Chave PIX</label><input type="text" id="config-pix" placeholder="pix@dindingourmet.com.br"></div>
                             </div>
-                            <button class="btn btn-warning" onclick="alterarSenha()">🔄 Alterar Senha</button>
                         </div>
+                        <div style="background:#FFF8DC;padding:20px;border-radius:12px;margin-bottom:20px;border:1px solid #DAA520;">
+                            <h3>🔒 Alterar Senha</h3>
+                            <div class="form-row">
+                                <div class="form-group"><label>Senha Atual</label><input type="password" id="senha-atual"></div>
+                                <div class="form-group"><label>Nova Senha</label><input type="password" id="nova-senha"></div>
+                            </div>
+                            <button class="btn btn-warning" onclick="alterarSenha()">🔄 Alterar</button>
+                        </div>
+                        <button class="btn btn-success" onclick="salvarConfig()" style="font-size:1.1em;">💾 Salvar Configurações</button>
                     </div>
                 </div>
             </div>
@@ -551,62 +312,44 @@
 
     <script>
         // ============ SISTEMA COMPLETO ============
-        
         let adminAtual = null;
 
         function inicializar() {
-            if (!localStorage.getItem('adminMaster')) {
-                localStorage.setItem('adminMaster', JSON.stringify({
-                    usuario: 'master', senha: 'admin123', nome: 'Admin Master', tipo: 'master'
-                }));
-            }
-
             if (!localStorage.getItem('admins')) {
-                localStorage.setItem('admins', JSON.stringify([
-                    {
-                        id: 'admin_master_001',
-                        nome: 'Admin Master',
-                        usuario: 'master',
-                        senha: 'admin123',
-                        tipo: 'master',
-                        permissoes: { cardapio1: true, cardapio2: true, estoque: true, setores: true, admins: true },
-                        ativo: true,
-                        dataCriacao: new Date().toISOString(),
-                        ultimoAcesso: null
-                    }
-                ]));
+                localStorage.setItem('admins', JSON.stringify([{
+                    id: 'admin_master_001', nome: 'Admin Master', usuario: 'master',
+                    senha: 'admin123', tipo: 'master',
+                    permissoes: { cardapio1: true, cardapio2: true, estoque: true, setores: true, admins: true },
+                    ativo: true, dataCriacao: new Date().toISOString(), ultimoAcesso: null
+                }]));
             }
-
             if (!localStorage.getItem('estoqueCentral')) localStorage.setItem('estoqueCentral', JSON.stringify([]));
             if (!localStorage.getItem('cardapio1')) localStorage.setItem('cardapio1', JSON.stringify([]));
             if (!localStorage.getItem('cardapio2')) localStorage.setItem('cardapio2', JSON.stringify([]));
+            if (!localStorage.getItem('historicoEstoque')) localStorage.setItem('historicoEstoque', JSON.stringify([]));
             if (!localStorage.getItem('setores')) {
                 localStorage.setItem('setores', JSON.stringify([
                     { id: 'setor1', nome: 'Centro', taxa: 5.00, tempo: '30-45 min' },
-                    { id: 'setor2', nome: 'Bairro A', taxa: 8.00, tempo: '45-60 min' },
-                    { id: 'setor3', nome: 'Bairro B', taxa: 10.00, tempo: '50-70 min' }
+                    { id: 'setor2', nome: 'Bairro A', taxa: 8.00, tempo: '45-60 min' }
                 ]));
             }
             if (!localStorage.getItem('todosPedidos')) localStorage.setItem('todosPedidos', JSON.stringify([]));
+            if (!localStorage.getItem('adminConfig')) {
+                localStorage.setItem('adminConfig', JSON.stringify({ whatsapp: '', pix: '' }));
+            }
         }
 
-        // ============ LOGIN ============
         function fazerLogin() {
             const usuario = document.getElementById('login-usuario').value.trim().toLowerCase();
             const senha = document.getElementById('login-senha').value;
-
             if (!usuario || !senha) { alert('❌ Preencha usuário e senha!'); return; }
-
-            const admins = JSON.parse(localStorage.getItem('admins') || '[]');
+            const admins = JSON.parse(localStorage.getItem('admins'));
             const admin = admins.find(a => a.usuario === usuario && a.senha === senha && a.ativo);
-
             if (!admin) { alert('❌ Usuário ou senha incorretos!'); return; }
-
             admin.ultimoAcesso = new Date().toISOString();
             localStorage.setItem('admins', JSON.stringify(admins));
             adminAtual = admin;
             localStorage.setItem('adminAtual', JSON.stringify(admin));
-
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('admin-panel').style.display = 'block';
             configurarInterface();
@@ -615,14 +358,32 @@
 
         function configurarInterface() {
             if (!adminAtual) return;
-            document.getElementById('user-display').textContent = `👤 ${adminAtual.nome} (${adminAtual.tipo === 'master' ? '👑 Master' : 'Admin'})`;
-            document.getElementById('painel-tipo').textContent = adminAtual.tipo === 'master' ? 'Admin Master' : 'Administrador';
-
             const p = adminAtual.permissoes || {};
             const isMaster = adminAtual.tipo === 'master';
-            document.getElementById('tab-cardapio1-btn').style.display = (isMaster || p.cardapio1) ? 'inline-flex' : 'none';
-            document.getElementById('tab-cardapio2-btn').style.display = (isMaster || p.cardapio2) ? 'inline-flex' : 'none';
-            document.getElementById('tab-admins-btn').style.display = (isMaster || p.admins) ? 'inline-flex' : 'none';
+            document.getElementById('user-display').textContent = `👤 ${adminAtual.nome} (${isMaster ? '👑 Master' : 'Admin'})`;
+            document.getElementById('painel-tipo').textContent = isMaster ? 'Admin Master' : 'Administrador';
+            
+            // Admin com acesso só ao Dois Marcos vê apenas pedidos e cardápio 2
+            if (!isMaster && p.cardapio2 && !p.cardapio1 && !p.estoque) {
+                document.getElementById('tab-estoque-btn').style.display = 'none';
+                document.getElementById('tab-cardapio1-btn').style.display = 'none';
+                document.getElementById('tab-setores-btn').style.display = 'none';
+                document.getElementById('tab-admins-btn').style.display = 'none';
+                document.getElementById('tab-config-btn').style.display = 'none';
+                document.getElementById('card-estoque-total').style.display = 'none';
+                document.getElementById('card-cardapio1').style.display = 'none';
+                document.getElementById('card-faturamento').style.display = 'none';
+            } else {
+                document.getElementById('tab-estoque-btn').style.display = (isMaster || p.estoque) ? 'inline-flex' : 'none';
+                document.getElementById('tab-cardapio1-btn').style.display = (isMaster || p.cardapio1) ? 'inline-flex' : 'none';
+                document.getElementById('tab-cardapio2-btn').style.display = (isMaster || p.cardapio2) ? 'inline-flex' : 'none';
+                document.getElementById('tab-setores-btn').style.display = (isMaster || p.cardapio1) ? 'inline-flex' : 'none';
+                document.getElementById('tab-admins-btn').style.display = (isMaster || p.admins) ? 'inline-flex' : 'none';
+                document.getElementById('card-estoque-total').style.display = (isMaster || p.estoque) ? 'block' : 'none';
+                document.getElementById('card-cardapio1').style.display = (isMaster || p.cardapio1) ? 'block' : 'none';
+                document.getElementById('card-cardapio2').style.display = (isMaster || p.cardapio2) ? 'block' : 'none';
+                document.getElementById('card-faturamento').style.display = 'block';
+            }
         }
 
         function logout() {
@@ -632,314 +393,362 @@
             document.getElementById('admin-panel').style.display = 'none';
         }
 
-        // ============ NAVEGAÇÃO ============
         function mudarTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             event.target.classList.add('active');
             document.getElementById('tab-' + tab).classList.add('active');
-
             if (tab === 'estoque') carregarEstoque();
             if (tab === 'cardapio1') carregarCardapio1();
             if (tab === 'cardapio2') carregarCardapio2();
             if (tab === 'setores') carregarSetores();
             if (tab === 'admins') carregarListaAdmins();
             if (tab === 'pedidos') carregarPedidos();
+            if (tab === 'historico') carregarHistorico();
             if (tab === 'config') carregarConfig();
         }
 
-        // ============ ESTOQUE CENTRAL ============
-        function adicionarAoEstoque() {
+        // ============ ESTOQUE ============
+        function gerenciarEstoque() {
             const nome = document.getElementById('estoque-nome').value.trim();
             const emoji = document.getElementById('estoque-emoji').value.trim();
             const preco = parseFloat(document.getElementById('estoque-preco').value);
-            const qtd = parseInt(document.getElementById('estoque-qtd').value);
+            const qtdAdd = parseInt(document.getElementById('estoque-qtd-add').value) || 0;
+            const qtdRem = parseInt(document.getElementById('estoque-qtd-rem').value) || 0;
             const descricao = document.getElementById('estoque-descricao').value.trim();
+            
+            if (!nome || !preco) { alert('Preencha nome e preço!'); return; }
 
-            if (!nome || !preco || !qtd) { alert('Preencha nome, preço e quantidade!'); return; }
+            let estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
+            let historico = JSON.parse(localStorage.getItem('historicoEstoque'));
+            let item = estoque.find(i => i.nome.toLowerCase() === nome.toLowerCase());
 
-            const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
-            estoque.push({
-                id: 'est_' + Date.now(),
-                nome, emoji: emoji || '🍫',
-                descricao: descricao || 'Delicioso din din gourmet',
-                preco,
-                quantidadeTotal: qtd,
-                alocadoCardapio2: 0
-            });
+            if (item) {
+                // Atualizar item existente
+                if (qtdAdd > 0) {
+                    item.quantidadeTotal += qtdAdd;
+                    historico.push({
+                        data: new Date().toISOString(),
+                        tipo: 'entrada',
+                        item: nome,
+                        quantidade: qtdAdd,
+                        usuario: adminAtual.nome,
+                        descricao: 'Adição de estoque'
+                    });
+                }
+                if (qtdRem > 0) {
+                    const rem = Math.min(qtdRem, item.quantidadeTotal - item.alocadoCardapio2);
+                    if (rem > 0) {
+                        item.quantidadeTotal -= rem;
+                        historico.push({
+                            data: new Date().toISOString(),
+                            tipo: 'saida',
+                            item: nome,
+                            quantidade: rem,
+                            usuario: adminAtual.nome,
+                            descricao: 'Remoção de estoque'
+                        });
+                    }
+                }
+                item.preco = preco;
+                item.emoji = emoji || '🍫';
+                item.descricao = descricao || 'Delicioso dindin gourmet';
+            } else {
+                // Criar novo item
+                const qtdInicial = qtdAdd > 0 ? qtdAdd : 50;
+                estoque.push({
+                    id: 'est_' + Date.now(),
+                    nome, emoji: emoji || '🍫',
+                    descricao: descricao || 'Delicioso dindin gourmet',
+                    preco, quantidadeTotal: qtdInicial, alocadoCardapio2: 0
+                });
+                historico.push({
+                    data: new Date().toISOString(),
+                    tipo: 'entrada',
+                    item: nome,
+                    quantidade: qtdInicial,
+                    usuario: adminAtual.nome,
+                    descricao: 'Cadastro inicial'
+                });
+            }
 
             localStorage.setItem('estoqueCentral', JSON.stringify(estoque));
+            localStorage.setItem('historicoEstoque', JSON.stringify(historico));
             sincronizarCardapio1();
             carregarEstoque();
-            limparCamposEstoque();
+            ['estoque-nome','estoque-emoji','estoque-preco','estoque-qtd-add','estoque-qtd-rem','estoque-descricao'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('estoque-qtd-add').value = '10';
+            document.getElementById('estoque-qtd-rem').value = '0';
             atualizarResumo();
-        }
-
-        function limparCamposEstoque() {
-            ['estoque-nome', 'estoque-emoji', 'estoque-preco', 'estoque-qtd', 'estoque-descricao'].forEach(id => {
-                document.getElementById(id).value = '';
-            });
-            document.getElementById('estoque-qtd').value = '50';
+            alert('✅ Item atualizado com sucesso!');
         }
 
         function carregarEstoque() {
             const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
             const lista = document.getElementById('estoque-lista');
-
-            if (estoque.length === 0) {
-                lista.innerHTML = '<p style="color:#999;">Nenhum sabor no estoque.</p>';
-                return;
-            }
-
-            lista.innerHTML = estoque.map(item => {
-                const disponivel = item.quantidadeTotal - item.alocadoCardapio2;
-                const percDisponivel = item.quantidadeTotal > 0 ? (disponivel / item.quantidadeTotal) * 100 : 0;
-                const classeBarra = percDisponivel > 50 ? 'alta' : percDisponivel > 20 ? 'media' : 'baixa';
-
-                return `
-                    <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:10px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-                            <div>
-                                <strong>${item.emoji} ${item.nome}</strong>
-                                <small style="color:#666;"> - R$ ${item.preco.toFixed(2)}</small>
-                            </div>
-                            <button class="btn btn-danger btn-small" onclick="removerDoEstoque('${item.id}')">🗑️</button>
-                        </div>
-                        <div style="margin-top:8px;">
-                            <small>Total: ${item.quantidadeTotal} | Cardápio 2D: ${item.alocadoCardapio2} | <strong>Disponível C1: ${disponivel}</strong></small>
-                        </div>
-                        <div class="estoque-barra">
-                            <div class="estoque-barra-preenchimento ${classeBarra}" style="width:${percDisponivel}%;"></div>
-                        </div>
+            const select = document.getElementById('alocar2-sabor');
+            if (select) { select.innerHTML = '<option value="">Selecione...</option>'; estoque.forEach(i => { const d = i.quantidadeTotal - i.alocadoCardapio2; select.innerHTML += `<option value="${i.id}">${i.nome} - Disp: ${d}</option>`; }); }
+            if (estoque.length === 0) { lista.innerHTML = '<p style="color:#8B4513;">Nenhum item.</p>'; return; }
+            lista.innerHTML = estoque.map(i => {
+                const d = i.quantidadeTotal - i.alocadoCardapio2;
+                const p = i.quantidadeTotal > 0 ? (d / i.quantidadeTotal) * 100 : 0;
+                const c = p > 50 ? 'alta' : p > 20 ? 'media' : 'baixa';
+                return `<div style="background:#FFF8DC;padding:15px;border-radius:10px;margin-bottom:10px;border:1px solid #DAA520;">
+                    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                        <div><strong>${i.emoji} ${i.nome}</strong> - R$ ${i.preco.toFixed(2)}</div>
+                        <button class="btn btn-danger btn-small" onclick="removerDoEstoque('${i.id}')">🗑️</button>
                     </div>
-                `;
+                    <small>Total: ${i.quantidadeTotal} | Dois Marcos: ${i.alocadoCardapio2} | <strong>Disp: ${d}</strong></small>
+                    <div class="estoque-barra"><div class="estoque-barra-preenchimento ${c}" style="width:${p}%;"></div></div>
+                </div>`;
             }).join('');
-
             atualizarResumo();
         }
 
         function removerDoEstoque(id) {
-            if (confirm('Remover este sabor do estoque? Isso afetará ambos os cardápios.')) {
-                let estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
-                const item = estoque.find(i => i.id === id);
-                
-                // Remover também do cardápio 2 se tiver alocado
-                if (item && item.alocadoCardapio2 > 0) {
-                    let cardapio2 = JSON.parse(localStorage.getItem('cardapio2'));
-                    cardapio2 = cardapio2.filter(c => c.estoqueId !== id);
-                    localStorage.setItem('cardapio2', JSON.stringify(cardapio2));
-                }
-                
-                estoque = estoque.filter(i => i.id !== id);
-                localStorage.setItem('estoqueCentral', JSON.stringify(estoque));
-                sincronizarCardapio1();
-                carregarEstoque();
-                carregarCardapio2();
+            if (!confirm('Remover este item completamente?')) return;
+            let e = JSON.parse(localStorage.getItem('estoqueCentral'));
+            const i = e.find(x => x.id === id);
+            if (i) {
+                let historico = JSON.parse(localStorage.getItem('historicoEstoque'));
+                historico.push({ data: new Date().toISOString(), tipo: 'saida', item: i.nome, quantidade: i.quantidadeTotal, usuario: adminAtual.nome, descricao: 'Item removido do estoque' });
+                localStorage.setItem('historicoEstoque', JSON.stringify(historico));
+                if (i.alocadoCardapio2 > 0) { let c2 = JSON.parse(localStorage.getItem('cardapio2')); c2 = c2.filter(x => x.estoqueId !== id); localStorage.setItem('cardapio2', JSON.stringify(c2)); }
             }
+            e = e.filter(x => x.id !== id);
+            localStorage.setItem('estoqueCentral', JSON.stringify(e));
+            sincronizarCardapio1();
+            carregarEstoque();
+            carregarCardapio2();
         }
 
-        // ============ SINCRONIZAR CARDÁPIO 1 COM ESTOQUE ============
         function sincronizarCardapio1() {
-            const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
-            const cardapio1 = [];
-
-            estoque.forEach(item => {
-                const disponivel = item.quantidadeTotal - item.alocadoCardapio2;
-                if (disponivel > 0) {
-                    cardapio1.push({
-                        id: 'c1_' + item.id,
-                        estoqueId: item.id,
-                        nome: item.nome,
-                        emoji: item.emoji,
-                        descricao: item.descricao,
-                        preco: item.preco,
-                        quantidade: disponivel,
-                        quantidadeInicial: disponivel
-                    });
-                }
-            });
-
-            localStorage.setItem('cardapio1', JSON.stringify(cardapio1));
+            const e = JSON.parse(localStorage.getItem('estoqueCentral'));
+            const c1 = e.map(i => ({
+                id: 'c1_' + i.id, estoqueId: i.id,
+                nome: i.nome, emoji: i.emoji, descricao: i.descricao,
+                preco: i.preco,
+                quantidade: Math.max(0, i.quantidadeTotal - i.alocadoCardapio2),
+                quantidadeInicial: Math.max(0, i.quantidadeTotal - i.alocadoCardapio2)
+            })).filter(i => i.quantidade > 0);
+            localStorage.setItem('cardapio1', JSON.stringify(c1));
         }
 
         function carregarCardapio1() {
-            const cardapio1 = JSON.parse(localStorage.getItem('cardapio1'));
-            const lista = document.getElementById('cardapio1-lista');
-
-            if (cardapio1.length === 0) {
-                lista.innerHTML = '<p style="color:#999;">Nenhum sabor disponível no Cardápio 1.</p>';
-                return;
-            }
-
-            lista.innerHTML = cardapio1.map(item => {
-                const perc = item.quantidadeInicial > 0 ? (item.quantidade / item.quantidadeInicial) * 100 : 0;
-                const cls = perc > 50 ? 'alta' : perc > 20 ? 'media' : 'baixa';
-
-                return `
-                    <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:10px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <div>
-                                <strong>${item.emoji} ${item.nome}</strong> - R$ ${item.preco.toFixed(2)}
-                            </div>
-                            <span class="badge badge-success">${item.quantidade} unid.</span>
-                        </div>
-                        <div class="estoque-barra" style="margin-top:8px;">
-                            <div class="estoque-barra-preenchimento ${cls}" style="width:${perc}%;"></div>
-                        </div>
-                        <small style="color:#666;">Disponível para venda no Cardápio 1</small>
-                    </div>
-                `;
-            }).join('');
-
-            document.getElementById('cardapio1-qtd').textContent = cardapio1.reduce((s, i) => s + i.quantidade, 0);
-        }
-
-        // ============ CARDÁPIO 2D ============
-        function carregarSelectEstoque2() {
-            const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
-            const select = document.getElementById('alocar2-sabor');
-            select.innerHTML = '<option value="">Selecione um sabor...</option>';
-            estoque.forEach(item => {
-                const disponivel = item.quantidadeTotal - item.alocadoCardapio2;
-                select.innerHTML += `<option value="${item.id}">${item.nome} - Disp p/ C2D: ${disponivel}</option>`;
-            });
+            const c1 = JSON.parse(localStorage.getItem('cardapio1'));
+            const l = document.getElementById('cardapio1-lista');
+            if (c1.length === 0) { l.innerHTML = '<p style="color:#8B4513;">Nenhum sabor disponível.</p>'; return; }
+            l.innerHTML = c1.map(i => `<div style="background:#FFF8DC;padding:12px;border-radius:8px;margin-bottom:8px;border:1px solid #DAA520;font-size:1em;"><strong>${i.emoji} ${i.nome}</strong> - R$ ${i.preco.toFixed(2)} <span class="badge badge-success">${i.quantidade} unid.</span></div>`).join('');
+            document.getElementById('cardapio1-qtd').textContent = c1.reduce((s,i) => s + i.quantidade, 0);
         }
 
         function alocarParaCardapio2() {
-            const saborId = document.getElementById('alocar2-sabor').value;
-            const qtd = parseInt(document.getElementById('alocar2-qtd').value);
+            const id = document.getElementById('alocar2-sabor').value;
+            const q = parseInt(document.getElementById('alocar2-qtd').value);
+            if (!id || !q || q < 1) { alert('Selecione!'); return; }
+            const e = JSON.parse(localStorage.getItem('estoqueCentral'));
+            const i = e.find(x => x.id === id);
+            if (!i) return;
+            const d = i.quantidadeTotal - i.alocadoCardapio2;
+            if (q > d) { alert('Máximo disponível: ' + d); return; }
+            i.alocadoCardapio2 += q;
+            localStorage.setItem('estoqueCentral', JSON.stringify(e));
 
-            if (!saborId || !qtd || qtd < 1) {
-                alert('Selecione um sabor e quantidade válida!');
-                return;
-            }
+            const c2 = JSON.parse(localStorage.getItem('cardapio2'));
+            const ex = c2.find(x => x.estoqueId === id);
+            if (ex) { ex.quantidade += q; ex.quantidadeInicial += q; }
+            else c2.push({ id: 'c2_' + Date.now(), estoqueId: id, nome: i.nome, emoji: i.emoji, descricao: i.descricao, preco: i.preco, quantidade: q, quantidadeInicial: q });
+            localStorage.setItem('cardapio2', JSON.stringify(c2));
 
-            const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
-            const item = estoque.find(i => i.id === saborId);
-            if (!item) { alert('Sabor não encontrado!'); return; }
+            let historico = JSON.parse(localStorage.getItem('historicoEstoque'));
+            historico.push({ data: new Date().toISOString(), tipo: 'alocacao', item: i.nome, quantidade: q, usuario: adminAtual.nome, descricao: 'Alocado para Dois Marcos' });
+            localStorage.setItem('historicoEstoque', JSON.stringify(historico));
 
-            const disponivel = item.quantidadeTotal - item.alocadoCardapio2;
-            if (qtd > disponivel) {
-                alert(`Quantidade indisponível! Disponível para alocar: ${disponivel}`);
-                return;
-            }
-
-            // Atualizar estoque central
-            item.alocadoCardapio2 += qtd;
-            localStorage.setItem('estoqueCentral', JSON.stringify(estoque));
-
-            // Adicionar/atualizar cardápio 2
-            const cardapio2 = JSON.parse(localStorage.getItem('cardapio2'));
-            const existente = cardapio2.find(c => c.estoqueId === saborId);
-            if (existente) {
-                existente.quantidade += qtd;
-                existente.quantidadeInicial += qtd;
-            } else {
-                cardapio2.push({
-                    id: 'c2_' + Date.now(),
-                    estoqueId: item.id,
-                    nome: item.nome,
-                    emoji: item.emoji,
-                    descricao: item.descricao,
-                    preco: item.preco,
-                    quantidade: qtd,
-                    quantidadeInicial: qtd
-                });
-            }
-            localStorage.setItem('cardapio2', JSON.stringify(cardapio2));
-
-            // Sincronizar cardápio 1 (vai diminuir automaticamente)
             sincronizarCardapio1();
-
-            // Limpar campo
+            carregarEstoque(); carregarCardapio1(); carregarCardapio2(); atualizarResumo();
             document.getElementById('alocar2-qtd').value = '10';
             document.getElementById('alocar2-sabor').value = '';
-
-            carregarEstoque();
-            carregarCardapio1();
-            carregarCardapio2();
-            atualizarResumo();
-            alert('✅ Alocado para Cardápio 2D com sucesso! Cardápio 1 foi atualizado automaticamente.');
+            alert('✅ Alocado para Dois Marcos! O estoque central e Cardápio 1 foram atualizados.');
         }
 
         function carregarCardapio2() {
-            carregarSelectEstoque2();
-            const cardapio2 = JSON.parse(localStorage.getItem('cardapio2'));
-            const lista = document.getElementById('cardapio2-lista');
-
-            if (cardapio2.length === 0) {
-                lista.innerHTML = '<p style="color:#999;">Nenhum sabor alocado para o Cardápio 2D.</p>';
-                return;
-            }
-
-            lista.innerHTML = cardapio2.map(item => `
-                <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
-                    <div>
-                        <strong>${item.emoji} ${item.nome}</strong> - R$ ${item.preco.toFixed(2)}<br>
-                        <small>Qtd: ${item.quantidade} | Inicial: ${item.quantidadeInicial}</small>
-                    </div>
-                    <div style="display:flex;gap:5px;">
-                        <button class="btn btn-warning btn-small" onclick="devolverDoCardapio2('${item.id}')">🔄 Devolver</button>
-                        <button class="btn btn-danger btn-small" onclick="removerDoCardapio2('${item.id}')">🗑️</button>
-                    </div>
-                </div>
-            `).join('');
-
-            document.getElementById('cardapio2-qtd').textContent = cardapio2.reduce((s, i) => s + i.quantidade, 0);
+            const c2 = JSON.parse(localStorage.getItem('cardapio2'));
+            const l = document.getElementById('cardapio2-lista');
+            if (c2.length === 0) { l.innerHTML = '<p style="color:#8B4513;">Nenhum item alocado.</p>'; return; }
+            l.innerHTML = c2.map(i => `<div style="background:#FFF8DC;padding:12px;border-radius:8px;margin-bottom:8px;border:1px solid #DAA520;display:flex;justify-content:space-between;align-items:center;font-size:1em;"><div><strong>${i.emoji} ${i.nome}</strong> - R$ ${i.preco.toFixed(2)}<br><small>Qtd: ${i.quantidade}</small></div><div><button class="btn btn-warning btn-small" onclick="devolverC2('${i.id}')">🔄 Devolver</button> <button class="btn btn-danger btn-small" onclick="removerC2('${i.id}')">🗑️</button></div></div>`).join('');
+            document.getElementById('cardapio2-qtd').textContent = c2.reduce((s,i) => s + i.quantidade, 0);
         }
 
-        function devolverDoCardapio2(id) {
-            const qtd = prompt('Quantas unidades devolver ao estoque?', '1');
-            if (!qtd || isNaN(qtd) || parseInt(qtd) < 1) return;
+        function devolverC2(id) {
+            const q = prompt('Quantas unidades devolver ao estoque?', '1');
+            if (!q || isNaN(q) || parseInt(q) < 1) return;
+            const c2 = JSON.parse(localStorage.getItem('cardapio2'));
+            const i = c2.find(x => x.id === id);
+            if (!i) return;
+            const qd = Math.min(parseInt(q), i.quantidade);
+            const e = JSON.parse(localStorage.getItem('estoqueCentral'));
+            const ei = e.find(x => x.id === i.estoqueId);
+            if (ei) ei.alocadoCardapio2 = Math.max(0, ei.alocadoCardapio2 - qd);
+            localStorage.setItem('estoqueCentral', JSON.stringify(e));
+            i.quantidade -= qd;
+            if (i.quantidade <= 0) localStorage.setItem('cardapio2', JSON.stringify(c2.filter(x => x.id !== id)));
+            else localStorage.setItem('cardapio2', JSON.stringify(c2));
 
-            const cardapio2 = JSON.parse(localStorage.getItem('cardapio2'));
-            const item = cardapio2.find(i => i.id === id);
-            if (!item) return;
-
-            const qtdDevolver = Math.min(parseInt(qtd), item.quantidade);
-            
-            // Atualizar estoque central
-            const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
-            const estoqueItem = estoque.find(e => e.id === item.estoqueId);
-            if (estoqueItem) {
-                estoqueItem.alocadoCardapio2 = Math.max(0, estoqueItem.alocadoCardapio2 - qtdDevolver);
-                localStorage.setItem('estoqueCentral', JSON.stringify(estoque));
-            }
-
-            // Atualizar cardápio 2
-            item.quantidade -= qtdDevolver;
-            if (item.quantidade <= 0) {
-                const novoCardapio = cardapio2.filter(i => i.id !== id);
-                localStorage.setItem('cardapio2', JSON.stringify(novoCardapio));
-            } else {
-                localStorage.setItem('cardapio2', JSON.stringify(cardapio2));
-            }
+            let historico = JSON.parse(localStorage.getItem('historicoEstoque'));
+            historico.push({ data: new Date().toISOString(), tipo: 'devolucao', item: i.nome, quantidade: qd, usuario: adminAtual.nome, descricao: 'Devolvido do Dois Marcos' });
+            localStorage.setItem('historicoEstoque', JSON.stringify(historico));
 
             sincronizarCardapio1();
-            carregarEstoque();
-            carregarCardapio1();
-            carregarCardapio2();
-            atualizarResumo();
-            alert(`✅ ${qtdDevolver} unidades devolvidas ao estoque!`);
+            carregarEstoque(); carregarCardapio1(); carregarCardapio2(); atualizarResumo();
         }
 
-        function removerDoCardapio2(id) {
-            if (confirm('Remover completamente este sabor do Cardápio 2D?')) {
-                const cardapio2 = JSON.parse(localStorage.getItem('cardapio2'));
-                const item = cardapio2.find(i => i.id === id);
-                
-                if (item) {
-                    const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
-                    const estoqueItem = estoque.find(e => e.id === item.estoqueId);
-                    if (estoqueItem) {
-                        estoqueItem.alocadoCardapio2 = Math.max(0, estoqueItem.alocadoCardapio2 - item.quantidade);
-                        localStorage.setItem('estoqueCentral', JSON.stringify(estoque));
-                    }
-                }
+        function removerC2(id) {
+            if (!confirm('Remover completamente?')) return;
+            const c2 = JSON.parse(localStorage.getItem('cardapio2'));
+            const i = c2.find(x => x.id === id);
+            if (i) { const e = JSON.parse(localStorage.getItem('estoqueCentral')); const ei = e.find(x => x.id === i.estoqueId); if (ei) ei.alocadoCardapio2 = Math.max(0, ei.alocadoCardapio2 - i.quantidade); localStorage.setItem('estoqueCentral', JSON.stringify(e)); }
+            localStorage.setItem('cardapio2', JSON.stringify(c2.filter(x => x.id !== id)));
+            sincronizarCardapio1();
+            carregarEstoque(); carregarCardapio1(); carregarCardapio2(); atualizarResumo();
+        }
 
-                const novoCardapio = cardapio2.filter(i => i.id !== id);
-                localStorage.setItem('cardapio2', JSON.stringify(novoCardapio));
-                sincronizarCardapio1();
+        // ============ SETORES ============
+        function adicionarSetor() {
+            const n = document.getElementById('setor-nome').value.trim();
+            const t = parseFloat(document.getElementById('setor-taxa').value);
+            const tm = document.getElementById('setor-tempo').value.trim();
+            if (!n || isNaN(t)) { alert('Preencha!'); return; }
+            const s = JSON.parse(localStorage.getItem('setores'));
+            s.push({ id: 'setor_' + Date.now(), nome: n, taxa: t, tempo: tm || '30-45 min' });
+            localStorage.setItem('setores', JSON.stringify(s));
+            carregarSetores();
+            document.getElementById('setor-nome').value = '';
+            document.getElementById('setor-taxa').value = '';
+        }
+
+        function carregarSetores() {
+            const s = JSON.parse(localStorage.getItem('setores'));
+            document.getElementById('setores-lista').innerHTML = s.length === 0 ? '<tr><td colspan="4">Nenhum.</td></tr>' : s.map(x => `<tr><td><strong>${x.nome}</strong></td><td>R$ ${x.taxa.toFixed(2)}</td><td>${x.tempo}</td><td><button class="btn btn-danger btn-small" onclick="removerSetor('${x.id}')">🗑️</button></td></tr>`).join('');
+        }
+
+        function removerSetor(id) {
+            let s = JSON.parse(localStorage.getItem('setores'));
+            s = s.filter(x => x.id !== id);
+            localStorage.setItem('setores', JSON.stringify(s));
+            carregarSetores();
+        }
+
+        // ============ ADMINS ============
+        function cadastrarAdmin() {
+            const n = document.getElementById('admin-nome').value.trim();
+            const u = document.getElementById('admin-usuario').value.trim().toLowerCase();
+            const s = document.getElementById('admin-senha').value;
+            if (!n || !u || !s) { alert('Preencha!'); return; }
+            if (s.length < 6) { alert('Senha curta!'); return; }
+            const a = JSON.parse(localStorage.getItem('admins'));
+            if (a.find(x => x.usuario === u)) { alert('Usuário existe!'); return; }
+            a.push({
+                id: 'admin_' + Date.now(), nome: n, usuario: u, senha: s, tipo: 'admin',
+                permissoes: {
+                    cardapio1: document.getElementById('perm-cardapio1').checked,
+                    cardapio2: document.getElementById('perm-cardapio2').checked,
+                    estoque: document.getElementById('perm-estoque').checked,
+                    setores: document.getElementById('perm-cardapio1').checked,
+                    admins: document.getElementById('perm-admins').checked
+                }, ativo: true, dataCriacao: new Date().toISOString(), ultimoAcesso: null
+            });
+            localStorage.setItem('admins', JSON.stringify(a));
+            carregarListaAdmins();
+            ['admin-nome','admin-usuario','admin-senha'].forEach(id => document.getElementById(id).value = '');
+            alert('✅ Admin cadastrado!');
+        }
+
+        function carregarListaAdmins() {
+            const a = JSON.parse(localStorage.getItem('admins'));
+            document.getElementById('admins-lista').innerHTML = a.map(x => {
+                const p = x.permissoes || {};
+                const t = [p.cardapio1?'📋C1':'', p.cardapio2?'🔥DM':'', p.estoque?'📦':'', p.admins?'👥':''].filter(Boolean).join(' ');
+                return `<tr><td><strong>${x.nome}</strong> ${x.tipo==='master'?'<span class="badge badge-warning">👑</span>':''}</td><td>${x.usuario}</td><td><small>${t||'Nenhuma'}</small></td><td>${x.tipo!=='master'?`<button class="btn btn-danger btn-small" onclick="removerAdmin('${x.id}')">🗑️</button>`:'Protegido'}</td></tr>`;
+            }).join('');
+        }
+
+        function removerAdmin(id) {
+            if (!confirm('Remover?')) return;
+            let a = JSON.parse(localStorage.getItem('admins'));
+            a = a.filter(x => x.id !== id);
+            localStorage.setItem('admins', JSON.stringify(a));
+            carregarListaAdmins();
+        }
+
+        // ============ PEDIDOS ============
+        function carregarPedidos() {
+            const p = JSON.parse(localStorage.getItem('todosPedidos'));
+            const l = document.getElementById('pedidos-lista');
+            if (p.length === 0) { l.innerHTML = '<p style="color:#8B4513;">Nenhum pedido.</p>'; return; }
+            l.innerHTML = p.reverse().map(x => `
+                <div style="background:#FFF8DC;padding:18px;border-radius:10px;margin-bottom:10px;border-left:5px solid ${x.cardapio==='cardapio1'?'#DAA520':'#CC5500'};">
+                    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                        <div>
+                            <strong style="font-size:1.1em;">👤 ${x.cliente}</strong>
+                            <span class="badge badge-info">${x.cardapio==='cardapio1'?'Cardápio':'Dois Marcos'}</span>
+                            ${x.status==='novo'?'<span class="badge badge-danger">NOVO</span>':''}
+                            ${x.status==='cancelado'?'<span class="badge badge-danger">CANCELADO</span>':''}
+                            <br><small>📅 ${new Date(x.data).toLocaleString('pt-BR')} | 💳 ${x.pagamento}</small>
+                            ${x.telefone?`<br><small>📱 ${x.telefone}</small>`:''}
+                        </div>
+                        <div style="text-align:right;">
+                            <strong style="color:#CC5500;font-size:1.2em;">R$ ${x.total.toFixed(2)}</strong><br>
+                            <small>#${x.id}</small>
+                        </div>
+                    </div>
+                    <div style="margin-top:8px;font-size:0.95em;">${x.itens.map(i => `<div>${i.emoji} ${i.quantidade}x ${i.nome}</div>`).join('')}</div>
+                    ${x.status !== 'cancelado' ? `<div style="margin-top:10px;"><button class="btn btn-success btn-small" onclick="marcarLido(${x.id})">✅ Lido</button> <button class="btn btn-danger btn-small" onclick="cancelarPedido(${x.id})">❌ Cancelar</button></div>` : ''}
+                </div>`).join('');
+        }
+
+        function marcarLido(id) {
+            const p = JSON.parse(localStorage.getItem('todosPedidos'));
+            const pedido = p.find(x => x.id === id);
+            if (pedido) { pedido.status = 'lido'; localStorage.setItem('todosPedidos', JSON.stringify(p)); carregarPedidos(); }
+        }
+
+        function cancelarPedido(id) {
+            if (!confirm('Cancelar este pedido?')) return;
+            const p = JSON.parse(localStorage.getItem('todosPedidos'));
+            const pedido = p.find(x => x.id === id);
+            if (pedido) {
+                pedido.status = 'cancelado';
+                localStorage.setItem('todosPedidos', JSON.stringify(p));
+                
+                // Devolver itens ao estoque
+                if (pedido.cardapio === 'cardapio1') {
+                    const c1 = JSON.parse(localStorage.getItem('cardapio1') || '[]');
+                    pedido.itens.forEach(i => {
+                        const item = c1.find(x => x.nome === i.nome);
+                        if (item) item.quantidade += i.quantidade;
+                    });
+                    localStorage.setItem('cardapio1', JSON.stringify(c1));
+                } else {
+                    const c2 = JSON.parse(localStorage.getItem('cardapio2') || '[]');
+                    pedido.itens.forEach(i => {
+                        const item = c2.find(x => x.nome === i.nome);
+                        if (item) item.quantidade += i.quantidade;
+                    });
+                    localStorage.setItem('cardapio2', JSON.stringify(c2));
+                    
+                    const e = JSON.parse(localStorage.getItem('estoqueCentral') || '[]');
+                    pedido.itens.forEach(i => {
+                        const ei = e.find(x => x.nome === i.nome);
+                        if (ei) ei.alocadoCardapio2 = Math.max(0, ei.alocadoCardapio2 - i.quantidade);
+                    });
+                    localStorage.setItem('estoqueCentral', JSON.stringify(e));
+                }
+                
+                let historico = JSON.parse(localStorage.getItem('historicoEstoque'));
+                historico.push({ data: new Date().toISOString(), tipo: 'cancelamento', item: 'Pedido #' + id, quantidade: 0, usuario: adminAtual.nome, descricao: 'Pedido cancelado - itens devolvidos' });
+                localStorage.setItem('historicoEstoque', JSON.stringify(historico));
+                
+                carregarPedidos();
                 carregarEstoque();
                 carregarCardapio1();
                 carregarCardapio2();
@@ -947,153 +756,27 @@
             }
         }
 
-        // ============ SETORES ============
-        function adicionarSetor() {
-            const nome = document.getElementById('setor-nome').value.trim();
-            const taxa = parseFloat(document.getElementById('setor-taxa').value);
-            const tempo = document.getElementById('setor-tempo').value.trim();
-
-            if (!nome || isNaN(taxa)) { alert('Preencha nome e taxa!'); return; }
-
-            const setores = JSON.parse(localStorage.getItem('setores'));
-            setores.push({ id: 'setor_' + Date.now(), nome, taxa, tempo: tempo || '30-45 min' });
-            localStorage.setItem('setores', JSON.stringify(setores));
-            carregarSetores();
-            document.getElementById('setor-nome').value = '';
-            document.getElementById('setor-taxa').value = '0';
-        }
-
-        function carregarSetores() {
-            const setores = JSON.parse(localStorage.getItem('setores'));
-            const lista = document.getElementById('setores-lista');
-            if (setores.length === 0) {
-                lista.innerHTML = '<tr><td colspan="4" style="color:#999;">Nenhum setor.</td></tr>';
-                return;
-            }
-            lista.innerHTML = setores.map(s => `
-                <tr>
-                    <td><strong>${s.nome}</strong></td>
-                    <td>R$ ${s.taxa.toFixed(2)}</td>
-                    <td>${s.tempo}</td>
-                    <td><button class="btn btn-danger btn-small" onclick="removerSetor('${s.id}')">🗑️</button></td>
-                </tr>
-            `).join('');
-        }
-
-        function removerSetor(id) {
-            if (confirm('Remover setor?')) {
-                let setores = JSON.parse(localStorage.getItem('setores'));
-                setores = setores.filter(s => s.id !== id);
-                localStorage.setItem('setores', JSON.stringify(setores));
-                carregarSetores();
-            }
-        }
-
-        // ============ ADMINISTRADORES ============
-        function cadastrarAdmin() {
-            const nome = document.getElementById('admin-nome').value.trim();
-            const usuario = document.getElementById('admin-usuario').value.trim().toLowerCase();
-            const senha = document.getElementById('admin-senha').value;
-
-            if (!nome || !usuario || !senha) { alert('Preencha todos os campos!'); return; }
-            if (senha.length < 6) { alert('Senha muito curta!'); return; }
-
-            const admins = JSON.parse(localStorage.getItem('admins'));
-            if (admins.find(a => a.usuario === usuario)) { alert('Usuário já existe!'); return; }
-
-            const permissoes = {
-                cardapio1: document.getElementById('perm-cardapio1').checked,
-                cardapio2: document.getElementById('perm-cardapio2').checked,
-                estoque: document.getElementById('perm-estoque').checked,
-                setores: document.getElementById('perm-setores').checked,
-                admins: document.getElementById('perm-admins').checked
-            };
-
-            admins.push({
-                id: 'admin_' + Date.now(),
-                nome, usuario, senha,
-                tipo: 'admin',
-                permissoes,
-                ativo: true,
-                dataCriacao: new Date().toISOString(),
-                ultimoAcesso: null
-            });
-
-            localStorage.setItem('admins', JSON.stringify(admins));
-            carregarListaAdmins();
-            limparCamposAdmin();
-            alert('✅ Administrador cadastrado!');
-        }
-
-        function limparCamposAdmin() {
-            ['admin-nome', 'admin-usuario', 'admin-senha'].forEach(id => document.getElementById(id).value = '');
-        }
-
-        function carregarListaAdmins() {
-            const admins = JSON.parse(localStorage.getItem('admins'));
-            const lista = document.getElementById('admins-lista');
-
-            lista.innerHTML = admins.map(a => {
-                const p = a.permissoes || {};
-                const permissoesTexto = [
-                    p.cardapio1 ? '📋C1' : '',
-                    p.cardapio2 ? '📋C2D' : '',
-                    p.estoque ? '📦Est' : '',
-                    p.setores ? '🏙️Set' : '',
-                    p.admins ? '👥Adm' : ''
-                ].filter(Boolean).join(' ');
-
-                return `
-                    <tr>
-                        <td><strong>${a.nome}</strong> ${a.tipo === 'master' ? '<span class="badge badge-warning">👑 Master</span>' : ''}</td>
-                        <td>${a.usuario}</td>
-                        <td><small>${permissoesTexto || 'Nenhuma'}</small></td>
-                        <td><small>${a.ultimoAcesso ? new Date(a.ultimoAcesso).toLocaleString('pt-BR') : 'Nunca'}</small></td>
-                        <td>${a.tipo !== 'master' ? `<button class="btn btn-danger btn-small" onclick="removerAdmin('${a.id}')">🗑️</button>` : '<small>Protegido</small>'}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function removerAdmin(id) {
-            if (confirm('Remover administrador?')) {
-                let admins = JSON.parse(localStorage.getItem('admins'));
-                admins = admins.filter(a => a.id !== id);
-                localStorage.setItem('admins', JSON.stringify(admins));
-                carregarListaAdmins();
-            }
-        }
-
-        // ============ PEDIDOS ============
-        function carregarPedidos() {
-            const pedidos = JSON.parse(localStorage.getItem('todosPedidos'));
-            const lista = document.getElementById('pedidos-lista');
-            if (pedidos.length === 0) {
-                lista.innerHTML = '<p style="color:#999;">Nenhum pedido.</p>';
-                return;
-            }
-            lista.innerHTML = pedidos.reverse().map(p => `
-                <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:10px;border-left:4px solid ${p.cardapio === 'cardapio1' ? '#667eea' : '#f5576c'};">
-                    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-                        <div>
-                            <strong>👤 ${p.cliente}</strong>
-                            <span class="badge badge-info">${p.cardapio === 'cardapio1' ? 'Cardápio 1' : 'Cardápio 2D'}</span><br>
-                            <small>📅 ${new Date(p.data).toLocaleString('pt-BR')}</small>
-                        </div>
-                        <strong style="color:#f5576c;">R$ ${p.total.toFixed(2)}</strong>
-                    </div>
-                    <div style="margin-top:8px;">
-                        ${p.itens.map(i => `<div>${i.emoji} ${i.quantidade}x ${i.nome}</div>`).join('')}
-                    </div>
+        // ============ HISTÓRICO ============
+        function carregarHistorico() {
+            const h = JSON.parse(localStorage.getItem('historicoEstoque'));
+            const l = document.getElementById('historico-lista');
+            if (h.length === 0) { l.innerHTML = '<p style="color:#8B4513;">Nenhum registro.</p>'; return; }
+            l.innerHTML = h.reverse().slice(0, 100).map(x => `
+                <div class="historico-item">
+                    <strong>${x.tipo === 'entrada' ? '🟢' : x.tipo === 'saida' ? '🔴' : x.tipo === 'alocacao' ? '📤' : x.tipo === 'devolucao' ? '📥' : '❌'}</strong>
+                    ${new Date(x.data).toLocaleString('pt-BR')} - 
+                    <strong>${x.item}</strong> (${x.quantidade > 0 ? x.quantidade + ' unid.' : ''}) - 
+                    ${x.descricao} - 
+                    <small>por ${x.usuario}</small>
                 </div>
             `).join('');
         }
 
         // ============ CONFIG ============
         function carregarConfig() {
-            const config = JSON.parse(localStorage.getItem('adminConfig') || '{}');
-            document.getElementById('config-whatsapp').value = config.whatsapp || '';
-            document.getElementById('config-pix').value = config.pix || '';
+            const c = JSON.parse(localStorage.getItem('adminConfig') || '{}');
+            document.getElementById('config-whatsapp').value = c.whatsapp || '';
+            document.getElementById('config-pix').value = c.pix || '';
         }
 
         function salvarConfig() {
@@ -1101,33 +784,31 @@
                 whatsapp: document.getElementById('config-whatsapp').value,
                 pix: document.getElementById('config-pix').value
             }));
-            alert('✅ Salvo!');
+            alert('✅ Configurações salvas!');
         }
 
         function alterarSenha() {
-            const atual = document.getElementById('senha-atual').value;
-            const nova = document.getElementById('nova-senha').value;
-            if (atual !== adminAtual.senha) { alert('Senha atual incorreta!'); return; }
-            if (nova.length < 6) { alert('Senha muito curta!'); return; }
-
+            const a = document.getElementById('senha-atual').value;
+            const n = document.getElementById('nova-senha').value;
+            if (a !== adminAtual.senha) { alert('Senha atual incorreta!'); return; }
+            if (n.length < 6) { alert('Curta!'); return; }
             const admins = JSON.parse(localStorage.getItem('admins'));
-            const admin = admins.find(a => a.id === adminAtual.id);
-            if (admin) { admin.senha = nova; localStorage.setItem('admins', JSON.stringify(admins)); adminAtual.senha = nova; }
+            const admin = admins.find(x => x.id === adminAtual.id);
+            if (admin) { admin.senha = n; localStorage.setItem('admins', JSON.stringify(admins)); adminAtual.senha = n; }
             alert('✅ Senha alterada!');
         }
 
         // ============ RESUMO ============
         function atualizarResumo() {
-            const estoque = JSON.parse(localStorage.getItem('estoqueCentral'));
-            const cardapio1 = JSON.parse(localStorage.getItem('cardapio1'));
-            const cardapio2 = JSON.parse(localStorage.getItem('cardapio2'));
-            const pedidos = JSON.parse(localStorage.getItem('todosPedidos'));
-
-            const totalDisponivel = estoque.reduce((s, i) => s + i.quantidadeTotal - i.alocadoCardapio2, 0);
-            document.getElementById('estoque-total').textContent = estoque.reduce((s, i) => s + i.quantidadeTotal, 0);
-            document.getElementById('cardapio1-qtd').textContent = totalDisponivel;
-            document.getElementById('cardapio2-qtd').textContent = cardapio2.reduce((s, i) => s + i.quantidade, 0);
-            document.getElementById('faturamento-total').textContent = 'R$ ' + pedidos.reduce((s, p) => s + p.total, 0).toFixed(2);
+            const e = JSON.parse(localStorage.getItem('estoqueCentral'));
+            const c1 = JSON.parse(localStorage.getItem('cardapio1'));
+            const c2 = JSON.parse(localStorage.getItem('cardapio2'));
+            const p = JSON.parse(localStorage.getItem('todosPedidos'));
+            const ativos = p.filter(x => x.status !== 'cancelado');
+            document.getElementById('estoque-total').textContent = e.reduce((s,i) => s + i.quantidadeTotal, 0);
+            document.getElementById('cardapio1-qtd').textContent = c1.reduce((s,i) => s + i.quantidade, 0);
+            document.getElementById('cardapio2-qtd').textContent = c2.reduce((s,i) => s + i.quantidade, 0);
+            document.getElementById('faturamento-total').textContent = 'R$ ' + ativos.reduce((s,i) => s + i.total, 0).toFixed(2);
         }
 
         function carregarTudo() {
@@ -1140,11 +821,10 @@
             atualizarResumo();
         }
 
-        // Verificar sessão
         function verificarSessao() {
-            const sessao = localStorage.getItem('adminAtual');
-            if (sessao) {
-                adminAtual = JSON.parse(sessao);
+            const s = localStorage.getItem('adminAtual');
+            if (s) {
+                adminAtual = JSON.parse(s);
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('admin-panel').style.display = 'block';
                 configurarInterface();
@@ -1152,10 +832,7 @@
             }
         }
 
-        document.getElementById('login-senha').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') fazerLogin();
-        });
-
+        document.getElementById('login-senha').addEventListener('keypress', e => { if (e.key === 'Enter') fazerLogin(); });
         inicializar();
         verificarSessao();
     </script>
