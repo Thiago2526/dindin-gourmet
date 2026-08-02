@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Din Din Gourmet - Faça seu Pedido</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        .header.c2d {
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+        }
+        .header h1 { font-size: 1.8em; margin-bottom: 5px; }
+        .header p { opacity: 0.9; }
+        .menu {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 20px;
+        }
+        .item {
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .item:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .item.esgotado { opacity: 0.5; pointer-events: none; }
+        .item.esgotado::after {
+            content: "ESGOTADO";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%) rotate(-20deg);
+            background: rgba(255,71,87,0.9);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1em;
+            z-index: 5;
+        }
+        .item .emoji { font-size: 2.5em; margin-bottom: 5px; }
+        .item h3 { font-size: 1em; margin: 5px 0; color: #333; }
+        .item .preco {
+            font-size: 1.4em;
+            color: #f5576c;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .item .disp {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .item .disp b { color: #4CAF50; }
+        .qtd {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .qtd button {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #f5576c;
+            background: white;
+            color: #f5576c;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+        .qtd button:hover { background: #f5576c; color: white; }
+        .qtd span { font-size: 1.1em; font-weight: bold; min-width: 25px; text-align: center; }
+        .carrinho {
+            background: #f8f9fa;
+            padding: 25px;
+            border-top: 3px solid #f5576c;
+        }
+        .carrinho h3 { text-align: center; margin-bottom: 15px; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+            font-size: 0.95em;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+        .total {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #f5576c;
+            text-align: right;
+            margin: 15px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+        }
+        .total span { font-size: 1.2em; }
+        .btn-enviar {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            background: #25D366;
+            color: white;
+            transition: all 0.3s;
+        }
+        .btn-enviar:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37,211,102,0.4); }
+        .btn-enviar:disabled { opacity: 0.5; cursor: not-allowed; background: #ccc; }
+        .item-carrinho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .item-carrinho span { font-size: 0.95em; }
+        .btn-remover {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+        .vazio { text-align: center; padding: 30px; color: #999; }
+        .alerta {
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2196F3;
+            font-size: 0.9em;
+        }
+        @media (max-width: 500px) {
+            .menu { grid-template-columns: 1fr; }
+            .header h1 { font-size: 1.4em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" id="header-cardapio">
+            <h1>🍫 Din Din Gourmet</h1>
+            <p id="tipo-cardapio">Carregando cardápio...</p>
+        </div>
+
+        <div class="menu" id="menu">
+            <p style="text-align:center;grid-column:1/-1;padding:40px;color:#999;">Carregando...</p>
+        </div>
+
+        <div class="carrinho">
+            <h3>🛒 Seu Pedido</h3>
+            <div id="carrinho-itens">
+                <div class="vazio">Carrinho vazio</div>
+            </div>
+
+            <div id="setor-area"></div>
+
+            <div class="form-group">
+                <label>👤 Nome Completo *</label>
+                <input type="text" id="nome" placeholder="Digite seu nome completo">
+            </div>
+
+            <div class="form-group">
+                <label>📱 WhatsApp</label>
+                <input type="tel" id="tel" placeholder="(00) 00000-0000">
+            </div>
+
+            <div class="form-group">
+                <label>💳 Forma de Pagamento *</label>
+                <select id="pag">
+                    <option value="">Selecione...</option>
+                    <option value="PIX">PIX</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Cartão">Cartão</option>
+                </select>
+            </div>
+
+            <div class="total">
+                TOTAL: <span id="total">R$ 0,00</span>
+            </div>
+
+            <button class="btn-enviar" id="btn-enviar" onclick="enviarPedido()" disabled>
+                📱 Enviar Pedido via WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ============ CARREGAR DADOS ============
+        let cardapio = [];
+        let setores = [];
+        let tipoCardapio = 'cardapio1';
+        let carrinho = [];
+
+        // Tentar carregar do link (dados codificados)
+        const urlParams = new URLSearchParams(window.location.search);
+        const dadosLink = urlParams.get('d');
+
+        if (dadosLink) {
+            // Carregar dados do link (funciona offline!)
+            try {
+                const dados = JSON.parse(decodeURIComponent(escape(atob(dadosLink))));
+                cardapio = dados.cardapio || [];
+                setores = dados.setores || [];
+                tipoCardapio = dados.tipo || 'cardapio1';
+            } catch(e) {
+                console.error('Erro ao carregar dados do link:', e);
+                carregarDoLocalStorage();
+            }
+        } else {
+            // Carregar do localStorage
+            carregarDoLocalStorage();
+        }
+
+        function carregarDoLocalStorage() {
+            cardapio = JSON.parse(localStorage.getItem('cardapio1') || '[]');
+            setores = JSON.parse(localStorage.getItem('setores') || '[]');
+            tipoCardapio = 'cardapio1';
+        }
+
+        // Configurar interface
+        document.getElementById('tipo-cardapio').textContent = 
+            tipoCardapio === 'cardapio2' ? 'Cardápio 2D - Entrega Especial' : 'Cardápio Principal';
+
+        if (tipoCardapio === 'cardapio2') {
+            document.getElementById('header-cardapio').classList.add('c2d');
+        }
+
+        // ============ RENDERIZAR CARDÁPIO ============
+        function renderizarCardapio() {
+            const menu = document.getElementById('menu');
+
+            if (cardapio.length === 0) {
+                menu.innerHTML = '<p style="text-align:center;grid-column:1/-1;padding:40px;">😴 Cardápio indisponível no momento</p>';
+                return;
+            }
+
+            menu.innerHTML = cardapio.map(item => {
+                const qtd = item.qtd || item.quantidade || 0;
+                const esgotado = qtd === 0 ? 'esgotado' : '';
+                const ultimas = qtd > 0 && qtd <= 5 ? '<span style="color:#ffa502;font-size:0.8em;">⚠️ Últimas!</span>' : '';
+
+                return `
+                    <div class="item ${esgotado}">
+                        <div class="emoji">${item.emoji || '🍫'}</div>
+                        <h3>${item.nome}</h3>
+                        <div class="preco">R$ ${item.preco.toFixed(2)}</div>
+                        <div class="disp">📦 Disponível: <b>${qtd}</b> unid. ${ultimas}</div>
+                        <div class="qtd">
+                            <button onclick="adicionarCarrinho('${item.id}', -1)">−</button>
+                            <span id="qtd-${item.id}">0</span>
+                            <button onclick="adicionarCarrinho('${item.id}', 1)">+</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Setores (apenas Cardápio 1)
+            if (tipoCardapio === 'cardapio1' && setores.length > 0) {
+                document.getElementById('setor-area').innerHTML = `
+                    <div class="form-group">
+                        <label>📍 Selecione seu Setor/Bairro *</label>
+                        <select id="setor" onchange="calcularTotal()">
+                            <option value="">Selecione um setor...</option>
+                            ${setores.map(s => `
+                                <option value="${s.id}" data-taxa="${s.taxa}" data-nome="${s.nome}" data-tempo="${s.tempo || ''}">
+                                    ${s.nome} - Taxa: R$ ${s.taxa.toFixed(2)} ${s.tempo ? '(' + s.tempo + ')' : ''}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                `;
+            } else {
+                document.getElementById('setor-area').innerHTML = '';
+            }
+        }
+
+        // ============ CARRINHO ============
+        function adicionarCarrinho(id, qtd) {
+            const item = cardapio.find(i => i.id === id);
+            if (!item) return;
+
+            const maxQtd = item.qtd || item.quantidade || 0;
+            const itemCarrinho = carrinho.find(i => i.id === id);
+
+            if (itemCarrinho) {
+                const novaQtd = itemCarrinho.quantidade + qtd;
+                if (novaQtd <= 0) {
+                    carrinho = carrinho.filter(i => i.id !== id);
+                } else if (novaQtd > maxQtd) {
+                    alert(`❌ Quantidade máxima disponível: ${maxQtd}`);
+                    return;
+                } else {
+                    itemCarrinho.quantidade = novaQtd;
+                }
+            } else if (qtd > 0) {
+                if (qtd > maxQtd) {
+                    alert(`❌ Quantidade máxima disponível: ${maxQtd}`);
+                    return;
+                }
+                carrinho.push({
+                    id: item.id,
+                    nome: item.nome,
+                    emoji: item.emoji || '🍫',
+                    preco: item.preco,
+                    quantidade: qtd
+                });
+            }
+
+            atualizarInterface();
+        }
+
+        function atualizarInterface() {
+            // Atualizar quantidades nos itens
+            cardapio.forEach(item => {
+                const el = document.getElementById('qtd-' + item.id);
+                if (el) {
+                    const c = carrinho.find(i => i.id === item.id);
+                    el.textContent = c ? c.quantidade : 0;
+                }
+            });
+
+            // Atualizar carrinho
+            const carrinhoDiv = document.getElementById('carrinho-itens');
+            if (carrinho.length === 0) {
+                carrinhoDiv.innerHTML = '<div class="vazio">🛒 Carrinho vazio</div>';
+            } else {
+                carrinhoDiv.innerHTML = carrinho.map(item => `
+                    <div class="item-carrinho">
+                        <span>${item.emoji} ${item.quantidade}x ${item.nome}</span>
+                        <span><strong>R$ ${(item.preco * item.quantidade).toFixed(2)}</strong></span>
+                        <button class="btn-remover" onclick="adicionarCarrinho('${item.id}', -${item.quantidade})">✕</button>
+                    </div>
+                `).join('');
+            }
+
+            calcularTotal();
+            validarFormulario();
+        }
+
+        function calcularTotal() {
+            const subtotal = carrinho.reduce((s, i) => s + (i.preco * i.quantidade), 0);
+            let taxa = 0;
+
+            if (tipoCardapio === 'cardapio1') {
+                const setorSelect = document.getElementById('setor');
+                if (setorSelect && setorSelect.selectedIndex > 0) {
+                    taxa = parseFloat(setorSelect.options[setorSelect.selectedIndex].dataset.taxa) || 0;
+                }
+            }
+
+            const total = subtotal + taxa;
+            document.getElementById('total').textContent = `R$ ${total.toFixed(2)}`;
+        }
+
+        function validarFormulario() {
+            const nome = document.getElementById('nome').value.trim();
+            const pag = document.getElementById('pag').value;
+            let setorValido = true;
+
+            if (tipoCardapio === 'cardapio1') {
+                const setor = document.getElementById('setor');
+                setorValido = setor && setor.value !== '';
+            }
+
+            const valido = carrinho.length > 0 && nome && pag && setorValido;
+            document.getElementById('btn-enviar').disabled = !valido;
+        }
+
+        // Event listeners
+        document.getElementById('nome').addEventListener('input', validarFormulario);
+        document.getElementById('pag').addEventListener('change', validarFormulario);
+        document.getElementById('tel').addEventListener('input', function(e) {
+            let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+            if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+            if (v.length > 10) v = `${v.slice(0,10)}-${v.slice(10)}`;
+            e.target.value = v;
+        });
+
+        // ============ ENVIAR PEDIDO ============
+        function enviarPedido() {
+            const nome = document.getElementById('nome').value.trim();
+            const tel = document.getElementById('tel').value.trim();
+            const pag = document.getElementById('pag').value;
+
+            if (!nome || !pag || carrinho.length === 0) {
+                alert('Preencha todos os campos obrigatórios!');
+                return;
+            }
+
+            const subtotal = carrinho.reduce((s, i) => s + (i.preco * i.quantidade), 0);
+            let taxa = 0;
+            let setorNome = '';
+
+            if (tipoCardapio === 'cardapio1') {
+                const setorSelect = document.getElementById('setor');
+                if (setorSelect && setorSelect.selectedIndex > 0) {
+                    taxa = parseFloat(setorSelect.options[setorSelect.selectedIndex].dataset.taxa) || 0;
+                    setorNome = setorSelect.options[setorSelect.selectedIndex].dataset.nome || '';
+                }
+            }
+
+            const total = subtotal + taxa;
+
+            // Montar mensagem WhatsApp
+            let msg = `🍫 *NOVO PEDIDO* 🍫\n\n`;
+            msg += `📋 *${tipoCardapio === 'cardapio2' ? 'Cardápio 2D' : 'Cardápio Principal'}*\n\n`;
+            msg += `👤 *Cliente:* ${nome}\n`;
+            if (tel) msg += `📱 *WhatsApp:* ${tel}\n`;
+            if (setorNome) msg += `📍 *Setor:* ${setorNome}\n`;
+            msg += `💳 *Pagamento:* ${pag}\n\n`;
+            msg += `📋 *ITENS:*\n`;
+            
+            carrinho.forEach(i => {
+                msg += `${i.emoji} ${i.quantidade}x ${i.nome} - R$ ${(i.preco * i.quantidade).toFixed(2)}\n`;
+            });
+
+            msg += `\n💰 *Subtotal:* R$ ${subtotal.toFixed(2)}\n`;
+            if (taxa > 0) msg += `🚚 *Taxa de Entrega:* R$ ${taxa.toFixed(2)}\n`;
+            msg += `💵 *TOTAL: R$ ${total.toFixed(2)}*\n`;
+            msg += `\n✅ *Pedido confirmado!*`;
+
+            // Enviar WhatsApp
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+
+            // Limpar
+            carrinho = [];
+            document.getElementById('nome').value = '';
+            document.getElementById('tel').value = '';
+            document.getElementById('pag').value = '';
+            if (document.getElementById('setor')) document.getElementById('setor').value = '';
+            atualizarInterface();
+            alert('✅ Pedido enviado com sucesso!');
+        }
+
+        // Iniciar
+        renderizarCardapio();
+        atualizarInterface();
+    </script>
+</body>
+</html>
