@@ -3,288 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dindins Gourmet FX Cardápio Dois Marcos</title>
+    <title>Dindins Gourmet FX - Cardápio Dois Marcos</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --marrom: #5C3317;
-            --laranja: #CC5500;
-            --dourado: #DAA520;
-            --amarelo: #FFD700;
-            --creme: #FFF8DC;
-        }
-
+        :root { --marrom: #5C3317; --laranja: #CC5500; --dourado: #DAA520; --amarelo: #FFD700; --creme: #FFF8DC; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #3E1F0D 0%, #5C3317 50%, #8B4513 100%);
-            min-height: 100vh; padding: 20px; font-size: 17px;
+            min-height: 100vh; padding: 15px; font-size: 16px;
         }
-        .container {
-            max-width: 850px; margin: 0 auto; background: #FFF8DC;
-            border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); overflow: hidden;
-            border: 2px solid #DAA520;
-        }
-        .header {
-            background: linear-gradient(135deg, #5C3317 0%, #8B4513 100%);
-            color: #FFD700; padding: 30px; text-align: center; position: relative;
-        }
-        .header .logo { font-size: 1.4em; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px; }
-        .header .badge-dm {
-            position: absolute; top: 15px; right: 15px;
-            background: #CC5500; color: #FFD700; padding: 10px 18px;
-            border-radius: 20px; font-weight: bold; font-size: 1em; animation: pulse 2s infinite;
-        }
+        .container { max-width: 800px; margin: 0 auto; background: #FFF8DC; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); overflow: hidden; border: 2px solid #DAA520; }
+        .header { background: linear-gradient(135deg, #5C3317 0%, #8B4513 100%); color: #FFD700; padding: 20px; text-align: center; }
+        .logo { font-size: 1em; font-weight: bold; letter-spacing: 2px; color: #F4A460; }
+        .badge-dm { display: inline-block; background: #CC5500; color: #FFD700; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 0.85em; margin: 8px 0; animation: pulse 2s infinite; }
         @keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)} }
-        .header h1 { font-size: 2.2em; color: #FFD700; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-        .header p { color: #F4A460; font-size: 1.1em; }
-        .data-atual { background: #D2691E; padding: 15px; text-align: center; font-weight: bold; color: #FFD700; font-size: 1em; }
-        .menu-section { padding: 30px; }
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .menu-item {
-            background: #FFF8DC; border: 2px solid #DAA520; border-radius: 15px;
-            padding: 22px; transition: all 0.3s; position: relative;
-        }
-        .menu-item:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); border-color: #CC5500; }
+        .header h1 { font-size: 1.6em; }
+        .menu-section { padding: 15px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+        .menu-item { background: #FFF8DC; border: 2px solid #DAA520; border-radius: 12px; padding: 15px; text-align: center; transition: all 0.2s; }
+        .menu-item:active { transform: scale(0.97); border-color: #CC5500; }
         .menu-item.esgotado { opacity: 0.5; pointer-events: none; }
-        .menu-item.esgotado::after {
-            content: "ESGOTADO"; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%,-50%) rotate(-20deg);
-            background: rgba(139,0,0,0.9); color: white;
-            padding: 12px 35px; font-size: 1.3em; font-weight: bold; border-radius: 10px; z-index: 10;
-        }
-        .sabor-emoji { font-size: 3.5em; text-align: center; margin-bottom: 15px; }
-        .menu-item h3 { color: #CC5500; margin-bottom: 10px; font-size: 1.3em; }
-        .menu-item .descricao { color: #8B4513; font-size: 1em; margin-bottom: 10px; }
-        .menu-item .preco { font-size: 1.7em; color: #CC5500; font-weight: bold; margin-bottom: 10px; }
-        .menu-item .disponivel { font-size: 1em; color: #DAA520; margin-bottom: 10px; }
-        .quantidade-controle { display: flex; align-items: center; justify-content: center; gap: 12px; }
-        .btn-qtd {
-            width: 40px; height: 40px; border-radius: 50%; border: 2px solid #CC5500;
-            background: #FFF8DC; color: #CC5500; font-size: 1.3em; cursor: pointer; font-weight: bold;
-        }
-        .btn-qtd:hover { background: #CC5500; color: #FFD700; }
-        .quantidade { font-size: 1.3em; font-weight: bold; min-width: 35px; text-align: center; color: #8B4513; }
-        .carrinho-section { background: #D2691E; padding: 30px; border-top: 3px solid #DAA520; }
-        .carrinho-title { color: #FFD700; text-align: center; margin-bottom: 20px; font-size: 1.5em; }
-        .form-section { background: #FFF8DC; padding: 22px; border-radius: 10px; margin-bottom: 20px; }
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #8B4513; font-size: 1.05em; }
-        .form-group input, .form-group select {
-            width: 100%; padding: 14px; border: 2px solid #DAA520; border-radius: 10px;
-            font-size: 1.05em; background: #FFF8DC;
-        }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #CC5500; }
-        .total-section { background: #FFF8DC; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; color: #8B4513; font-size: 1.1em; }
-        .total-final { font-size: 1.6em; font-weight: bold; color: #CC5500; border-top: 2px solid #DAA520; padding-top: 10px; }
-        .btn-finalizar {
-            width: 100%; padding: 16px; background: #25D366; color: white;
-            border: none; border-radius: 12px; font-size: 1.3em; font-weight: bold; cursor: pointer; margin-bottom: 10px;
-        }
+        .menu-item.esgotado::after { content: "ESGOTADO"; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-20deg); background: rgba(139,0,0,0.9); color: white; padding: 8px 20px; border-radius: 8px; font-weight: bold; }
+        .sabor-emoji { font-size: 2.5em; margin-bottom: 5px; }
+        .menu-item h3 { color: #CC5500; font-size: 1.1em; margin-bottom: 5px; }
+        .preco { font-size: 1.3em; color: #CC5500; font-weight: bold; margin: 8px 0; }
+        .disponivel { font-size: 0.85em; color: #DAA520; margin-bottom: 8px; }
+        .qtd-controle { display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-qtd { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #CC5500; background: #FFF8DC; color: #CC5500; font-size: 1.2em; cursor: pointer; font-weight: bold; }
+        .btn-qtd:active { background: #CC5500; color: #FFD700; }
+        .quantidade { font-size: 1.1em; font-weight: bold; min-width: 25px; text-align: center; color: #8B4513; }
+        .carrinho-section { background: #D2691E; padding: 20px; border-top: 3px solid #DAA520; }
+        .form-section { background: #FFF8DC; padding: 18px; border-radius: 10px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: bold; color: #8B4513; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #DAA520; border-radius: 10px; font-size: 16px; background: #FFF8DC; }
+        .total-section { background: #FFF8DC; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        .total-final { font-size: 1.4em; font-weight: bold; color: #CC5500; border-top: 2px solid #DAA520; padding-top: 8px; display: flex; justify-content: space-between; }
+        .btn-finalizar { width: 100%; padding: 14px; background: #25D366; color: white; border: none; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-bottom: 8px; }
         .btn-finalizar:disabled { opacity: 0.5; cursor: not-allowed; background: #ccc; }
-        .btn-cancelar {
-            width: 100%; padding: 14px; background: #8B0000; color: white;
-            border: none; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer;
-        }
-        .btn-cancelar:hover { background: #a00000; }
-        .btn-remover { background: #8B0000; color: white; border: none; padding: 6px 14px; border-radius: 15px; cursor: pointer; font-size: 0.9em; }
-        .pix-info {
-            background: #FFF8DC; padding: 18px; border-radius: 10px;
-            border: 2px solid #DAA520; margin-bottom: 15px; display: none;
-        }
-        .pix-info h4 { color: #CC5500; margin-bottom: 10px; font-size: 1.1em; }
-        .pix-chave {
-            background: white; padding: 14px; border-radius: 8px;
-            font-family: monospace; font-size: 1.2em; color: #8B4513;
-            word-break: break-all; margin: 10px 0; border: 1px solid #DAA520;
-        }
-        .btn-copiar-pix {
-            background: #CC5500; color: #FFD700; border: none; padding: 10px 18px;
-            border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1em;
-        }
-        .btn-copiar-pix:hover { background: #E0551F; }
-        .whatsapp-float {
-            position: fixed; bottom: 30px; right: 30px;
-            background: #25D366; color: white; width: 65px; height: 65px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 32px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            cursor: pointer; z-index: 999; text-decoration: none;
-        }
-        .whatsapp-float:hover { transform: scale(1.1); }
-        .sucesso-msg {
-            background: #d4edda; color: #155724; padding: 22px; border-radius: 10px;
-            text-align: center; margin-top: 20px; border: 2px solid #28a745; display: none; font-size: 1.1em;
-        }
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-cancelar {
-            background: #FFF8DC; padding: 30px; border-radius: 20px;
-            max-width: 450px; width: 90%; border: 3px solid #DAA520; text-align: center;
-        }
-        .modal-cancelar h2 { color: #CC5500; margin-bottom: 20px; font-size: 1.4em; }
-        .modal-cancelar input {
-            width: 100%; padding: 14px; border: 2px solid #DAA520; border-radius: 10px;
-            font-size: 1.1em; text-align: center; margin-bottom: 15px;
-        }
-        .modal-botoes { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-        .btn-confirmar-cancel { background: #8B0000; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1em; }
-        .btn-fechar-modal { background: #8B4513; color: #FFD700; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-size: 1em; }
-
-        @media (max-width: 600px) { 
-            .header h1 { font-size: 1.6em; } 
-            .menu-grid { grid-template-columns: 1fr; } 
-            .header .badge-dm { position: static; display: inline-block; margin-top: 10px; } 
-            body { font-size: 15px; }
-        }
+        .btn-cancelar { width: 100%; padding: 12px; background: #8B0000; color: white; border: none; border-radius: 12px; font-size: 1em; font-weight: bold; cursor: pointer; }
+        .pix-info { background: #FFF8DC; padding: 15px; border-radius: 10px; border: 2px solid #DAA520; margin-bottom: 15px; display: none; }
+        .pix-chave { background: white; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 1em; text-align: center; word-break: break-all; margin: 8px 0; }
+        .btn-copiar-pix { width: 100%; padding: 10px; background: #CC5500; color: #FFD700; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .sucesso-msg { background: #d4edda; color: #155724; padding: 18px; border-radius: 10px; text-align: center; margin-top: 15px; border: 2px solid #28a745; display: none; }
+        @media (max-width: 480px) { .menu-grid { grid-template-columns: 1fr; } .header h1 { font-size: 1.4em; } }
     </style>
 </head>
 <body>
-    <!-- BOTÃO WHATSAPP FLUTUANTE -->
-    <a href="#" id="whatsapp-float-btn" class="whatsapp-float" title="Falar com atendente">💬</a>
-
-    <!-- MODAL CANCELAR PEDIDO -->
-    <div class="modal-overlay" id="modal-cancelar">
-        <div class="modal-cancelar">
-            <h2>❌ Cancelar Pedido</h2>
-            <p style="color:#8B4513;margin-bottom:15px;font-size:1.1em;">Digite o número de telefone usado no pedido:</p>
-            <input type="tel" id="cancelar-telefone" placeholder="(00) 00000-0000">
-            <div class="modal-botoes">
-                <button class="btn-confirmar-cancel" onclick="confirmarCancelamento()">❌ Cancelar Pedido</button>
-                <button class="btn-fechar-modal" onclick="fecharModalCancelar()">Voltar</button>
-            </div>
-            <div id="cancelar-resultado" style="margin-top:15px;"></div>
-        </div>
-    </div>
-
     <div class="container">
         <div class="header">
             <div class="logo">DINDINS GOURMET FX</div>
             <span class="badge-dm">🔥 DOIS MARCOS</span>
             <h1>🍫 Cardápio Dois Marcos</h1>
-            <p>Sabores exclusivos - Entrega especial</p>
         </div>
-        <div class="data-atual" id="data-atual"></div>
-        <div class="menu-section">
-            <div class="menu-grid" id="menu-grid"></div>
-        </div>
+        <div class="menu-section"><div class="menu-grid" id="menu-grid"></div></div>
         <div class="carrinho-section">
-            <h2 class="carrinho-title">🛒 Seu Pedido</h2>
+            <h3 style="color:#FFD700;text-align:center;margin-bottom:15px;">🛒 Seu Pedido</h3>
             <div id="carrinho-itens"></div>
             <div class="total-section" id="total-section" style="display:none;">
-                <div class="total-row total-final"><span>TOTAL:</span><span id="total-geral">R$ 0,00</span></div>
+                <div class="total-final"><span>TOTAL:</span><span id="total-geral">R$ 0,00</span></div>
             </div>
             <div class="form-section" id="form-section" style="display:none;">
-                <h3 style="color:#CC5500;margin-bottom:15px;font-size:1.2em;">📝 Seus Dados</h3>
-                <div class="form-group"><label>👤 Nome Completo *</label><input type="text" id="nome-cliente" placeholder="Digite seu nome completo"></div>
+                <div class="form-group"><label>👤 Nome *</label><input type="text" id="nome-cliente"></div>
                 <div class="form-group"><label>📱 WhatsApp *</label><input type="tel" id="telefone-cliente" placeholder="(00) 00000-0000"></div>
-                <div class="form-group"><label>💳 Forma de Pagamento *</label><select id="pagamento-select"><option value="">Selecione...</option><option value="PIX">PIX</option><option value="Dinheiro">Dinheiro</option><option value="Cartão">Cartão</option></select></div>
-                <div class="pix-info" id="pix-info">
-                    <h4>📱 Chave PIX para Pagamento</h4>
-                    <div class="pix-chave" id="pix-chave-display"></div>
-                    <button class="btn-copiar-pix" onclick="copiarPix()">📋 Copiar Chave PIX</button>
-                    <p style="color:#8B4513;font-size:0.95em;margin-top:8px;">⚠️ Copie a chave PIX e efetue o pagamento</p>
-                </div>
+                <div class="form-group"><label>💳 Pagamento *</label><select id="pagamento-select"><option value="">Selecione</option><option value="PIX">PIX</option><option value="Dinheiro">Dinheiro</option><option value="Cartão">Cartão</option></select></div>
+                <div class="pix-info" id="pix-info"><h4>📱 Chave PIX</h4><div class="pix-chave" id="pix-chave-display"></div><button class="btn-copiar-pix" onclick="copiarPix()">📋 Copiar PIX</button></div>
             </div>
-            <button class="btn-finalizar" id="btn-finalizar" onclick="finalizarPedido()" disabled>
-                📱 Finalizar Pedido
-            </button>
-            <button class="btn-cancelar" onclick="abrirModalCancelar()">
-                ❌ Cancelar Pedido
-            </button>
-            <div class="sucesso-msg" id="sucesso-msg">
-                <h3>✅ Pedido Realizado com Sucesso!</h3>
-                <p style="font-size:1.1em;">📦 Nº do Pedido: <strong id="pedido-id"></strong></p>
-                <p style="font-size:1.1em;margin-top:10px;">📱 <strong>POR FAVOR, ENCAMINHE SEU PEDIDO NO GRUPO DOS DINDINS!</strong></p>
-            </div>
+            <button class="btn-finalizar" id="btn-finalizar" onclick="finalizarPedido()" disabled>📱 Finalizar Pedido</button>
+            <div class="sucesso-msg" id="sucesso-msg"><h3>✅ Pedido Realizado!</h3><p>📦 Nº <strong id="pedido-id"></strong></p><p>📱 Encaminhe no grupo!</p></div>
         </div>
     </div>
 
     <script>
-        const CARDAPIO_KEY = 'cardapio2';
-        const CARDAPIO_NOME = 'Dindins Gourmet FX Cardápio Dois Marcos';
+        const SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let carrinho = [];
+        let cardapioDados = [];
 
-        function getWhatsAppAdmin() {
-            const config = JSON.parse(localStorage.getItem('adminConfig') || '{}');
-            return config.whatsapp || '5561986471897';
-        }
-
-        function getChavePix() {
-            const config = JSON.parse(localStorage.getItem('adminConfig') || '{}');
-            return config.pix || 'pix@dindingourmet.com.br';
-        }
-
-        document.getElementById('whatsapp-float-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            window.open(`https://wa.me/${getWhatsAppAdmin()}?text=${encodeURIComponent('Olá! Gostaria de fazer um pedido no Cardápio Dois Marcos 🍫')}`, '_blank');
-        });
-
-        document.getElementById('pix-chave-display').textContent = getChavePix();
-        document.getElementById('data-atual').textContent = '📅 ' + new Date().toLocaleDateString('pt-BR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-
-        function carregar() {
-            const c = JSON.parse(localStorage.getItem(CARDAPIO_KEY) || '[]');
+        async function carregarCardapio() {
+            const { data } = await supabase.from('cardapio2').select('*');
+            cardapioDados = data || [];
             const m = document.getElementById('menu-grid');
-            if (c.length === 0) { m.innerHTML = '<p style="text-align:center;color:#8B4513;font-size:1.1em;">Cardápio indisponível no momento.</p>'; return; }
-            m.innerHTML = c.map(i => {
-                const qtd = i.quantidade || 0;
-                return `<div class="menu-item ${qtd===0?'esgotado':''}">
+            if (cardapioDados.length === 0) { m.innerHTML = '<p style="text-align:center;color:#8B4513;">Indisponível.</p>'; return; }
+            m.innerHTML = cardapioDados.map(i => `
+                <div class="menu-item ${(i.quantidade||0)===0?'esgotado':''}">
                     <div class="sabor-emoji">${i.emoji||'🍫'}</div>
                     <h3>${i.nome}</h3>
-                    <p class="descricao">${i.descricao||''}</p>
-                    <p class="preco">R$ ${i.preco.toFixed(2)}</p>
-                    <p class="disponivel">📦 Disponível: <strong>${qtd}</strong> unid. ${qtd>0&&qtd<=5?'<span style="color:#CC5500;">⚠️ Últimas!</span>':''}</p>
-                    <div class="quantidade-controle">
-                        <button class="btn-qtd" onclick="add('${i.id}',-1)">−</button>
+                    <div class="preco">R$ ${(i.preco||0).toFixed(2)}</div>
+                    <div class="disponivel">📦 <strong>${i.quantidade||0}</strong> unid.</div>
+                    <div class="qtd-controle">
+                        <button class="btn-qtd" onclick="add(${i.id},-1)">−</button>
                         <span class="quantidade" id="q-${i.id}">0</span>
-                        <button class="btn-qtd" onclick="add('${i.id}',1)">+</button>
+                        <button class="btn-qtd" onclick="add(${i.id},1)">+</button>
                     </div>
-                </div>`;
-            }).join('');
+                </div>`).join('');
+        }
+
+        async function getConfig() {
+            const { data } = await supabase.from('config').select('*').eq('chave', 'admin').single();
+            return data?.dados || {};
         }
 
         function add(id, q) {
-            const c = JSON.parse(localStorage.getItem(CARDAPIO_KEY)||'[]');
-            const i = c.find(x => x.id === id); if (!i) return;
-            const mx = i.quantidade;
+            const i = cardapioDados.find(x => x.id === id); if (!i) return;
+            const mx = i.quantidade || 0;
             const cc = carrinho.find(x => x.id === id);
-            if (cc) { const n = cc.quantidade + q; if (n <= 0) carrinho = carrinho.filter(x => x.id !== id); else if (n > mx) { alert('❌ Quantidade máxima: '+mx); return; } else cc.quantidade = n; }
-            else if (q > 0) { if (q > mx) { alert('❌ Quantidade máxima: '+mx); return; } carrinho.push({ id, nome: i.nome, emoji: i.emoji, preco: i.preco, quantidade: q }); }
+            if (cc) { const n = cc.quantidade + q; if (n <= 0) carrinho = carrinho.filter(x => x.id !== id); else if (n > mx) { alert('Máx: '+mx); return; } else cc.quantidade = n; }
+            else if (q > 0) { if (q > mx) { alert('Máx: '+mx); return; } carrinho.push({ id, nome: i.nome, emoji: i.emoji, preco: i.preco, quantidade: q }); }
             atualizar();
         }
 
         function atualizar() {
-            const c = JSON.parse(localStorage.getItem(CARDAPIO_KEY)||'[]');
-            c.forEach(i => { const el = document.getElementById('q-'+i.id); if (el) { const cc = carrinho.find(x => x.id === i.id); el.textContent = cc ? cc.quantidade : 0; } });
+            cardapioDados.forEach(i => { const el = document.getElementById('q-'+i.id); if (el) { const cc = carrinho.find(x => x.id === i.id); el.textContent = cc ? cc.quantidade : 0; } });
             const div = document.getElementById('carrinho-itens');
-            if (carrinho.length === 0) div.innerHTML = '<p style="text-align:center;color:#FFD700;font-size:1.1em;">🛒 Carrinho vazio</p>';
-            else div.innerHTML = carrinho.map(i => `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#FFF8DC;border-radius:8px;margin-bottom:8px;font-size:1.05em;"><span>${i.emoji} ${i.quantidade}x ${i.nome}</span><span style="color:#CC5500;font-weight:bold;">R$ ${(i.preco*i.quantidade).toFixed(2)}</span><button class="btn-remover" onclick="add('${i.id}',-${i.quantidade})">✕</button></div>`).join('');
+            if (carrinho.length === 0) div.innerHTML = '<p style="text-align:center;color:#FFD700;">Vazio</p>';
+            else div.innerHTML = carrinho.map(i => `<div style="display:flex;justify-content:space-between;padding:8px;background:#FFF8DC;border-radius:6px;margin-bottom:5px;"><span>${i.emoji} ${i.quantidade}x ${i.nome}</span><span style="color:#CC5500;">R$ ${(i.preco*i.quantidade).toFixed(2)}</span></div>`).join('');
             const fs = document.getElementById('form-section'), ts = document.getElementById('total-section');
             if (carrinho.length > 0) { fs.style.display = 'block'; ts.style.display = 'block'; } else { fs.style.display = 'none'; ts.style.display = 'none'; }
-            const sub = carrinho.reduce((s,i) => s + (i.preco*i.quantidade), 0);
-            document.getElementById('total-geral').textContent = 'R$ '+sub.toFixed(2);
+            document.getElementById('total-geral').textContent = 'R$ '+carrinho.reduce((s,i) => s + (i.preco*i.quantidade), 0).toFixed(2);
             validar();
         }
 
         function validar() {
-            const nome = document.getElementById('nome-cliente').value.trim();
-            const tel = document.getElementById('telefone-cliente').value.trim();
-            const pag = document.getElementById('pagamento-select').value;
-            document.getElementById('btn-finalizar').disabled = !(carrinho.length > 0 && nome && tel && pag);
+            document.getElementById('btn-finalizar').disabled = !(carrinho.length > 0 && document.getElementById('nome-cliente').value.trim() && document.getElementById('telefone-cliente').value.trim() && document.getElementById('pagamento-select').value);
         }
 
         document.getElementById('pagamento-select').addEventListener('change', function() {
-            document.getElementById('pix-info').style.display = this.value === 'PIX' ? 'block' : 'none';
-            validar();
+            document.getElementById('pix-info').style.display = this.value === 'PIX' ? 'block' : 'none'; validar();
         });
-
-        function copiarPix() {
-            navigator.clipboard.writeText(getChavePix()).then(() => alert('✅ Chave PIX copiada!'));
-        }
-
         document.getElementById('nome-cliente').addEventListener('input', validar);
         document.getElementById('telefone-cliente').addEventListener('input', function(e) {
             let v = e.target.value.replace(/\D/g,'').slice(0,11);
@@ -293,111 +142,63 @@
             e.target.value = v; validar();
         });
 
-        // ============ CANCELAR PEDIDO ============
-        function abrirModalCancelar() {
-            document.getElementById('modal-cancelar').classList.add('active');
-            document.getElementById('cancelar-telefone').value = '';
-            document.getElementById('cancelar-resultado').innerHTML = '';
+        async function copiarPix() {
+            const config = await getConfig();
+            navigator.clipboard.writeText(config.pix || 'pix@dindingourmet.com.br').then(() => alert('✅ Copiado!'));
         }
 
-        function fecharModalCancelar() {
-            document.getElementById('modal-cancelar').classList.remove('active');
-        }
-
-        document.getElementById('cancelar-telefone').addEventListener('input', function(e) {
-            let v = e.target.value.replace(/\D/g,'').slice(0,11);
-            if (v.length > 2) v = '('+v.slice(0,2)+') '+v.slice(2);
-            if (v.length > 10) v = v.slice(0,10)+'-'+v.slice(10);
-            e.target.value = v;
-        });
-
-        function confirmarCancelamento() {
-            const tel = document.getElementById('cancelar-telefone').value.replace(/\D/g,'');
-            if (!tel) { alert('Digite o número de telefone!'); return; }
-
-            const pedidos = JSON.parse(localStorage.getItem('todosPedidos') || '[]');
-            const pedido = pedidos.find(p => p.telefone === tel && p.cardapio === CARDAPIO_KEY && p.status !== 'cancelado');
-
-            if (!pedido) {
-                document.getElementById('cancelar-resultado').innerHTML = '<p style="color:#8B0000;">❌ Nenhum pedido ativo encontrado com este telefone.</p>';
-                return;
-            }
-
-            pedido.status = 'cancelado';
-            localStorage.setItem('todosPedidos', JSON.stringify(pedidos));
-
-            // Devolver itens
-            const c2 = JSON.parse(localStorage.getItem(CARDAPIO_KEY) || '[]');
-            pedido.itens.forEach(i => {
-                const item = c2.find(x => x.nome === i.nome);
-                if (item) item.quantidade += i.quantidade;
-            });
-            localStorage.setItem(CARDAPIO_KEY, JSON.stringify(c2));
-
-            document.getElementById('cancelar-resultado').innerHTML = `<p style="color:#228B22;font-size:1.1em;">✅ Pedido #${pedido.id} cancelado com sucesso! Os itens foram devolvidos.</p>`;
-            carregar();
-            setTimeout(fecharModalCancelar, 2000);
-        }
-
-        // ============ FINALIZAR PEDIDO ============
-        function finalizarPedido() {
+        async function finalizarPedido() {
             const nome = document.getElementById('nome-cliente').value.trim();
             const tel = document.getElementById('telefone-cliente').value.trim().replace(/\D/g,'');
             const pag = document.getElementById('pagamento-select').value;
             const sub = carrinho.reduce((s,i) => s + (i.preco*i.quantidade), 0);
-            if (!nome || !tel || !pag || carrinho.length === 0) { alert('Preencha todos os campos!'); return; }
+            if (!nome || !tel || !pag || carrinho.length === 0) { alert('Preencha!'); return; }
 
-            const pedido = {
-                id: Date.now(), data: new Date().toISOString(),
-                cardapio: CARDAPIO_KEY, cardapioNome: CARDAPIO_NOME,
-                cliente: nome, telefone: tel, setor: 'Dois Marcos', taxaEntrega: 0,
+            const config = await getConfig();
+            const pedidoId = Date.now();
+
+            // Salvar pedido no Supabase
+            await supabase.from('todosPedidos').insert([{
+                pedido_id: pedidoId,
+                data: new Date().toISOString(),
+                cardapio: 'cardapio2',
+                cardapioNome: 'Dindins Gourmet FX Cardápio Dois Marcos',
+                cliente: nome,
+                telefone: tel,
                 pagamento: pag,
-                itens: carrinho.map(i => ({ nome:i.nome, emoji:i.emoji, quantidade:i.quantidade, preco:i.preco })),
-                subtotal: sub, total: sub, status: 'novo'
-            };
+                total: sub,
+                itens: carrinho.map(i => ({ nome: i.nome, emoji: i.emoji, quantidade: i.quantidade, preco: i.preco })),
+                status: 'novo',
+                pagamentoStatus: 'pendente'
+            }]);
 
-            const todos = JSON.parse(localStorage.getItem('todosPedidos')||'[]');
-            todos.push(pedido);
-            localStorage.setItem('todosPedidos', JSON.stringify(todos));
+            // Atualizar estoque do cardápio
+            for (const item of carrinho) {
+                const { data: atual } = await supabase.from('cardapio2').select('*').eq('id', item.id).single();
+                if (atual) {
+                    await supabase.from('cardapio2').update({ quantidade: Math.max(0, (atual.quantidade||0) - item.quantidade) }).eq('id', item.id);
+                }
+            }
 
-            // Atualizar estoque
-            const c = JSON.parse(localStorage.getItem(CARDAPIO_KEY)||'[]');
-            carrinho.forEach(i => { const ci = c.find(x => x.id === i.id); if (ci) ci.quantidade = Math.max(0, ci.quantidade - i.quantidade); });
-            localStorage.setItem(CARDAPIO_KEY, JSON.stringify(c));
-
-            // Atualizar estoque central
-            const e = JSON.parse(localStorage.getItem('estoqueCentral')||'[]');
-            carrinho.forEach(i => {
-                const ci = c.find(x => x.id === i.id);
-                if (ci) { const ei = e.find(x => x.id === ci.estoqueId); if (ei) ei.alocadoCardapio2 = Math.max(0, ei.alocadoCardapio2 - i.quantidade); }
-            });
-            localStorage.setItem('estoqueCentral', JSON.stringify(e));
-
-            // Nota simplificada
-            let nota = `🍫 *NOVO PEDIDO - Dois Marcos* 🍫\n\n`;
-            nota += `👤 *${nome}*\n`;
-            nota += `📱 *${tel}*\n`;
-            nota += `💳 *${pag}*\n\n`;
-            nota += `📋 *ITENS:*\n`;
+            // Montar nota WhatsApp
+            let nota = `🍫 *NOVO PEDIDO - Dois Marcos* 🍫\n\n👤 *${nome}*\n📱 *${tel}*\n💳 *${pag}*\n\n📋 *ITENS:*\n`;
             carrinho.forEach(i => nota += `${i.emoji} ${i.quantidade}x ${i.nome} - R$ ${(i.preco*i.quantidade).toFixed(2)}\n`);
             nota += `\n💵 *TOTAL: R$ ${sub.toFixed(2)}*\n`;
-            if (pag === 'PIX') nota += `\n📱 *Chave PIX:* \`${getChavePix()}\``;
-            nota += `\n\n📱 *POR FAVOR, ENCAMINHE SEU PEDIDO NO GRUPO DOS DINDINS!*`;
+            if (pag === 'PIX') nota += `\n📱 *PIX:* \`${config.pix || 'pix@dindingourmet.com.br'}\``;
+            nota += `\n\n📱 *ENCAMINHE NO GRUPO!*`;
 
-            window.open(`https://wa.me/${getWhatsAppAdmin()}?text=${encodeURIComponent(nota)}`, '_blank');
+            window.open(`https://wa.me/${config.whatsapp || '5561986471897'}?text=${encodeURIComponent(nota)}`, '_blank');
 
-            document.getElementById('pedido-id').textContent = '#' + pedido.id;
+            document.getElementById('pedido-id').textContent = '#' + pedidoId;
             document.getElementById('sucesso-msg').style.display = 'block';
             document.getElementById('btn-finalizar').style.display = 'none';
             document.getElementById('form-section').style.display = 'none';
-            carrinho = []; atualizar(); carregar();
-            setTimeout(() => {
-                document.getElementById('sucesso-msg').style.display = 'none';
-                document.getElementById('btn-finalizar').style.display = 'block';
-            }, 20000);
+            carrinho = []; atualizar(); carregarCardapio();
         }
 
-        carregar(); atualizar();
+        carregarCardapio(); atualizar();
+        // Carregar chave PIX
+        getConfig().then(c => { document.getElementById('pix-chave-display').textContent = c.pix || 'pix@dindingourmet.com.br'; });
     </script>
 </body>
 </html>
