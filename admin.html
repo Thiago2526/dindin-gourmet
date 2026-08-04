@@ -184,50 +184,58 @@
         // ============ SUPABASE CONFIG ============
         const SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('✅ Supabase conectado!');
+        } catch(e) {
+            console.log('⚠️ Supabase offline, usando localStorage');
+            supabase = null;
+        }
 
         let adminAtual = null;
 
         // ============ LOGIN ============
         function fazerLogin() {
-            const u = document.getElementById('login-usuario').value.trim().toLowerCase();
-            const s = document.getElementById('login-senha').value;
+            console.log('🔑 Tentando login...');
+            var u = document.getElementById('login-usuario').value.trim().toLowerCase();
+            var s = document.getElementById('login-senha').value;
             
-            // Admin Master padrão
             if (u === 'master' && s === 'admin123') {
                 adminAtual = { nome: 'Admin Master', tipo: 'master' };
-                abrirPainel();
+                console.log('✅ Login como Master');
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('user-display').textContent = '👑 Admin Master';
+                carregarTudo();
                 return;
             }
             
-            // Verificar admins cadastrados
-            const admins = JSON.parse(localStorage.getItem('admins') || '[]');
-            const admin = admins.find(a => a.usuario === u && a.senha === s && a.ativo);
+            var admins = JSON.parse(localStorage.getItem('admins') || '[]');
+            var admin = admins.find(function(a) { return a.usuario === u && a.senha === s && a.ativo; });
             if (admin) {
                 adminAtual = admin;
-                abrirPainel();
+                console.log('✅ Login como ' + admin.nome);
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('user-display').textContent = '👤 ' + admin.nome;
+                carregarTudo();
                 return;
             }
             
             alert('❌ Usuário ou senha incorretos!\n\nUse: master / admin123');
         }
 
-        function abrirPainel() {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('admin-panel').style.display = 'block';
-            document.getElementById('user-display').textContent = '👑 ' + adminAtual.nome;
-            carregarTudo();
-        }
-
         function logout() {
             adminAtual = null;
             document.getElementById('login-screen').style.display = 'block';
             document.getElementById('admin-panel').style.display = 'none';
+            document.getElementById('login-senha').value = '';
         }
 
         function mudarTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
             event.target.classList.add('active');
             document.getElementById('tab-' + tab).classList.add('active');
             if (tab === 'estoque') carregarEstoque();
@@ -239,87 +247,124 @@
 
         // ============ ESTOQUE ============
         async function gerenciarEstoque() {
-            const nome = document.getElementById('estoque-nome').value.trim();
-            const emoji = document.getElementById('estoque-emoji').value.trim();
-            const preco = parseFloat(document.getElementById('estoque-preco').value);
-            const qtdAdd = parseInt(document.getElementById('estoque-qtd-add').value) || 0;
-            const descricao = document.getElementById('estoque-descricao').value.trim();
+            var nome = document.getElementById('estoque-nome').value.trim();
+            var emoji = document.getElementById('estoque-emoji').value.trim();
+            var preco = parseFloat(document.getElementById('estoque-preco').value);
+            var qtdAdd = parseInt(document.getElementById('estoque-qtd-add').value) || 0;
+            var descricao = document.getElementById('estoque-descricao').value.trim();
+            
             if (!nome || !preco) { alert('Preencha nome e preço!'); return; }
 
-            const { data: existente } = await supabase.from('estoqueCentral').select('*').eq('nome', nome).single();
-            
-            if (existente) {
-                await supabase.from('estoqueCentral').update({
-                    quantidadeTotal: existente.quantidadeTotal + qtdAdd,
-                    preco, emoji: emoji || '🍫', descricao: descricao || ''
-                }).eq('id', existente.id);
+            if (supabase) {
+                try {
+                    var result = await supabase.from('estoqueCentral').select('*').eq('nome', nome);
+                    var existente = result.data && result.data.length > 0 ? result.data[0] : null;
+                    
+                    if (existente) {
+                        await supabase.from('estoqueCentral').update({
+                            quantidadeTotal: (existente.quantidadeTotal || 0) + qtdAdd,
+                            preco: preco, emoji: emoji || '🍫', descricao: descricao || ''
+                        }).eq('id', existente.id);
+                    } else {
+                        await supabase.from('estoqueCentral').insert([{
+                            nome: nome, emoji: emoji || '🍫', descricao: descricao || '',
+                            preco: preco, quantidadeTotal: qtdAdd || 50, alocadoCardapio2: 0
+                        }]);
+                    }
+                } catch(e) {
+                    console.error('Erro Supabase:', e);
+                    salvarLocal(nome, emoji, preco, qtdAdd, descricao);
+                }
             } else {
-                await supabase.from('estoqueCentral').insert([{
-                    nome, emoji: emoji || '🍫', descricao: descricao || '',
-                    preco, quantidadeTotal: qtdAdd || 50, alocadoCardapio2: 0
-                }]);
+                salvarLocal(nome, emoji, preco, qtdAdd, descricao);
             }
 
             carregarEstoque();
-            ['estoque-nome','estoque-emoji','estoque-preco','estoque-qtd-add','estoque-descricao'].forEach(id => document.getElementById(id).value = '');
+            ['estoque-nome','estoque-emoji','estoque-preco','estoque-qtd-add','estoque-descricao'].forEach(function(id) {
+                document.getElementById(id).value = '';
+            });
             document.getElementById('estoque-qtd-add').value = '10';
             alert('✅ Salvo!');
         }
 
+        function salvarLocal(nome, emoji, preco, qtdAdd, descricao) {
+            var estoque = JSON.parse(localStorage.getItem('estoqueCentral') || '[]');
+            var item = estoque.find(function(i) { return i.nome.toLowerCase() === nome.toLowerCase(); });
+            if (item) {
+                item.quantidadeTotal = (item.quantidadeTotal || 0) + qtdAdd;
+                item.preco = preco;
+                item.emoji = emoji || '🍫';
+                item.descricao = descricao || '';
+            } else {
+                estoque.push({
+                    id: 'est_' + Date.now(),
+                    nome: nome, emoji: emoji || '🍫', descricao: descricao || '',
+                    preco: preco, quantidadeTotal: qtdAdd || 50, alocadoCardapio2: 0
+                });
+            }
+            localStorage.setItem('estoqueCentral', JSON.stringify(estoque));
+        }
+
         async function carregarEstoque() {
-            const { data: estoque } = await supabase.from('estoqueCentral').select('*');
-            const lista = document.getElementById('estoque-lista');
-            const select = document.getElementById('alocar2-sabor');
+            var estoque = [];
+            if (supabase) {
+                try {
+                    var result = await supabase.from('estoqueCentral').select('*');
+                    estoque = result.data || [];
+                } catch(e) {
+                    estoque = JSON.parse(localStorage.getItem('estoqueCentral') || '[]');
+                }
+            } else {
+                estoque = JSON.parse(localStorage.getItem('estoqueCentral') || '[]');
+            }
+
+            var lista = document.getElementById('estoque-lista');
+            var select = document.getElementById('alocar2-sabor');
             
             if (select) {
                 select.innerHTML = '<option value="">Selecione...</option>';
-                (estoque || []).forEach(i => {
-                    const d = (i.quantidadeTotal || 0) - (i.alocadoCardapio2 || 0);
-                    select.innerHTML += `<option value="${i.id}">${i.nome} - Disp: ${d}</option>`;
+                estoque.forEach(function(i) {
+                    var d = (i.quantidadeTotal || 0) - (i.alocadoCardapio2 || 0);
+                    select.innerHTML += '<option value="' + i.id + '">' + i.nome + ' - Disp: ' + d + '</option>';
                 });
             }
 
-            if (!estoque || estoque.length === 0) {
+            if (estoque.length === 0) {
                 lista.innerHTML = '<p style="color:#8B4513;">Nenhum item.</p>';
             } else {
-                lista.innerHTML = estoque.map(i => {
-                    const d = (i.quantidadeTotal || 0) - (i.alocadoCardapio2 || 0);
-                    return `<div style="background:#FFF8DC;padding:15px;border-radius:10px;margin-bottom:10px;border:1px solid #DAA520;">
-                        <strong>${i.emoji||'🍫'} ${i.nome}</strong> - R$ ${(i.preco||0).toFixed(2)}<br>
-                        <small>Total: ${i.quantidadeTotal||0} | Dois Marcos: ${i.alocadoCardapio2||0} | <strong>Disp: ${d}</strong></small>
-                    </div>`;
+                lista.innerHTML = estoque.map(function(i) {
+                    var d = (i.quantidadeTotal || 0) - (i.alocadoCardapio2 || 0);
+                    return '<div style="background:#FFF8DC;padding:15px;border-radius:10px;margin-bottom:10px;border:1px solid #DAA520;"><strong>' + (i.emoji||'🍫') + ' ' + i.nome + '</strong> - R$ ' + (i.preco||0).toFixed(2) + '<br><small>Total: ' + (i.quantidadeTotal||0) + ' | Dois Marcos: ' + (i.alocadoCardapio2||0) + ' | <strong>Disp: ' + d + '</strong></small></div>';
                 }).join('');
             }
             atualizarResumo();
         }
 
-        // ============ CARDÁPIO 2 ============
         async function alocarParaCardapio2() {
-            const id = document.getElementById('alocar2-sabor').value;
-            const q = parseInt(document.getElementById('alocar2-qtd').value);
+            var id = document.getElementById('alocar2-sabor').value;
+            var q = parseInt(document.getElementById('alocar2-qtd').value);
             if (!id || !q || q < 1) { alert('Selecione!'); return; }
 
-            const { data: item } = await supabase.from('estoqueCentral').select('*').eq('id', id).single();
-            if (!item) return;
-            
-            const d = (item.quantidadeTotal || 0) - (item.alocadoCardapio2 || 0);
-            if (q > d) { alert('Máx: ' + d); return; }
+            if (supabase) {
+                try {
+                    var result = await supabase.from('estoqueCentral').select('*').eq('id', id);
+                    var item = result.data && result.data.length > 0 ? result.data[0] : null;
+                    if (!item) return;
+                    var d = (item.quantidadeTotal || 0) - (item.alocadoCardapio2 || 0);
+                    if (q > d) { alert('Máx: ' + d); return; }
 
-            await supabase.from('estoqueCentral').update({
-                alocadoCardapio2: (item.alocadoCardapio2 || 0) + q
-            }).eq('id', id);
+                    await supabase.from('estoqueCentral').update({ alocadoCardapio2: (item.alocadoCardapio2 || 0) + q }).eq('id', id);
 
-            const { data: existente } = await supabase.from('cardapio2').select('*').eq('nome', item.nome).single();
-            if (existente) {
-                await supabase.from('cardapio2').update({
-                    quantidade: existente.quantidade + q,
-                    quantidadeInicial: existente.quantidadeInicial + q
-                }).eq('id', existente.id);
-            } else {
-                await supabase.from('cardapio2').insert([{
-                    nome: item.nome, emoji: item.emoji, descricao: item.descricao,
-                    preco: item.preco, quantidade: q, quantidadeInicial: q
-                }]);
+                    var r2 = await supabase.from('cardapio2').select('*').eq('nome', item.nome);
+                    var existente = r2.data && r2.data.length > 0 ? r2.data[0] : null;
+                    if (existente) {
+                        await supabase.from('cardapio2').update({ quantidade: existente.quantidade + q, quantidadeInicial: existente.quantidadeInicial + q }).eq('id', existente.id);
+                    } else {
+                        await supabase.from('cardapio2').insert([{ nome: item.nome, emoji: item.emoji, descricao: item.descricao, preco: item.preco, quantidade: q, quantidadeInicial: q }]);
+                    }
+                } catch(e) {
+                    console.error('Erro:', e);
+                }
             }
 
             carregarEstoque(); carregarCardapio2();
@@ -329,84 +374,87 @@
         }
 
         async function carregarCardapio2() {
-            const { data: c2 } = await supabase.from('cardapio2').select('*');
-            const l = document.getElementById('cardapio2-lista');
-            if (!c2 || c2.length === 0) { l.innerHTML = '<p style="color:#8B4513;">Nenhum item.</p>'; return; }
-            l.innerHTML = c2.map(i => `<div style="background:#FFF8DC;padding:12px;border-radius:8px;margin-bottom:8px;border:1px solid #DAA520;"><strong>${i.emoji||'🍫'} ${i.nome}</strong> - R$ ${(i.preco||0).toFixed(2)} | Qtd: ${i.quantidade||0}</div>`).join('');
-            document.getElementById('cardapio2-qtd').textContent = (c2||[]).reduce((s,i) => s + (i.quantidade||0), 0);
+            var c2 = [];
+            if (supabase) {
+                try { var result = await supabase.from('cardapio2').select('*'); c2 = result.data || []; } catch(e) {}
+            }
+            var l = document.getElementById('cardapio2-lista');
+            if (c2.length === 0) { l.innerHTML = '<p style="color:#8B4513;">Nenhum item.</p>'; return; }
+            l.innerHTML = c2.map(function(i) { return '<div style="background:#FFF8DC;padding:12px;border-radius:8px;margin-bottom:8px;border:1px solid #DAA520;"><strong>' + (i.emoji||'🍫') + ' ' + i.nome + '</strong> - R$ ' + (i.preco||0).toFixed(2) + ' | Qtd: ' + (i.quantidade||0) + '</div>'; }).join('');
+            document.getElementById('cardapio2-qtd').textContent = c2.reduce(function(s,i) { return s + (i.quantidade||0); }, 0);
         }
 
-        // ============ PEDIDOS ============
         async function carregarPedidos() {
-            const { data: p } = await supabase.from('todosPedidos').select('*').order('data', { ascending: false });
-            const l = document.getElementById('pedidos-lista');
-            if (!p || p.length === 0) { l.innerHTML = '<p style="color:#8B4513;">Nenhum pedido.</p>'; return; }
-            l.innerHTML = p.map(x => `
-                <div style="background:#FFF8DC;padding:18px;border-radius:10px;margin-bottom:10px;border-left:5px solid #CC5500;">
-                    <div style="display:flex;justify-content:space-between;">
-                        <div><strong>👤 ${x.cliente}</strong><br><small>📅 ${new Date(x.data).toLocaleString('pt-BR')} | 💳 ${x.pagamento}</small>${x.telefone?`<br><small>📱 ${x.telefone}</small>`:''}</div>
-                        <strong style="color:#CC5500;font-size:1.2em;">R$ ${(x.total||0).toFixed(2)}</strong>
-                    </div>
-                    <div style="margin-top:8px;">${(x.itens||[]).map(i => `<div>${i.emoji||''} ${i.quantidade}x ${i.nome}</div>`).join('')}</div>
-                </div>`).join('');
+            var p = [];
+            if (supabase) {
+                try { var result = await supabase.from('todosPedidos').select('*').order('data', { ascending: false }); p = result.data || []; } catch(e) {}
+            }
+            var l = document.getElementById('pedidos-lista');
+            if (p.length === 0) { l.innerHTML = '<p style="color:#8B4513;">Nenhum pedido.</p>'; return; }
+            l.innerHTML = p.map(function(x) {
+                return '<div style="background:#FFF8DC;padding:18px;border-radius:10px;margin-bottom:10px;border-left:5px solid #CC5500;"><div style="display:flex;justify-content:space-between;"><div><strong>👤 ' + x.cliente + '</strong><br><small>📅 ' + new Date(x.data).toLocaleString('pt-BR') + ' | 💳 ' + x.pagamento + '</small>' + (x.telefone ? '<br><small>📱 ' + x.telefone + '</small>' : '') + '</div><strong style="color:#CC5500;font-size:1.2em;">R$ ' + (x.total||0).toFixed(2) + '</strong></div><div style="margin-top:8px;">' + (x.itens||[]).map(function(i) { return '<div>' + (i.emoji||'') + ' ' + i.quantidade + 'x ' + i.nome + '</div>'; }).join('') + '</div></div>';
+            }).join('');
         }
 
-        // ============ PAGAMENTOS ============
         async function carregarPagamentos() {
-            const { data: p } = await supabase.from('todosPedidos').select('*').order('data', { ascending: false });
-            const pagos = (p||[]).filter(x => x.pagamentoStatus === 'pago').reduce((s,x) => s + (x.total||0), 0);
-            const pendentes = (p||[]).filter(x => x.pagamentoStatus !== 'pago' && x.status !== 'cancelado').reduce((s,x) => s + (x.total||0), 0);
+            var p = [];
+            if (supabase) {
+                try { var result = await supabase.from('todosPedidos').select('*').order('data', { ascending: false }); p = result.data || []; } catch(e) {}
+            }
+            var pagos = p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
+            var pendentes = p.filter(function(x) { return x.pagamentoStatus !== 'pago' && x.status !== 'cancelado'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
             document.getElementById('total-recebido').textContent = 'R$ ' + pagos.toFixed(2);
             document.getElementById('total-pendente').textContent = 'R$ ' + pendentes.toFixed(2);
             
-            const l = document.getElementById('pagamentos-lista');
-            if (!p || p.length === 0) { l.innerHTML = '<p style="color:#8B4513;">Nenhum.</p>'; return; }
-            l.innerHTML = p.map(x => {
-                const st = x.pagamentoStatus === 'pago' ? '✅ PAGO' : '⏳ PENDENTE';
-                return `<div style="background:#FFF8DC;padding:18px;border-radius:10px;margin-bottom:10px;border-left:5px solid ${x.pagamentoStatus==='pago'?'#228B22':'#DAA520'};">
-                    <div style="display:flex;justify-content:space-between;">
-                        <div><strong>👤 ${x.cliente}</strong> <span class="badge ${x.pagamentoStatus==='pago'?'badge-success':'badge-warning'}">${st}</span><br><small>📅 ${new Date(x.data).toLocaleString('pt-BR')} | 💳 ${x.pagamento}</small></div>
-                        <strong style="color:#CC5500;">R$ ${(x.total||0).toFixed(2)}</strong>
-                    </div>
-                    ${x.pagamentoStatus !== 'pago' && x.status !== 'cancelado' ? `<button class="btn btn-success btn-small" onclick="confirmarPagamento(${x.pedido_id})">✅ Confirmar</button>` : ''}
-                </div>`;
+            var l = document.getElementById('pagamentos-lista');
+            if (p.length === 0) { l.innerHTML = '<p style="color:#8B4513;">Nenhum.</p>'; return; }
+            l.innerHTML = p.map(function(x) {
+                var st = x.pagamentoStatus === 'pago' ? '✅ PAGO' : '⏳ PENDENTE';
+                return '<div style="background:#FFF8DC;padding:18px;border-radius:10px;margin-bottom:10px;border-left:5px solid ' + (x.pagamentoStatus==='pago'?'#228B22':'#DAA520') + ';"><div style="display:flex;justify-content:space-between;"><div><strong>👤 ' + x.cliente + '</strong> <span class="badge ' + (x.pagamentoStatus==='pago'?'badge-success':'badge-warning') + '">' + st + '</span><br><small>📅 ' + new Date(x.data).toLocaleString('pt-BR') + ' | 💳 ' + x.pagamento + '</small></div><strong style="color:#CC5500;">R$ ' + (x.total||0).toFixed(2) + '</strong></div>' + (x.pagamentoStatus !== 'pago' && x.status !== 'cancelado' ? '<button class="btn btn-success btn-small" onclick="confirmarPagamento(' + x.pedido_id + ')">✅ Confirmar</button>' : '') + '</div>';
             }).join('');
         }
 
         async function confirmarPagamento(pedidoId) {
-            await supabase.from('todosPedidos').update({ pagamentoStatus: 'pago', dataPagamento: new Date().toISOString() }).eq('pedido_id', pedidoId);
+            if (supabase) {
+                await supabase.from('todosPedidos').update({ pagamentoStatus: 'pago', dataPagamento: new Date().toISOString() }).eq('pedido_id', pedidoId);
+            }
             carregarPagamentos();
             alert('✅ Confirmado!');
         }
 
-        // ============ CONFIG ============
         async function carregarConfig() {
-            const { data: c } = await supabase.from('config').select('*').eq('chave', 'admin').single();
-            const dados = c?.dados || {};
+            var dados = {};
+            if (supabase) {
+                try { var result = await supabase.from('config').select('*').eq('chave', 'admin'); dados = (result.data && result.data.length > 0) ? (result.data[0].dados || {}) : {}; } catch(e) {}
+            }
             document.getElementById('config-whatsapp').value = dados.whatsapp || '';
             document.getElementById('config-pix').value = dados.pix || '';
         }
 
         async function salvarConfig() {
-            const dados = {
-                whatsapp: document.getElementById('config-whatsapp').value,
-                pix: document.getElementById('config-pix').value
-            };
-            await supabase.from('config').upsert({ chave: 'admin', dados });
+            var dados = { whatsapp: document.getElementById('config-whatsapp').value, pix: document.getElementById('config-pix').value };
+            if (supabase) {
+                await supabase.from('config').upsert({ chave: 'admin', dados: dados });
+            }
             alert('✅ Salvo!');
         }
 
         async function atualizarResumo() {
-            const { data: e } = await supabase.from('estoqueCentral').select('*');
-            const { data: c2 } = await supabase.from('cardapio2').select('*');
-            const { data: p } = await supabase.from('todosPedidos').select('*');
-            document.getElementById('estoque-total').textContent = (e||[]).reduce((s,i) => s + (i.quantidadeTotal||0), 0);
-            document.getElementById('cardapio1-qtd').textContent = (e||[]).reduce((s,i) => s + (i.quantidadeTotal||0) - (i.alocadoCardapio2||0), 0);
-            document.getElementById('cardapio2-qtd').textContent = (c2||[]).reduce((s,i) => s + (i.quantidade||0), 0);
-            document.getElementById('faturamento-total').textContent = 'R$ ' + (p||[]).filter(x => x.pagamentoStatus === 'pago').reduce((s,i) => s + (i.total||0), 0).toFixed(2);
+            var e = [], c2 = [], p = [];
+            if (supabase) {
+                try {
+                    var r1 = await supabase.from('estoqueCentral').select('*'); e = r1.data || [];
+                    var r2 = await supabase.from('cardapio2').select('*'); c2 = r2.data || [];
+                    var r3 = await supabase.from('todosPedidos').select('*'); p = r3.data || [];
+                } catch(ex) {}
+            }
+            document.getElementById('estoque-total').textContent = e.reduce(function(s,i) { return s + (i.quantidadeTotal||0); }, 0);
+            document.getElementById('cardapio1-qtd').textContent = e.reduce(function(s,i) { return s + (i.quantidadeTotal||0) - (i.alocadoCardapio2||0); }, 0);
+            document.getElementById('cardapio2-qtd').textContent = c2.reduce(function(s,i) { return s + (i.quantidade||0); }, 0);
+            document.getElementById('faturamento-total').textContent = 'R$ ' + p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).reduce(function(s,i) { return s + (i.total||0); }, 0).toFixed(2);
         }
 
-        async function carregarTudo() {
+        function carregarTudo() {
             carregarEstoque(); carregarCardapio2(); atualizarResumo();
         }
 
@@ -414,6 +462,8 @@
         document.getElementById('login-senha').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') fazerLogin();
         });
+
+        console.log('✅ Sistema pronto! Faça login com: master / admin123');
     </script>
 </body>
 </html>
