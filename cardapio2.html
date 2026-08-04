@@ -21,10 +21,10 @@
         .header h1 { font-size: 1.6em; }
         .menu-section { padding: 15px; }
         .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-        .menu-item { background: #FFF8DC; border: 2px solid #DAA520; border-radius: 12px; padding: 15px; text-align: center; transition: all 0.2s; }
+        .menu-item { background: #FFF8DC; border: 2px solid #DAA520; border-radius: 12px; padding: 15px; text-align: center; transition: all 0.2s; position: relative; }
         .menu-item:active { transform: scale(0.97); border-color: #CC5500; }
         .menu-item.esgotado { opacity: 0.5; pointer-events: none; }
-        .menu-item.esgotado::after { content: "ESGOTADO"; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-20deg); background: rgba(139,0,0,0.9); color: white; padding: 8px 20px; border-radius: 8px; font-weight: bold; }
+        .menu-item.esgotado::after { content: "ESGOTADO"; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-20deg); background: rgba(139,0,0,0.9); color: white; padding: 8px 20px; border-radius: 8px; font-weight: bold; z-index: 5; }
         .sabor-emoji { font-size: 2.5em; margin-bottom: 5px; }
         .menu-item h3 { color: #CC5500; font-size: 1.1em; margin-bottom: 5px; }
         .preco { font-size: 1.3em; color: #CC5500; font-weight: bold; margin: 8px 0; }
@@ -47,6 +47,14 @@
         .pix-chave { background: white; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 1em; text-align: center; word-break: break-all; margin: 8px 0; }
         .btn-copiar-pix { width: 100%; padding: 10px; background: #CC5500; color: #FFD700; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .sucesso-msg { background: #d4edda; color: #155724; padding: 18px; border-radius: 10px; text-align: center; margin-top: 15px; border: 2px solid #28a745; display: none; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-cancelar { background: #FFF8DC; padding: 25px; border-radius: 16px; max-width: 420px; width: 90%; border: 3px solid #DAA520; text-align: center; }
+        .modal-cancelar h2 { color: #CC5500; margin-bottom: 15px; }
+        .modal-cancelar input { width: 100%; padding: 14px; border: 2px solid #DAA520; border-radius: 10px; font-size: 16px; text-align: center; margin-bottom: 15px; }
+        .modal-botoes { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .btn-confirmar-cancel { background: #8B0000; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .btn-fechar-modal { background: #8B4513; color: #FFD700; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; }
         @media (max-width: 480px) { .menu-grid { grid-template-columns: 1fr; } .header h1 { font-size: 1.4em; } }
     </style>
 </head>
@@ -56,6 +64,7 @@
             <div class="logo">DINDINS GOURMET FX</div>
             <span class="badge-dm">🔥 DOIS MARCOS</span>
             <h1>🍫 Cardápio Dois Marcos</h1>
+            <p style="color:#F4A460;">Sabores exclusivos - Entrega especial</p>
         </div>
         <div class="menu-section"><div class="menu-grid" id="menu-grid"></div></div>
         <div class="carrinho-section">
@@ -65,99 +74,217 @@
                 <div class="total-final"><span>TOTAL:</span><span id="total-geral">R$ 0,00</span></div>
             </div>
             <div class="form-section" id="form-section" style="display:none;">
-                <div class="form-group"><label>👤 Nome *</label><input type="text" id="nome-cliente"></div>
+                <div class="form-group"><label>👤 Nome Completo *</label><input type="text" id="nome-cliente" placeholder="Digite seu nome"></div>
                 <div class="form-group"><label>📱 WhatsApp *</label><input type="tel" id="telefone-cliente" placeholder="(00) 00000-0000"></div>
                 <div class="form-group"><label>💳 Pagamento *</label><select id="pagamento-select"><option value="">Selecione</option><option value="PIX">PIX</option><option value="Dinheiro">Dinheiro</option><option value="Cartão">Cartão</option></select></div>
                 <div class="pix-info" id="pix-info"><h4>📱 Chave PIX</h4><div class="pix-chave" id="pix-chave-display"></div><button class="btn-copiar-pix" onclick="copiarPix()">📋 Copiar PIX</button></div>
             </div>
             <button class="btn-finalizar" id="btn-finalizar" onclick="finalizarPedido()" disabled>📱 Finalizar Pedido</button>
-            <div class="sucesso-msg" id="sucesso-msg"><h3>✅ Pedido Realizado!</h3><p>📦 Nº <strong id="pedido-id"></strong></p><p>📱 Encaminhe no grupo!</p></div>
+            <button class="btn-cancelar" onclick="abrirModalCancelar()">❌ Cancelar Pedido</button>
+            <div class="sucesso-msg" id="sucesso-msg"><h3>✅ Pedido Realizado!</h3><p>📦 Nº <strong id="pedido-id"></strong></p><p style="font-size:1.1em;margin-top:10px;">📱 <strong>ENCAMINHE NO GRUPO DOS DINDINS!</strong></p></div>
+        </div>
+    </div>
+
+    <!-- MODAL CANCELAR -->
+    <div class="modal-overlay" id="modal-cancelar">
+        <div class="modal-cancelar">
+            <h2>❌ Cancelar Pedido</h2>
+            <p style="color:#8B4513;margin-bottom:15px;">Digite o número de telefone usado no pedido:</p>
+            <input type="tel" id="cancelar-telefone" placeholder="(00) 00000-0000">
+            <div class="modal-botoes">
+                <button class="btn-confirmar-cancel" onclick="confirmarCancelamento()">❌ Cancelar</button>
+                <button class="btn-fechar-modal" onclick="fecharModalCancelar()">Voltar</button>
+            </div>
+            <div id="cancelar-resultado" style="margin-top:15px;"></div>
         </div>
     </div>
 
     <script>
+        // ============ SUPABASE CONFIG ============
         const SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log('✅ Cardápio conectado ao Supabase!');
 
         let carrinho = [];
         let cardapioDados = [];
 
+        // ============ CARREGAR CARDÁPIO ============
         async function carregarCardapio() {
-            const { data } = await supabase.from('cardapio2').select('*');
-            cardapioDados = data || [];
-            const m = document.getElementById('menu-grid');
-            if (cardapioDados.length === 0) { m.innerHTML = '<p style="text-align:center;color:#8B4513;">Indisponível.</p>'; return; }
-            m.innerHTML = cardapioDados.map(i => `
-                <div class="menu-item ${(i.quantidade||0)===0?'esgotado':''}">
-                    <div class="sabor-emoji">${i.emoji||'🍫'}</div>
-                    <h3>${i.nome}</h3>
-                    <div class="preco">R$ ${(i.preco||0).toFixed(2)}</div>
-                    <div class="disponivel">📦 <strong>${i.quantidade||0}</strong> unid.</div>
-                    <div class="qtd-controle">
-                        <button class="btn-qtd" onclick="add(${i.id},-1)">−</button>
-                        <span class="quantidade" id="q-${i.id}">0</span>
-                        <button class="btn-qtd" onclick="add(${i.id},1)">+</button>
-                    </div>
-                </div>`).join('');
+            console.log('🔄 Carregando cardápio do Supabase...');
+            var result = await supabase.from('cardapio2').select('*');
+            cardapioDados = result.data || [];
+            console.log('📦 Itens carregados:', cardapioDados.length);
+            
+            var m = document.getElementById('menu-grid');
+            if (cardapioDados.length === 0) {
+                m.innerHTML = '<p style="text-align:center;color:#8B4513;padding:40px;">Cardápio indisponível no momento.</p>';
+                return;
+            }
+            
+            m.innerHTML = cardapioDados.map(function(i) {
+                var qtd = i.quantidade || 0;
+                var esgotado = qtd === 0 ? 'esgotado' : '';
+                return '<div class="menu-item ' + esgotado + '">' +
+                    '<div class="sabor-emoji">' + (i.emoji||'🍫') + '</div>' +
+                    '<h3>' + i.nome + '</h3>' +
+                    '<p style="color:#8B4513;font-size:0.85em;">' + (i.descricao||'') + '</p>' +
+                    '<div class="preco">R$ ' + (i.preco||0).toFixed(2) + '</div>' +
+                    '<div class="disponivel">📦 <strong>' + qtd + '</strong> unid. ' + (qtd>0&&qtd<=5?'<span style="color:#CC5500;">⚠️</span>':'') + '</div>' +
+                    '<div class="qtd-controle">' +
+                        '<button class="btn-qtd" onclick="add(' + i.id + ',-1)">−</button>' +
+                        '<span class="quantidade" id="q-' + i.id + '">0</span>' +
+                        '<button class="btn-qtd" onclick="add(' + i.id + ',1)">+</button>' +
+                    '</div></div>';
+            }).join('');
         }
 
+        // ============ CONFIGURAÇÕES ============
         async function getConfig() {
-            const { data } = await supabase.from('config').select('*').eq('chave', 'admin').single();
-            return data?.dados || {};
+            var result = await supabase.from('config').select('*').eq('chave', 'admin');
+            if (result.data && result.data.length > 0) {
+                return result.data[0].dados || {};
+            }
+            return {};
         }
 
+        // ============ CARRINHO ============
         function add(id, q) {
-            const i = cardapioDados.find(x => x.id === id); if (!i) return;
-            const mx = i.quantidade || 0;
-            const cc = carrinho.find(x => x.id === id);
-            if (cc) { const n = cc.quantidade + q; if (n <= 0) carrinho = carrinho.filter(x => x.id !== id); else if (n > mx) { alert('Máx: '+mx); return; } else cc.quantidade = n; }
-            else if (q > 0) { if (q > mx) { alert('Máx: '+mx); return; } carrinho.push({ id, nome: i.nome, emoji: i.emoji, preco: i.preco, quantidade: q }); }
+            var i = cardapioDados.find(function(x) { return x.id === id; });
+            if (!i) return;
+            var mx = i.quantidade || 0;
+            var cc = carrinho.find(function(x) { return x.id === id; });
+            
+            if (cc) {
+                var n = cc.quantidade + q;
+                if (n <= 0) carrinho = carrinho.filter(function(x) { return x.id !== id; });
+                else if (n > mx) { alert('❌ Máximo: ' + mx); return; }
+                else cc.quantidade = n;
+            } else if (q > 0) {
+                if (q > mx) { alert('❌ Máximo: ' + mx); return; }
+                carrinho.push({ id: id, nome: i.nome, emoji: i.emoji, preco: i.preco, quantidade: q });
+            }
             atualizar();
         }
 
         function atualizar() {
-            cardapioDados.forEach(i => { const el = document.getElementById('q-'+i.id); if (el) { const cc = carrinho.find(x => x.id === i.id); el.textContent = cc ? cc.quantidade : 0; } });
-            const div = document.getElementById('carrinho-itens');
-            if (carrinho.length === 0) div.innerHTML = '<p style="text-align:center;color:#FFD700;">Vazio</p>';
-            else div.innerHTML = carrinho.map(i => `<div style="display:flex;justify-content:space-between;padding:8px;background:#FFF8DC;border-radius:6px;margin-bottom:5px;"><span>${i.emoji} ${i.quantidade}x ${i.nome}</span><span style="color:#CC5500;">R$ ${(i.preco*i.quantidade).toFixed(2)}</span></div>`).join('');
-            const fs = document.getElementById('form-section'), ts = document.getElementById('total-section');
-            if (carrinho.length > 0) { fs.style.display = 'block'; ts.style.display = 'block'; } else { fs.style.display = 'none'; ts.style.display = 'none'; }
-            document.getElementById('total-geral').textContent = 'R$ '+carrinho.reduce((s,i) => s + (i.preco*i.quantidade), 0).toFixed(2);
+            // Atualizar quantidades
+            cardapioDados.forEach(function(i) {
+                var el = document.getElementById('q-' + i.id);
+                if (el) {
+                    var cc = carrinho.find(function(x) { return x.id === i.id; });
+                    el.textContent = cc ? cc.quantidade : 0;
+                }
+            });
+            
+            // Carrinho
+            var div = document.getElementById('carrinho-itens');
+            if (carrinho.length === 0) {
+                div.innerHTML = '<p style="text-align:center;color:#FFD700;">🛒 Carrinho vazio</p>';
+            } else {
+                div.innerHTML = carrinho.map(function(i) {
+                    return '<div style="display:flex;justify-content:space-between;padding:8px;background:#FFF8DC;border-radius:6px;margin-bottom:5px;">' +
+                        '<span>' + i.emoji + ' ' + i.quantidade + 'x ' + i.nome + '</span>' +
+                        '<span style="color:#CC5500;font-weight:bold;">R$ ' + (i.preco*i.quantidade).toFixed(2) + '</span>' +
+                        '<span onclick="add(' + i.id + ',-' + i.quantidade + ')" style="cursor:pointer;color:red;">✕</span></div>';
+                }).join('');
+            }
+            
+            var fs = document.getElementById('form-section');
+            var ts = document.getElementById('total-section');
+            if (carrinho.length > 0) { fs.style.display = 'block'; ts.style.display = 'block'; }
+            else { fs.style.display = 'none'; ts.style.display = 'none'; }
+            
+            document.getElementById('total-geral').textContent = 'R$ ' + carrinho.reduce(function(s,i) { return s + (i.preco*i.quantidade); }, 0).toFixed(2);
             validar();
         }
 
         function validar() {
-            document.getElementById('btn-finalizar').disabled = !(carrinho.length > 0 && document.getElementById('nome-cliente').value.trim() && document.getElementById('telefone-cliente').value.trim() && document.getElementById('pagamento-select').value);
+            document.getElementById('btn-finalizar').disabled = !(carrinho.length > 0 && 
+                document.getElementById('nome-cliente').value.trim() && 
+                document.getElementById('telefone-cliente').value.trim() && 
+                document.getElementById('pagamento-select').value);
         }
 
+        // ============ EVENTOS ============
         document.getElementById('pagamento-select').addEventListener('change', function() {
-            document.getElementById('pix-info').style.display = this.value === 'PIX' ? 'block' : 'none'; validar();
+            document.getElementById('pix-info').style.display = this.value === 'PIX' ? 'block' : 'none';
+            validar();
         });
         document.getElementById('nome-cliente').addEventListener('input', validar);
         document.getElementById('telefone-cliente').addEventListener('input', function(e) {
-            let v = e.target.value.replace(/\D/g,'').slice(0,11);
-            if (v.length > 2) v = '('+v.slice(0,2)+') '+v.slice(2);
-            if (v.length > 10) v = v.slice(0,10)+'-'+v.slice(10);
-            e.target.value = v; validar();
+            var v = e.target.value.replace(/\D/g,'').slice(0,11);
+            if (v.length > 2) v = '(' + v.slice(0,2) + ') ' + v.slice(2);
+            if (v.length > 10) v = v.slice(0,10) + '-' + v.slice(10);
+            e.target.value = v;
+            validar();
         });
 
         async function copiarPix() {
-            const config = await getConfig();
-            navigator.clipboard.writeText(config.pix || 'pix@dindingourmet.com.br').then(() => alert('✅ Copiado!'));
+            var config = await getConfig();
+            var pix = config.pix || 'pix@dindingourmet.com.br';
+            navigator.clipboard.writeText(pix).then(function() {
+                alert('✅ Chave PIX copiada!');
+            });
         }
 
+        // ============ CANCELAR PEDIDO ============
+        function abrirModalCancelar() {
+            document.getElementById('modal-cancelar').classList.add('active');
+            document.getElementById('cancelar-telefone').value = '';
+            document.getElementById('cancelar-resultado').innerHTML = '';
+        }
+        function fecharModalCancelar() {
+            document.getElementById('modal-cancelar').classList.remove('active');
+        }
+        document.getElementById('cancelar-telefone').addEventListener('input', function(e) {
+            var v = e.target.value.replace(/\D/g,'').slice(0,11);
+            if (v.length > 2) v = '(' + v.slice(0,2) + ') ' + v.slice(2);
+            if (v.length > 10) v = v.slice(0,10) + '-' + v.slice(10);
+            e.target.value = v;
+        });
+
+        async function confirmarCancelamento() {
+            var tel = document.getElementById('cancelar-telefone').value.replace(/\D/g,'');
+            if (!tel) { document.getElementById('cancelar-resultado').innerHTML = '<p style="color:#8B0000;">❌ Digite o telefone!</p>'; return; }
+
+            var result = await supabase.from('todosPedidos').select('*').eq('telefone', tel).eq('status', 'novo');
+            var pedido = result.data && result.data.length > 0 ? result.data[0] : null;
+
+            if (!pedido) {
+                document.getElementById('cancelar-resultado').innerHTML = '<p style="color:#8B0000;">❌ Nenhum pedido ativo encontrado.</p>';
+                return;
+            }
+
+            await supabase.from('todosPedidos').update({ status: 'cancelado', pagamentoStatus: 'cancelado' }).eq('pedido_id', pedido.pedido_id);
+            
+            // Devolver itens ao cardápio
+            (pedido.itens || []).forEach(async function(i) {
+                var r = await supabase.from('cardapio2').select('*').eq('nome', i.nome);
+                var item = r.data && r.data.length > 0 ? r.data[0] : null;
+                if (item) {
+                    await supabase.from('cardapio2').update({ quantidade: (item.quantidade||0) + i.quantidade }).eq('id', item.id);
+                }
+            });
+
+            document.getElementById('cancelar-resultado').innerHTML = '<p style="color:#228B22;">✅ Pedido cancelado! Itens devolvidos.</p>';
+            carregarCardapio();
+            setTimeout(fecharModalCancelar, 2000);
+        }
+
+        // ============ FINALIZAR PEDIDO ============
         async function finalizarPedido() {
-            const nome = document.getElementById('nome-cliente').value.trim();
-            const tel = document.getElementById('telefone-cliente').value.trim().replace(/\D/g,'');
-            const pag = document.getElementById('pagamento-select').value;
-            const sub = carrinho.reduce((s,i) => s + (i.preco*i.quantidade), 0);
-            if (!nome || !tel || !pag || carrinho.length === 0) { alert('Preencha!'); return; }
+            var nome = document.getElementById('nome-cliente').value.trim();
+            var tel = document.getElementById('telefone-cliente').value.trim().replace(/\D/g,'');
+            var pag = document.getElementById('pagamento-select').value;
+            var sub = carrinho.reduce(function(s,i) { return s + (i.preco*i.quantidade); }, 0);
+            
+            if (!nome || !tel || !pag || carrinho.length === 0) { alert('Preencha todos os campos!'); return; }
 
-            const config = await getConfig();
-            const pedidoId = Date.now();
+            var config = await getConfig();
+            var pedidoId = Date.now();
 
-            // Salvar pedido no Supabase
+            // Salvar no Supabase
             await supabase.from('todosPedidos').insert([{
                 pedido_id: pedidoId,
                 data: new Date().toISOString(),
@@ -167,27 +294,36 @@
                 telefone: tel,
                 pagamento: pag,
                 total: sub,
-                itens: carrinho.map(i => ({ nome: i.nome, emoji: i.emoji, quantidade: i.quantidade, preco: i.preco })),
+                itens: carrinho.map(function(i) { return { nome: i.nome, emoji: i.emoji, quantidade: i.quantidade, preco: i.preco }; }),
                 status: 'novo',
                 pagamentoStatus: 'pendente'
             }]);
 
-            // Atualizar estoque do cardápio
-            for (const item of carrinho) {
-                const { data: atual } = await supabase.from('cardapio2').select('*').eq('id', item.id).single();
+            // Atualizar estoque
+            for (var idx = 0; idx < carrinho.length; idx++) {
+                var item = carrinho[idx];
+                var r = await supabase.from('cardapio2').select('*').eq('id', item.id);
+                var atual = r.data && r.data.length > 0 ? r.data[0] : null;
                 if (atual) {
                     await supabase.from('cardapio2').update({ quantidade: Math.max(0, (atual.quantidade||0) - item.quantidade) }).eq('id', item.id);
                 }
             }
 
             // Montar nota WhatsApp
-            let nota = `🍫 *NOVO PEDIDO - Dois Marcos* 🍫\n\n👤 *${nome}*\n📱 *${tel}*\n💳 *${pag}*\n\n📋 *ITENS:*\n`;
-            carrinho.forEach(i => nota += `${i.emoji} ${i.quantidade}x ${i.nome} - R$ ${(i.preco*i.quantidade).toFixed(2)}\n`);
-            nota += `\n💵 *TOTAL: R$ ${sub.toFixed(2)}*\n`;
-            if (pag === 'PIX') nota += `\n📱 *PIX:* \`${config.pix || 'pix@dindingourmet.com.br'}\``;
-            nota += `\n\n📱 *ENCAMINHE NO GRUPO!*`;
+            var nota = '🍫 *NOVO PEDIDO - Dois Marcos* 🍫\n\n';
+            nota += '👤 *' + nome + '*\n';
+            nota += '📱 *' + tel + '*\n';
+            nota += '💳 *' + pag + '*\n\n';
+            nota += '📋 *ITENS:*\n';
+            carrinho.forEach(function(i) {
+                nota += i.emoji + ' ' + i.quantidade + 'x ' + i.nome + ' - R$ ' + (i.preco*i.quantidade).toFixed(2) + '\n';
+            });
+            nota += '\n💵 *TOTAL: R$ ' + sub.toFixed(2) + '*\n';
+            if (pag === 'PIX') nota += '\n📱 *Chave PIX:* `' + (config.pix || 'pix@dindingourmet.com.br') + '`';
+            nota += '\n\n📱 *ENCAMINHE NO GRUPO DOS DINDINS!*';
 
-            window.open(`https://wa.me/${config.whatsapp || '5561986471897'}?text=${encodeURIComponent(nota)}`, '_blank');
+            var whatsapp = config.whatsapp || '5561986471897';
+            window.open('https://wa.me/' + whatsapp + '?text=' + encodeURIComponent(nota), '_blank');
 
             document.getElementById('pedido-id').textContent = '#' + pedidoId;
             document.getElementById('sucesso-msg').style.display = 'block';
@@ -196,9 +332,12 @@
             carrinho = []; atualizar(); carregarCardapio();
         }
 
-        carregarCardapio(); atualizar();
-        // Carregar chave PIX
-        getConfig().then(c => { document.getElementById('pix-chave-display').textContent = c.pix || 'pix@dindingourmet.com.br'; });
+        // ============ INICIAR ============
+        carregarCardapio();
+        atualizar();
+        getConfig().then(function(c) {
+            document.getElementById('pix-chave-display').textContent = c.pix || 'pix@dindingourmet.com.br';
+        });
     </script>
 </body>
 </html>
