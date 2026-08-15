@@ -4,58 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Dindins Gourmet FX</title>
-    <!-- Supabase SDK UMD -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --marrom:#5C3317; --laranja:#CC5500; --dourado:#DAA520; --amarelo:#FFD700; --creme:#FFF8DC; }
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Segoe UI',Tahoma,sans-serif; background:linear-gradient(135deg,#5C3317,#8B4513,#A0522D); min-height:100vh; font-size:16px; }
-        .login-box { max-width:400px; margin:80px auto; background:#FFF8DC; padding:30px; border-radius:15px; border:2px solid #DAA520; text-align:center; }
-        .logo { width:70px; height:70px; border-radius:50%; background:linear-gradient(135deg,#CC5500,#DAA520); color:white; font-size:28px; font-weight:bold; display:flex; align-items:center; justify-content:center; margin:0 auto 15px; }
-        h2 { color:#CC5500; margin-bottom:5px; }
-        p { color:#8B4513; margin-bottom:20px; }
-        input { width:100%; padding:12px; margin-bottom:10px; border:2px solid #DAA520; border-radius:8px; font-size:16px; }
-        button { width:100%; padding:14px; background:#CC5500; color:white; border:none; border-radius:8px; font-size:18px; font-weight:bold; cursor:pointer; }
-        .erro { color:red; margin-top:10px; display:none; }
-        .status { font-size:12px; margin-top:10px; }
-        .status.on { color:green; }
-        .status.off { color:red; }
-        .container { display:none; max-width:1200px; margin:20px auto; padding:15px; }
-        .header { background:#FFF8DC; padding:20px; border-radius:15px; border:2px solid #DAA520; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px; }
-        .header h1 { font-size:1.4em; color:#CC5500; }
-        .resumo-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:15px; }
-        .resumo-card { background:#FFF8DC; padding:15px; border-radius:12px; text-align:center; border:2px solid #DAA520; }
-        .resumo-card .icon { font-size:1.8em; }
-        .resumo-card h3 { color:#CC5500; font-size:0.8em; }
-        .resumo-card .valor { font-size:1.5em; font-weight:bold; color:#8B4513; }
-        .tabs { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:15px; }
-        .tab-btn { padding:12px 18px; background:#D2691E; color:#FFD700; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
-        .tab-btn.active { background:#FFD700; color:#8B4513; }
-        .conteudo { background:#FFF8DC; padding:20px; border-radius:10px; border:2px solid #DAA520; display:none; }
-        .conteudo.active { display:block; }
-        .form-group { margin-bottom:12px; }
-        .form-group label { display:block; font-weight:bold; color:#8B4513; margin-bottom:4px; }
-        .form-group input, .form-group select, .form-group textarea { width:100%; padding:10px; border:2px solid #DAA520; border-radius:8px; font-size:16px; background:#FFF8DC; }
-        .form-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
-        .btn { padding:10px 18px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin:2px; }
-        .btn-primary { background:#CC5500; color:white; }
-        .btn-success { background:#228B22; color:white; }
-        .btn-danger { background:#8B0000; color:white; }
-        .btn-warning { background:#DAA520; color:#5C3317; }
-        .btn-whatsapp { background:#25D366; color:white; }
-        .btn-small { padding:6px 10px; font-size:0.8em; }
-        .card-item { background:#FFF8DC; padding:15px; border-radius:8px; border:1px solid #DAA520; margin-bottom:10px; }
-        table { width:100%; border-collapse:collapse; margin-top:10px; }
-        th { background:#D2691E; color:#FFD700; padding:10px; text-align:left; font-size:0.9em; }
-        td { padding:10px; border-bottom:1px solid #DAA520; font-size:0.9em; }
-        .badge { padding:4px 10px; border-radius:12px; font-size:0.75em; font-weight:bold; }
-        .badge-green { background:#90EE90; color:#006400; }
-        .badge-yellow { background:#FFD700; color:#8B4513; }
-        .badge-red { background:#FFB6C1; color:#8B0000; }
-        .badge-blue { background:#87CEEB; color:#00008B; }
-        .permissao-item { display:flex; align-items:center; gap:8px; margin:8px 0; }
-        .permissao-item input { width:20px; height:20px; }
-        @media (max-width:768px) { .form-row { grid-template-columns:1fr; } .tabs { flex-direction:column; } }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #5C3317; min-height: 100vh; }
+        .login-box { max-width: 400px; margin: 80px auto; background: #FFF8DC; padding: 30px; border-radius: 15px; border: 2px solid #DAA520; text-align: center; }
+        .logo { width: 70px; height: 70px; border-radius: 50%; background: #CC5500; color: white; font-size: 28px; font-weight: bold; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+        h2 { color: #CC5500; margin-bottom: 5px; }
+        p { color: #8B4513; margin-bottom: 20px; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border: 2px solid #DAA520; border-radius: 8px; font-size: 16px; }
+        button { width: 100%; padding: 14px; background: #CC5500; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .erro { color: red; margin-top: 10px; display: none; }
+        .painel { display: none; max-width: 1200px; margin: 20px auto; background: #FFF8DC; padding: 20px; border-radius: 15px; border: 2px solid #DAA520; }
+        .tabs { display: flex; gap: 5px; flex-wrap: wrap; margin: 15px 0; }
+        .tab-btn { padding: 10px 15px; background: #D2691E; color: #FFD700; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .tab-btn.active { background: #FFD700; color: #8B4513; }
+        .conteudo { background: #FFF8DC; padding: 20px; border-radius: 10px; border: 1px solid #DAA520; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: bold; color: #8B4513; margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 2px solid #DAA520; border-radius: 8px; font-size: 16px; }
+        .btn { padding: 10px 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 2px; font-size: 14px; }
+        .btn-primary { background: #CC5500; color: white; }
+        .btn-success { background: #228B22; color: white; }
+        .btn-danger { background: #8B0000; color: white; }
+        .btn-warning { background: #DAA520; color: #5C3317; }
+        .btn-small { padding: 5px 10px; font-size: 12px; }
+        .card-item { background: #FFF8DC; padding: 15px; border-radius: 8px; border: 1px solid #DAA520; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #D2691E; color: #FFD700; padding: 10px; text-align: left; font-size: 14px; }
+        td { padding: 10px; border-bottom: 1px solid #DAA520; font-size: 14px; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .badge-entrada { background: #90EE90; color: #006400; }
+        .badge-saida { background: #FFB6C1; color: #8B0000; }
+        .badge-alocacao { background: #87CEEB; color: #00008B; }
+        @media (max-width: 600px) { .painel { padding: 10px; } .tabs { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -66,203 +48,115 @@
             <div class="logo">DFX</div>
             <h2>Dindins Gourmet FX</h2>
             <p>Painel do Administrador</p>
-            <input type="text" id="campoUsuario" placeholder="Usuário (master)">
-            <input type="password" id="campoSenha" placeholder="Senha (admin123)">
+            <input type="text" id="campoUsuario" placeholder="Usuário">
+            <input type="password" id="campoSenha" placeholder="Senha">
             <button onclick="fazerLogin()">🚀 Entrar</button>
             <p class="erro" id="erroLogin">❌ Usuário ou senha incorretos!</p>
-            <p class="status" id="statusSupabase">Conectando ao Supabase...</p>
+            <p style="margin-top:15px;font-size:14px;">master / admin123</p>
         </div>
     </div>
 
     <!-- PAINEL -->
-    <div class="container" id="painelAdmin">
-        <div class="header">
-            <div style="display:flex;align-items:center;gap:10px;">
-                <div class="logo" style="width:50px;height:50px;font-size:22px;">DFX</div>
-                <h1>Dindins Gourmet FX - <span id="userDisplay" style="color:#DAA520;"></span></h1>
-            </div>
+    <div class="painel" id="painelAdmin">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+            <h2>🍫 Dindins Gourmet FX</h2>
             <button class="btn btn-danger" onclick="sair()">🚪 Sair</button>
         </div>
 
-        <div class="resumo-cards">
-            <div class="resumo-card"><div class="icon">📦</div><h3>Estoque</h3><div class="valor" id="resumoEstoque">0</div></div>
-            <div class="resumo-card"><div class="icon">📋</div><h3>Cardápio 1</h3><div class="valor" id="resumoC1">0</div></div>
-            <div class="resumo-card"><div class="icon">🔥</div><h3>Cardápio 2</h3><div class="valor" id="resumoC2">0</div></div>
-            <div class="resumo-card"><div class="icon">💰</div><h3>Faturamento</h3><div class="valor" id="resumoFat">R$0</div></div>
-        </div>
-
         <div class="tabs">
-            <button class="tab-btn active" id="tabEstoqueBtn" onclick="mudarTab('estoque')">📦 Estoque</button>
-            <button class="tab-btn" id="tabC2Btn" onclick="mudarTab('c2')">🔥 Cardápio 2</button>
-            <button class="tab-btn" id="tabPedidosBtn" onclick="mudarTab('pedidos')">📋 Pedidos</button>
-            <button class="tab-btn" id="tabPagBtn" onclick="mudarTab('pagamentos')">💳 Pagamentos</button>
-            <button class="tab-btn" id="tabFinanceiroBtn" onclick="mudarTab('financeiro')">💰 Financeiro</button>
-            <button class="tab-btn" id="tabSetoresBtn" onclick="mudarTab('setores')">🏙️ Setores</button>
-            <button class="tab-btn" id="tabAdminsBtn" onclick="mudarTab('admins')">👥 Admins</button>
-            <button class="tab-btn" id="tabConfigBtn" onclick="mudarTab('config')">⚙️ Config</button>
+            <button class="tab-btn active" onclick="mudarTab('estoque')">📦 Estoque</button>
+            <button class="tab-btn" onclick="mudarTab('c2')">🔥 Cardápio 2</button>
+            <button class="tab-btn" onclick="mudarTab('pedidos')">📋 Pedidos</button>
+            <button class="tab-btn" onclick="mudarTab('historico')">📜 Histórico</button>
+            <button class="tab-btn" onclick="mudarTab('config')">⚙️ Config</button>
         </div>
 
         <!-- ESTOQUE -->
-        <div class="conteudo active" id="conteudo-estoque">
+        <div class="conteudo" id="conteudo-estoque">
             <h3>📦 Estoque Geral</h3>
-            <div class="form-row">
-                <div class="form-group"><label>Nome *</label><input type="text" id="estoqueNome"></div>
-                <div class="form-group"><label>Emoji</label><input type="text" id="estoqueEmoji" maxlength="2" placeholder="🍫"></div>
-                <div class="form-group"><label>Preço R$ *</label><input type="number" id="estoquePreco" step="0.01"></div>
+            
+            <!-- CADASTRAR NOVO -->
+            <div class="card-item">
+                <h4 style="color:#DAA520;">➕ Cadastrar Item</h4>
+                <div class="form-group"><label>Nome</label><input type="text" id="estoqueNome"></div>
+                <div class="form-group"><label>Preço R$</label><input type="number" id="estoquePreco" step="0.01"></div>
+                <div class="form-group"><label>Quantidade Inicial</label><input type="number" id="estoqueQtd" value="10"></div>
+                <button class="btn btn-primary" onclick="cadastrarItem()">💾 Cadastrar</button>
             </div>
-            <div class="form-row">
-                <div class="form-group"><label>Adicionar Qtd</label><input type="number" id="estoqueQtd" value="10" min="1"></div>
-                <div class="form-group"><label>Descrição</label><input type="text" id="estoqueDesc"></div>
+
+            <!-- EDITAR ITEM -->
+            <div class="card-item">
+                <h4 style="color:#DAA520;">✏️ Editar Quantidade</h4>
+                <div class="form-group">
+                    <label>Selecione o Item</label>
+                    <select id="editarItemSelect" onchange="preencherEdicao()">
+                        <option value="">Selecione...</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Nome</label><input type="text" id="editarNome"></div>
+                <div class="form-group"><label>Preço R$</label><input type="number" id="editarPreco" step="0.01"></div>
+                <div class="form-group"><label>Adicionar (+)</label><input type="number" id="editarAdd" value="0" min="0"></div>
+                <div class="form-group"><label>Remover (-)</label><input type="number" id="editarRem" value="0" min="0"></div>
+                <button class="btn btn-warning" onclick="editarEstoque()">✏️ Atualizar</button>
             </div>
-            <button class="btn btn-primary" onclick="salvarEstoque()">💾 Salvar</button>
+
+            <!-- LISTA -->
             <div id="listaEstoque" style="margin-top:15px;"></div>
         </div>
 
         <!-- CARDÁPIO 2 -->
-        <div class="conteudo" id="conteudo-c2">
-            <h3>🔥 Cardápio 2 - Alocar Itens</h3>
-            <p style="color:#8B4513;">⚠️ Diminui do estoque geral e do Cardápio 1</p>
-            <div class="form-row">
+        <div class="conteudo" id="conteudo-c2" style="display:none;">
+            <h3>🔥 Cardápio 2</h3>
+            <div class="card-item">
+                <h4 style="color:#DAA520;">📤 Alocar para Cardápio 2</h4>
                 <div class="form-group"><label>Sabor</label><select id="alocarSabor"></select></div>
-                <div class="form-group"><label>Quantidade</label><input type="number" id="alocarQtd" value="10" min="1"></div>
+                <div class="form-group"><label>Quantidade</label><input type="number" id="alocarQtd" value="10"></div>
+                <button class="btn btn-success" onclick="alocarC2()">📤 Alocar</button>
             </div>
-            <button class="btn btn-success" onclick="alocarC2()">📤 Alocar</button>
             <div id="listaC2" style="margin-top:15px;"></div>
         </div>
 
         <!-- PEDIDOS -->
-        <div class="conteudo" id="conteudo-pedidos">
+        <div class="conteudo" id="conteudo-pedidos" style="display:none;">
             <h3>📋 Pedidos</h3>
             <div id="listaPedidos"></div>
         </div>
 
-        <!-- PAGAMENTOS -->
-        <div class="conteudo" id="conteudo-pagamentos">
-            <h3>💳 Pagamentos</h3>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:15px;">
-                <div class="resumo-card"><div class="icon">💰</div><h3>Recebido</h3><div class="valor" id="pgRecebido" style="color:green;">R$0</div></div>
-                <div class="resumo-card"><div class="icon">⏳</div><h3>Pendente</h3><div class="valor" id="pgPendente" style="color:orange;">R$0</div></div>
-            </div>
-            <div id="listaPagamentos"></div>
-        </div>
-
-        <!-- FINANCEIRO -->
-        <div class="conteudo" id="conteudo-financeiro">
-            <h3>💰 Financeiro</h3>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">
-                <div class="resumo-card"><div class="icon">📊</div><h3>Total</h3><div class="valor" id="finTotal">R$0</div></div>
-                <div class="resumo-card"><div class="icon">📋</div><h3>C1</h3><div class="valor" id="finC1">R$0</div></div>
-                <div class="resumo-card"><div class="icon">🔥</div><h3>C2</h3><div class="valor" id="finC2">R$0</div></div>
-                <div class="resumo-card"><div class="icon">📦</div><h3>Pedidos</h3><div class="valor" id="finPedidos">0</div></div>
-            </div>
-        </div>
-
-        <!-- SETORES -->
-        <div class="conteudo" id="conteudo-setores">
-            <h3>🏙️ Setores/Bairros</h3>
-            <div class="form-row">
-                <div class="form-group"><label>Nome *</label><input type="text" id="setorNome"></div>
-                <div class="form-group"><label>Taxa R$ *</label><input type="number" id="setorTaxa" step="0.01"></div>
-                <div class="form-group"><label>Tempo</label><input type="text" id="setorTempo" value="30-45 min"></div>
-            </div>
-            <button class="btn btn-primary" onclick="salvarSetor()">💾 Salvar</button>
-            <table style="margin-top:10px;"><thead><tr><th>Setor</th><th>Taxa</th><th>Tempo</th><th></th></tr></thead><tbody id="setoresLista"></tbody></table>
-        </div>
-
-        <!-- ADMINS -->
-        <div class="conteudo" id="conteudo-admins">
-            <h3>👥 Administradores</h3>
-            <div class="form-row">
-                <div class="form-group"><label>Nome *</label><input type="text" id="adminNome"></div>
-                <div class="form-group"><label>Usuário *</label><input type="text" id="adminUsuario"></div>
-                <div class="form-group"><label>Senha *</label><input type="password" id="adminSenha"></div>
-            </div>
-            <div style="background:white;padding:15px;border-radius:8px;margin:10px 0;">
-                <label style="font-weight:bold;color:#CC5500;">Permissões:</label>
-                <div class="permissao-item"><input type="checkbox" id="permEstoque" checked><label>📦 Estoque</label></div>
-                <div class="permissao-item"><input type="checkbox" id="permC1" checked><label>📋 Cardápio 1</label></div>
-                <div class="permissao-item"><input type="checkbox" id="permC2"><label>🔥 Cardápio 2</label></div>
-                <div class="permissao-item"><input type="checkbox" id="permPedidos" checked><label>📋 Pedidos</label></div>
-                <div class="permissao-item"><input type="checkbox" id="permPagamentos" checked><label>💳 Pagamentos</label></div>
-                <div class="permissao-item"><input type="checkbox" id="permFinanceiro"><label>💰 Financeiro</label></div>
-                <div class="permissao-item"><input type="checkbox" id="permAdmins"><label>👥 Admins</label></div>
-            </div>
-            <button class="btn btn-success" onclick="salvarAdmin()">✅ Cadastrar</button>
-            <table style="margin-top:10px;"><thead><tr><th>Nome</th><th>Usuário</th><th>Permissões</th><th></th></tr></thead><tbody id="adminsLista"></tbody></table>
+        <!-- HISTÓRICO -->
+        <div class="conteudo" id="conteudo-historico" style="display:none;">
+            <h3>📜 Controle de Entrada e Saída</h3>
+            <div id="listaHistorico"></div>
         </div>
 
         <!-- CONFIG -->
-        <div class="conteudo" id="conteudo-config">
+        <div class="conteudo" id="conteudo-config" style="display:none;">
             <h3>⚙️ Configurações</h3>
-            <div class="form-row">
-                <div class="form-group"><label>WhatsApp (com DDD)</label><input type="text" id="configWhatsapp" placeholder="5561986471897"></div>
-                <div class="form-group"><label>Chave PIX</label><input type="text" id="configPix" placeholder="pix@dindingourmet.com.br"></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group"><label>Endereço Retirada</label><input type="text" id="configEndereco"></div>
-                <div class="form-group"><label>Link Google Maps</label><input type="text" id="configLinkMaps"></div>
-            </div>
-            <button class="btn btn-success" onclick="salvarConfig()">💾 Salvar Tudo</button>
+            <div class="form-group"><label>WhatsApp (com DDD)</label><input type="text" id="configWhatsapp"></div>
+            <div class="form-group"><label>Chave PIX</label><input type="text" id="configPix"></div>
+            <button class="btn btn-success" onclick="salvarConfig()">💾 Salvar</button>
         </div>
     </div>
 
     <script>
         console.log('✅ Script carregado!');
 
-        // ============ SUPABASE INICIALIZAÇÃO ============
-        var supabaseClient = null;
-        var supabaseOnline = false;
-
-        var SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
-        var SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
-
-        // Obter o SDK global
-        var sdk = window.supabase || supabase;
-
-        if (sdk && typeof sdk.createClient === 'function') {
-            try {
-                supabaseClient = sdk.createClient(SUPABASE_URL, SUPABASE_KEY);
-                supabaseOnline = true;
-                console.log('✅ Supabase conectado!');
-                document.getElementById('statusSupabase').textContent = '🟢 Online - Supabase conectado';
-                document.getElementById('statusSupabase').style.color = 'green';
-            } catch(e) {
-                console.warn('⚠️ Erro ao criar cliente:', e);
-                supabaseOnline = false;
-                document.getElementById('statusSupabase').textContent = '🔴 Offline - Erro na conexão';
-                document.getElementById('statusSupabase').style.color = 'red';
-            }
-        } else {
-            console.warn('⚠️ SDK do Supabase não encontrado');
-            supabaseOnline = false;
-            document.getElementById('statusSupabase').textContent = '🔴 Offline - SDK não carregado';
-            document.getElementById('statusSupabase').style.color = 'red';
-        }
+        // ============ FUNÇÕES DE DADOS ============
+        function getDados(chave) { return JSON.parse(localStorage.getItem(chave) || '[]'); }
+        function setDados(chave, dados) { localStorage.setItem(chave, JSON.stringify(dados)); }
+        function gerarId() { return Date.now() + Math.floor(Math.random() * 1000); }
 
         // ============ LOGIN ============
         function fazerLogin() {
-            var usuario = document.getElementById('campoUsuario').value.trim().toLowerCase();
+            var usuario = document.getElementById('campoUsuario').value.trim();
             var senha = document.getElementById('campoSenha').value;
             if (usuario === 'master' && senha === 'admin123') {
                 document.getElementById('telaLogin').style.display = 'none';
                 document.getElementById('painelAdmin').style.display = 'block';
-                document.getElementById('userDisplay').textContent = 'Admin Master';
                 document.getElementById('erroLogin').style.display = 'none';
                 carregarTudo();
-                return;
+            } else {
+                document.getElementById('erroLogin').style.display = 'block';
             }
-            var admins = JSON.parse(localStorage.getItem('admins') || '[]');
-            var admin = admins.find(function(a) { return a.usuario === usuario && a.senha === senha && a.ativo; });
-            if (admin) {
-                document.getElementById('telaLogin').style.display = 'none';
-                document.getElementById('painelAdmin').style.display = 'block';
-                document.getElementById('userDisplay').textContent = admin.nome;
-                document.getElementById('erroLogin').style.display = 'none';
-                aplicarPermissoes(admin);
-                carregarTudo();
-                return;
-            }
-            document.getElementById('erroLogin').style.display = 'block';
         }
 
         function sair() {
@@ -271,338 +165,234 @@
             document.getElementById('campoSenha').value = '';
         }
 
-        function aplicarPermissoes(admin) {
-            var p = admin.permissoes || {};
-            document.getElementById('tabEstoqueBtn').style.display = p.estoque ? 'inline-block' : 'none';
-            document.getElementById('tabC2Btn').style.display = p.cardapio2 ? 'inline-block' : 'none';
-            document.getElementById('tabPedidosBtn').style.display = p.pedidos ? 'inline-block' : 'none';
-            document.getElementById('tabPagBtn').style.display = p.pagamentos ? 'inline-block' : 'none';
-            document.getElementById('tabFinanceiroBtn').style.display = p.financeiro ? 'inline-block' : 'none';
-            document.getElementById('tabSetoresBtn').style.display = p.estoque ? 'inline-block' : 'none';
-            document.getElementById('tabAdminsBtn').style.display = p.admins ? 'inline-block' : 'none';
-            document.getElementById('tabConfigBtn').style.display = 'none';
-        }
-
         document.getElementById('campoSenha').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') fazerLogin();
         });
 
+        // ============ TABS ============
         function mudarTab(tab) {
-            var tabs = ['estoque', 'c2', 'pedidos', 'pagamentos', 'financeiro', 'setores', 'admins', 'config'];
-            tabs.forEach(function(t) {
-                var conteudo = document.getElementById('conteudo-' + t);
-                var btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
-                if (conteudo) conteudo.classList.remove('active');
-                if (btn) btn.classList.remove('active');
-            });
-            document.getElementById('conteudo-' + tab).classList.add('active');
-            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1) + 'Btn').classList.add('active');
+            document.querySelectorAll('.conteudo').forEach(function(c) { c.style.display = 'none'; });
+            document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.getElementById('conteudo-' + tab).style.display = 'block';
+            event.target.classList.add('active');
             if (tab === 'estoque') carregarEstoque();
             if (tab === 'c2') carregarC2();
             if (tab === 'pedidos') carregarPedidos();
-            if (tab === 'pagamentos') carregarPagamentos();
-            if (tab === 'financeiro') carregarFinanceiro();
-            if (tab === 'setores') carregarSetores();
-            if (tab === 'admins') carregarAdmins();
+            if (tab === 'historico') carregarHistorico();
             if (tab === 'config') carregarConfig();
         }
 
-        // ============ DADOS ============
-        async function getEstoque() {
-            if (supabaseOnline && supabaseClient) {
-                try {
-                    var r = await supabaseClient.from('estoqueCentral').select('*');
-                    if (r.error) throw r.error;
-                    return r.data || [];
-                } catch(e) { console.warn('Erro Supabase, usando localStorage:', e); }
-            }
-            return JSON.parse(localStorage.getItem('estoqueCentral') || '[]');
+        // ============ HISTÓRICO ============
+        function registrarHistorico(tipo, item, quantidade, obs) {
+            var historico = getDados('historicoEstoque');
+            historico.push({
+                id: gerarId(),
+                data: new Date().toLocaleString('pt-BR'),
+                tipo: tipo,
+                item: item,
+                quantidade: quantidade,
+                obs: obs || ''
+            });
+            setDados('historicoEstoque', historico);
         }
 
-        async function setEstoque(dados) {
-            localStorage.setItem('estoqueCentral', JSON.stringify(dados));
-            if (supabaseOnline && supabaseClient) {
-                try {
-                    await supabaseClient.from('estoqueCentral').delete().neq('id', 0);
-                    if (dados.length > 0) await supabaseClient.from('estoqueCentral').insert(dados);
-                } catch(e) { console.warn('Falha ao salvar no Supabase', e); }
-            }
-        }
-
-        async function getC2() {
-            if (supabaseOnline && supabaseClient) {
-                try {
-                    var r = await supabaseClient.from('cardapio2').select('*');
-                    if (r.error) throw r.error;
-                    return r.data || [];
-                } catch(e) {}
-            }
-            return JSON.parse(localStorage.getItem('cardapio2') || '[]');
-        }
-
-        async function setC2(dados) {
-            localStorage.setItem('cardapio2', JSON.stringify(dados));
-            if (supabaseOnline && supabaseClient) {
-                try {
-                    await supabaseClient.from('cardapio2').delete().neq('id', 0);
-                    if (dados.length > 0) await supabaseClient.from('cardapio2').insert(dados);
-                } catch(e) {}
-            }
-        }
-
-        async function getPedidos() {
-            if (supabaseOnline && supabaseClient) {
-                try {
-                    var r = await supabaseClient.from('todosPedidos').select('*').order('data', { ascending: false });
-                    if (r.error) throw r.error;
-                    return r.data || [];
-                } catch(e) {}
-            }
-            return JSON.parse(localStorage.getItem('todosPedidos') || '[]');
-        }
-
-        async function getConfig() {
-            if (supabaseOnline && supabaseClient) {
-                try {
-                    var r = await supabaseClient.from('config').select('*').eq('chave', 'admin');
-                    if (r.data && r.data.length > 0) return r.data[0].dados || {};
-                } catch(e) {}
-            }
-            return JSON.parse(localStorage.getItem('adminConfig') || '{}');
-        }
-
-        async function setConfigLocal(dados) {
-            localStorage.setItem('adminConfig', JSON.stringify(dados));
-            if (supabaseOnline && supabaseClient) {
-                try {
-                    await supabaseClient.from('config').upsert({ chave: 'admin', dados: dados });
-                } catch(e) {}
-            }
+        function carregarHistorico() {
+            var h = getDados('historicoEstoque');
+            var lista = document.getElementById('listaHistorico');
+            if (h.length === 0) { lista.innerHTML = '<p>Nenhum registro.</p>'; return; }
+            var html = '<table><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Obs</th></tr></thead><tbody>';
+            h.reverse().forEach(function(x) {
+                var badge = x.tipo === 'entrada' ? 'badge-entrada' : x.tipo === 'saida' ? 'badge-saida' : 'badge-alocacao';
+                var txt = x.tipo === 'entrada' ? '🟢 Entrada' : x.tipo === 'saida' ? '🔴 Saída' : '📤 Alocação';
+                html += '<tr><td>' + x.data + '</td><td><span class="badge ' + badge + '">' + txt + '</span></td><td>' + x.item + '</td><td>' + x.quantidade + '</td><td>' + (x.obs || '') + '</td></tr>';
+            });
+            html += '</tbody></table>';
+            lista.innerHTML = html;
         }
 
         // ============ ESTOQUE ============
-        async function salvarEstoque() {
+        function cadastrarItem() {
             var nome = document.getElementById('estoqueNome').value.trim();
-            var emoji = document.getElementById('estoqueEmoji').value.trim() || '🍫';
             var preco = parseFloat(document.getElementById('estoquePreco').value);
             var qtd = parseInt(document.getElementById('estoqueQtd').value) || 0;
-            var desc = document.getElementById('estoqueDesc').value.trim();
             if (!nome || !preco) { alert('Preencha nome e preço!'); return; }
-            var estoque = await getEstoque();
-            var item = estoque.find(i => i.nome.toLowerCase() === nome.toLowerCase());
-            if (item) {
-                item.quantidadeTotal = (item.quantidadeTotal || 0) + qtd;
-                item.preco = preco;
-                item.emoji = emoji;
-                item.descricao = desc;
+            
+            var estoque = getDados('estoqueCentral');
+            var existente = estoque.find(function(i) { return i.nome.toLowerCase() === nome.toLowerCase(); });
+            
+            if (existente) {
+                existente.quantidadeTotal += qtd;
+                existente.preco = preco;
+                registrarHistorico('entrada', nome, qtd, 'Adição ao estoque');
             } else {
-                estoque.push({ id: 'e' + Date.now(), nome, emoji, descricao: desc, preco, quantidadeTotal: qtd || 50, alocadoCardapio2: 0 });
+                estoque.push({ id: 'e' + gerarId(), nome: nome, emoji: '🍫', preco: preco, quantidadeTotal: qtd || 50, alocadoCardapio2: 0 });
+                registrarHistorico('entrada', nome, qtd || 50, 'Cadastro inicial');
             }
-            await setEstoque(estoque);
+            
+            setDados('estoqueCentral', estoque);
             carregarEstoque();
-            ['estoqueNome','estoqueEmoji','estoquePreco','estoqueQtd','estoqueDesc'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('estoqueNome').value = '';
+            document.getElementById('estoquePreco').value = '';
             document.getElementById('estoqueQtd').value = '10';
-            alert('✅ Salvo!');
+            alert('✅ Cadastrado!');
         }
 
-        async function carregarEstoque() {
-            var estoque = await getEstoque();
-            var select = document.getElementById('alocarSabor');
-            if (select) {
-                select.innerHTML = '<option value="">Selecione...</option>';
-                estoque.forEach(i => {
-                    var d = (i.quantidadeTotal || 0) - (i.alocadoCardapio2 || 0);
-                    select.innerHTML += '<option value="' + i.id + '">' + i.nome + ' - Disp: ' + d + '</option>';
+        function preencherEdicao() {
+            var id = document.getElementById('editarItemSelect').value;
+            var estoque = getDados('estoqueCentral');
+            var item = estoque.find(function(i) { return i.id === id; });
+            if (item) {
+                document.getElementById('editarNome').value = item.nome;
+                document.getElementById('editarPreco').value = item.preco;
+            }
+        }
+
+        function editarEstoque() {
+            var id = document.getElementById('editarItemSelect').value;
+            var nome = document.getElementById('editarNome').value.trim();
+            var preco = parseFloat(document.getElementById('editarPreco').value);
+            var add = parseInt(document.getElementById('editarAdd').value) || 0;
+            var rem = parseInt(document.getElementById('editarRem').value) || 0;
+            
+            if (!id || !nome || !preco) { alert('Selecione um item!'); return; }
+            
+            var estoque = getDados('estoqueCentral');
+            var item = estoque.find(function(i) { return i.id === id; });
+            if (!item) { alert('Item não encontrado!'); return; }
+            
+            if (add > 0) {
+                item.quantidadeTotal += add;
+                registrarHistorico('entrada', nome, add, 'Edição manual');
+            }
+            if (rem > 0) {
+                var disponivel = item.quantidadeTotal - item.alocadoCardapio2;
+                if (rem > disponivel) { alert('Não pode remover mais que o disponível!'); return; }
+                item.quantidadeTotal -= rem;
+                registrarHistorico('saida', nome, rem, 'Edição manual');
+            }
+            
+            item.nome = nome;
+            item.preco = preco;
+            setDados('estoqueCentral', estoque);
+            carregarEstoque();
+            document.getElementById('editarAdd').value = '0';
+            document.getElementById('editarRem').value = '0';
+            alert('✅ Atualizado!');
+        }
+
+        function carregarEstoque() {
+            var estoque = getDados('estoqueCentral');
+            var lista = document.getElementById('listaEstoque');
+            var selectAlocar = document.getElementById('alocarSabor');
+            var selectEditar = document.getElementById('editarItemSelect');
+            
+            // Preencher selects
+            if (selectAlocar) {
+                selectAlocar.innerHTML = '<option value="">Selecione...</option>';
+                estoque.forEach(function(i) {
+                    var d = i.quantidadeTotal - i.alocadoCardapio2;
+                    selectAlocar.innerHTML += '<option value="' + i.id + '">' + i.nome + ' - Disp: ' + d + '</option>';
                 });
             }
-            document.getElementById('listaEstoque').innerHTML = estoque.length === 0 ? '<p style="color:#8B4513;">Nenhum item.</p>' :
-                estoque.map(i => {
-                    var d = (i.quantidadeTotal || 0) - (i.alocadoCardapio2 || 0);
-                    return '<div class="card-item"><strong>' + (i.emoji||'🍫') + ' ' + i.nome + '</strong> - R$ ' + (i.preco||0).toFixed(2) + '<br><small>Total: ' + (i.quantidadeTotal||0) + ' | C2: ' + (i.alocadoCardapio2||0) + ' | Disp: ' + d + '</small></div>';
-                }).join('');
-            atualizarResumo();
+            if (selectEditar) {
+                selectEditar.innerHTML = '<option value="">Selecione...</option>';
+                estoque.forEach(function(i) {
+                    selectEditar.innerHTML += '<option value="' + i.id + '">' + i.nome + '</option>';
+                });
+            }
+            
+            if (estoque.length === 0) { lista.innerHTML = '<p>Nenhum item.</p>'; return; }
+            
+            lista.innerHTML = estoque.map(function(i) {
+                var d = i.quantidadeTotal - i.alocadoCardapio2;
+                return '<div class="card-item"><strong>' + i.emoji + ' ' + i.nome + '</strong> - R$ ' + i.preco.toFixed(2) + '<br><small>Total: ' + i.quantidadeTotal + ' | Cardápio 2: ' + i.alocadoCardapio2 + ' | <strong>Disponível Cardápio 1: ' + d + '</strong></small></div>';
+            }).join('');
         }
 
-        async function alocarC2() {
+        // ============ CARDÁPIO 2 ============
+        function alocarC2() {
             var id = document.getElementById('alocarSabor').value;
             var q = parseInt(document.getElementById('alocarQtd').value);
             if (!id || !q || q < 1) { alert('Selecione!'); return; }
-            var estoque = await getEstoque();
-            var item = estoque.find(i => i.id === id);
+            
+            var estoque = getDados('estoqueCentral');
+            var item = estoque.find(function(i) { return i.id === id; });
             if (!item) return;
-            var d = (item.quantidadeTotal || 0) - (item.alocadoCardapio2 || 0);
-            if (q > d) { alert('Máx: ' + d); return; }
-            item.alocadoCardapio2 = (item.alocadoCardapio2 || 0) + q;
-            await setEstoque(estoque);
-            var c2 = await getC2();
-            var existente = c2.find(i => i.nome === item.nome);
+            
+            var disponivel = item.quantidadeTotal - item.alocadoCardapio2;
+            if (q > disponivel) { alert('Máximo disponível: ' + disponivel); return; }
+            
+            item.alocadoCardapio2 += q;
+            setDados('estoqueCentral', estoque);
+            registrarHistorico('alocacao', item.nome, q, 'Alocado para Cardápio 2');
+            
+            // Atualizar cardápio 2
+            var c2 = getDados('cardapio2');
+            var existente = c2.find(function(i) { return i.nome === item.nome; });
             if (existente) {
-                existente.quantidade = (existente.quantidade || 0) + q;
+                existente.quantidade += q;
                 existente.quantidadeInicial = (existente.quantidadeInicial || 0) + q;
             } else {
-                c2.push({ id: 'c' + Date.now(), nome: item.nome, emoji: item.emoji, descricao: item.descricao, preco: item.preco, quantidade: q, quantidadeInicial: q });
+                c2.push({ id: 'c' + gerarId(), nome: item.nome, emoji: item.emoji || '🍫', preco: item.preco, quantidade: q, quantidadeInicial: q });
             }
-            await setC2(c2);
+            setDados('cardapio2', c2);
+            
+            // Sincronizar cardápio 1 (estoque - alocado)
+            sincronizarCardapio1();
+            
             carregarEstoque(); carregarC2();
             document.getElementById('alocarQtd').value = '10';
-            document.getElementById('alocarSabor').value = '';
             alert('✅ Alocado!');
         }
 
-        async function carregarC2() {
-            var c2 = await getC2();
-            document.getElementById('listaC2').innerHTML = c2.length === 0 ? '<p style="color:#8B4513;">Nenhum item.</p>' :
-                c2.map(i => '<div class="card-item"><strong>' + (i.emoji||'🍫') + ' ' + i.nome + '</strong> - R$ ' + (i.preco||0).toFixed(2) + ' | Qtd: ' + (i.quantidade||0) + '</div>').join('');
-            atualizarResumo();
+        function sincronizarCardapio1() {
+            var estoque = getDados('estoqueCentral');
+            var c1 = estoque.map(function(i) {
+                return {
+                    id: 'c1_' + i.id,
+                    nome: i.nome,
+                    emoji: i.emoji || '🍫',
+                    preco: i.preco,
+                    quantidade: Math.max(0, i.quantidadeTotal - i.alocadoCardapio2),
+                    quantidadeInicial: Math.max(0, i.quantidadeTotal - i.alocadoCardapio2)
+                };
+            }).filter(function(i) { return i.quantidade > 0; });
+            setDados('cardapio1', c1);
         }
 
-        async function carregarPedidos() {
-            var p = await getPedidos();
-            document.getElementById('listaPedidos').innerHTML = p.length === 0 ? '<p>Nenhum pedido.</p>' :
-                p.map(x => '<div class="card-item"><strong>👤 ' + x.cliente + '</strong> - R$ ' + (x.total||0).toFixed(2) + '<br><small>📅 ' + new Date(x.data).toLocaleString('pt-BR') + ' | 💳 ' + x.pagamento + '</small></div>').join('');
-        }
-
-        async function carregarPagamentos() {
-            var p = await getPedidos();
-            var pagos = p.filter(x => x.pagamentoStatus === 'pago').reduce((s,x) => s + (x.total||0), 0);
-            var pend = p.filter(x => x.pagamentoStatus !== 'pago' && x.status !== 'cancelado').reduce((s,x) => s + (x.total||0), 0);
-            document.getElementById('pgRecebido').textContent = 'R$ ' + pagos.toFixed(2);
-            document.getElementById('pgPendente').textContent = 'R$ ' + pend.toFixed(2);
-            document.getElementById('listaPagamentos').innerHTML = p.length === 0 ? '<p>Nenhum.</p>' :
-                p.map(x => {
-                    var st = x.pagamentoStatus === 'pago' ? '✅ PAGO' : '⏳ PENDENTE';
-                    var btn = x.pagamentoStatus !== 'pago' ? '<button class="btn btn-success btn-small" onclick="confirmarPag(' + x.pedido_id + ')">✅ Confirmar</button>' : '';
-                    var btnLembrar = x.pagamentoStatus !== 'pago' && x.cardapio === 'cardapio2' && x.telefone ? '<button class="btn btn-whatsapp btn-small" onclick="lembrarPagamento(\'' + x.telefone + '\',\'' + x.cliente + '\',' + x.total + ')">📱 Lembrar</button>' : '';
-                    return '<div class="card-item"><strong>👤 ' + x.cliente + '</strong> <span class="badge ' + (x.pagamentoStatus==='pago'?'badge-green':'badge-yellow') + '">' + st + '</span><br><small>R$ ' + (x.total||0).toFixed(2) + '</small><br>' + btn + ' ' + btnLembrar + '</div>';
-                }).join('');
-        }
-
-        async function confirmarPag(pedidoId) {
-            if (supabaseOnline && supabaseClient) {
-                await supabaseClient.from('todosPedidos').update({ pagamentoStatus: 'pago', dataPagamento: new Date().toISOString() }).eq('pedido_id', pedidoId);
-            }
-            carregarPagamentos(); carregarPedidos();
-            alert('✅ Confirmado!');
-        }
-
-        function lembrarPagamento(tel, nome, total) {
-            var msg = '🍫 *LEMBRETE - Dindins Gourmet FX*\n\nOlá *' + nome + '*!\n\n⏳ Seu pedido está aguardando pagamento.\n💵 Valor: R$ ' + total.toFixed(2) + '\n\n📱 Pague via PIX e envie o comprovante!\n🙏 Obrigado!';
-            window.open('https://wa.me/55' + tel + '?text=' + encodeURIComponent(msg), '_blank');
-        }
-
-        async function carregarFinanceiro() {
-            var p = await getPedidos();
-            var c1 = p.filter(x => x.cardapio === 'cardapio1' && x.pagamentoStatus === 'pago').reduce((s,x) => s + (x.total||0), 0);
-            var c2 = p.filter(x => x.cardapio === 'cardapio2' && x.pagamentoStatus === 'pago').reduce((s,x) => s + (x.total||0), 0);
-            document.getElementById('finC1').textContent = 'R$ ' + c1.toFixed(2);
-            document.getElementById('finC2').textContent = 'R$ ' + c2.toFixed(2);
-            document.getElementById('finTotal').textContent = 'R$ ' + (c1+c2).toFixed(2);
-            document.getElementById('finPedidos').textContent = p.length;
-        }
-
-        function salvarSetor() {
-            var n = document.getElementById('setorNome').value.trim();
-            var t = parseFloat(document.getElementById('setorTaxa').value);
-            var tm = document.getElementById('setorTempo').value.trim() || '30-45 min';
-            if (!n || isNaN(t)) { alert('Preencha!'); return; }
-            var setores = JSON.parse(localStorage.getItem('setores') || '[]');
-            setores.push({ id: 's' + Date.now(), nome: n, taxa: t, tempo: tm });
-            localStorage.setItem('setores', JSON.stringify(setores));
-            carregarSetores();
-            document.getElementById('setorNome').value = '';
-            document.getElementById('setorTaxa').value = '';
-        }
-        function carregarSetores() {
-            var s = JSON.parse(localStorage.getItem('setores') || '[]');
-            document.getElementById('setoresLista').innerHTML = s.map(x =>
-                '<tr><td>' + x.nome + '</td><td>R$ ' + x.taxa.toFixed(2) + '</td><td>' + x.tempo + '</td><td><button class="btn btn-danger btn-small" onclick="removerSetor(\'' + x.id + '\')">🗑️</button></td></tr>'
-            ).join('');
-        }
-        function removerSetor(id) {
-            var s = JSON.parse(localStorage.getItem('setores') || '[]');
-            s = s.filter(x => x.id !== id);
-            localStorage.setItem('setores', JSON.stringify(s));
-            carregarSetores();
-        }
-
-        function salvarAdmin() {
-            var n = document.getElementById('adminNome').value.trim();
-            var u = document.getElementById('adminUsuario').value.trim().toLowerCase();
-            var s = document.getElementById('adminSenha').value;
-            if (!n || !u || !s) { alert('Preencha!'); return; }
-            var admins = JSON.parse(localStorage.getItem('admins') || '[]');
-            if (admins.find(a => a.usuario === u)) { alert('Usuário existe!'); return; }
-            admins.push({
-                id: 'a' + Date.now(), nome: n, usuario: u, senha: s, tipo: 'admin', ativo: true,
-                permissoes: {
-                    estoque: document.getElementById('permEstoque').checked,
-                    cardapio1: document.getElementById('permC1').checked,
-                    cardapio2: document.getElementById('permC2').checked,
-                    pedidos: document.getElementById('permPedidos').checked,
-                    pagamentos: document.getElementById('permPagamentos').checked,
-                    financeiro: document.getElementById('permFinanceiro').checked,
-                    admins: document.getElementById('permAdmins').checked
-                }
-            });
-            localStorage.setItem('admins', JSON.stringify(admins));
-            carregarAdmins();
-            ['adminNome','adminUsuario','adminSenha'].forEach(id => document.getElementById(id).value = '');
-            alert('✅ Cadastrado!');
-        }
-        function carregarAdmins() {
-            var a = JSON.parse(localStorage.getItem('admins') || '[]');
-            document.getElementById('adminsLista').innerHTML = a.map(x => {
-                var p = x.permissoes || {};
-                var txt = [];
-                if (p.estoque) txt.push('📦');
-                if (p.cardapio1) txt.push('📋');
-                if (p.cardapio2) txt.push('🔥');
-                if (p.pedidos) txt.push('📋P');
-                if (p.pagamentos) txt.push('💳');
-                if (p.financeiro) txt.push('💰');
-                if (p.admins) txt.push('👥');
-                return '<tr><td><strong>' + x.nome + '</strong></td><td>' + x.usuario + '</td><td>' + txt.join(' ') + '</td><td><button class="btn btn-danger btn-small" onclick="removerAdmin(\'' + x.id + '\')">🗑️</button></td></tr>';
+        function carregarC2() {
+            var c2 = getDados('cardapio2');
+            var lista = document.getElementById('listaC2');
+            if (c2.length === 0) { lista.innerHTML = '<p>Nenhum item alocado.</p>'; return; }
+            lista.innerHTML = c2.map(function(i) {
+                return '<div class="card-item"><strong>' + i.emoji + ' ' + i.nome + '</strong> - R$ ' + i.preco.toFixed(2) + ' | <strong>Qtd: ' + i.quantidade + '</strong><br><small>Inicial: ' + (i.quantidadeInicial || i.quantidade) + '</small></div>';
             }).join('');
         }
-        function removerAdmin(id) {
-            var a = JSON.parse(localStorage.getItem('admins') || '[]');
-            a = a.filter(x => x.id !== id);
-            localStorage.setItem('admins', JSON.stringify(a));
-            carregarAdmins();
+
+        function carregarPedidos() {
+            var p = getDados('todosPedidos');
+            var lista = document.getElementById('listaPedidos');
+            if (p.length === 0) { lista.innerHTML = '<p>Nenhum pedido.</p>'; return; }
+            lista.innerHTML = p.map(function(x) {
+                return '<div class="card-item"><strong>👤 ' + x.cliente + '</strong> - R$ ' + x.total.toFixed(2) + '<br><small>' + new Date(x.data).toLocaleString('pt-BR') + ' | ' + x.pagamento + '</small></div>';
+            }).join('');
         }
 
-        async function carregarConfig() {
-            var c = await getConfig();
+        function carregarConfig() {
+            var c = JSON.parse(localStorage.getItem('adminConfig') || '{}');
             document.getElementById('configWhatsapp').value = c.whatsapp || '';
             document.getElementById('configPix').value = c.pix || '';
-            document.getElementById('configEndereco').value = c.endereco || '';
-            document.getElementById('configLinkMaps').value = c.linkMaps || '';
         }
-        async function salvarConfig() {
-            var dados = {
-                whatsapp: document.getElementById('configWhatsapp').value,
-                pix: document.getElementById('configPix').value,
-                endereco: document.getElementById('configEndereco').value,
-                linkMaps: document.getElementById('configLinkMaps').value
-            };
-            await setConfigLocal(dados);
+
+        function salvarConfig() {
+            localStorage.setItem('adminConfig', JSON.stringify({ whatsapp: document.getElementById('configWhatsapp').value, pix: document.getElementById('configPix').value }));
             alert('✅ Salvo!');
         }
 
-        async function atualizarResumo() {
-            var e = await getEstoque();
-            var c2 = await getC2();
-            var p = await getPedidos();
-            document.getElementById('resumoEstoque').textContent = e.reduce((s,i) => s + (i.quantidadeTotal||0), 0);
-            document.getElementById('resumoC1').textContent = e.reduce((s,i) => s + (i.quantidadeTotal||0) - (i.alocadoCardapio2||0), 0);
-            document.getElementById('resumoC2').textContent = c2.reduce((s,i) => s + (i.quantidade||0), 0);
-            document.getElementById('resumoFat').textContent = 'R$ ' + p.filter(x => x.pagamentoStatus === 'pago').reduce((s,i) => s + (i.total||0), 0).toFixed(2);
-        }
-
-        async function carregarTudo() {
+        function carregarTudo() {
+            sincronizarCardapio1();
             carregarEstoque();
             carregarC2();
-            atualizarResumo();
         }
     </script>
 </body>
