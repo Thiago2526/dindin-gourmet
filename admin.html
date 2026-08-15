@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Dindins Gourmet FX</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #5C3317; }
+        .login-box { max-width: 400px; margin: 80px auto; background: #FFF8DC; padding: 30px; border-radius: 15px; border: 2px solid #DAA520; text-align: center; }
+        .logo { width: 70px; height: 70px; border-radius: 50%; background: #CC5500; color: white; font-size: 28px; font-weight: bold; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+        h2 { color: #CC5500; margin-bottom: 10px; }
+        p { color: #8B4513; margin-bottom: 15px; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border: 2px solid #DAA520; border-radius: 8px; font-size: 16px; }
+        button { width: 100%; padding: 14px; background: #CC5500; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .erro { color: red; margin-top: 10px; display: none; }
+        .painel { display: none; max-width: 1000px; margin: 20px auto; background: #FFF8DC; padding: 20px; border-radius: 15px; border: 2px solid #DAA520; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .header h1 { color: #CC5500; font-size: 1.5em; }
+        .tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 15px; }
+        .tab-btn { padding: 10px 15px; background: #D2691E; color: #FFD700; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .tab-btn.active { background: #FFD700; color: #8B4513; }
+        .conteudo { background: #FFF8DC; padding: 20px; border-radius: 10px; border: 1px solid #DAA520; }
+        .card-item { background: #FFF8DC; padding: 15px; border-radius: 8px; border: 1px solid #DAA520; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <!-- Tela de Login -->
+    <div id="telaLogin">
+        <div class="login-box">
+            <div class="logo">DFX</div>
+            <h2>Dindins Gourmet FX</h2>
+            <p>Painel do Administrador</p>
+            <input type="text" id="usuario" placeholder="Usuário: master">
+            <input type="password" id="senha" placeholder="Senha: admin123">
+            <button onclick="entrar()">🚀 Entrar</button>
+            <p class="erro" id="erro">❌ Usuário ou senha incorretos!</p>
+        </div>
+    </div>
+
+    <!-- Painel Admin -->
+    <div class="painel" id="painelAdmin">
+        <div class="header">
+            <h1>🍫 Dindins Gourmet FX</h1>
+            <button class="tab-btn" onclick="sair()" style="background:#8B0000;color:white;">🚪 Sair</button>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="mostrarTab('estoque')">📦 Estoque</button>
+            <button class="tab-btn" onclick="mostrarTab('c2')">🔥 Cardápio 2</button>
+            <button class="tab-btn" onclick="mostrarTab('pedidos')">📋 Pedidos</button>
+            <button class="tab-btn" onclick="mostrarTab('pagamentos')">💳 Pagamentos</button>
+            <button class="tab-btn" onclick="mostrarTab('config')">⚙️ Config</button>
+        </div>
+        <div class="conteudo" id="aba-estoque">
+            <h3>📦 Estoque (em breve conectado ao Supabase)</h3>
+            <p>Aqui você poderá cadastrar e gerenciar seus produtos.</p>
+        </div>
+        <div class="conteudo" id="aba-c2" style="display:none;">
+            <h3>🔥 Cardápio 2 (em breve)</h3>
+        </div>
+        <div class="conteudo" id="aba-pedidos" style="display:none;">
+            <h3>📋 Pedidos (em breve)</h3>
+        </div>
+        <div class="conteudo" id="aba-pagamentos" style="display:none;">
+            <h3>💳 Pagamentos (em breve)</h3>
+        </div>
+        <div class="conteudo" id="aba-config" style="display:none;">
+            <h3>⚙️ Configurações (em breve)</h3>
+        </div>
+    </div>
+
+    <script>
+        function entrar() {
+            var u = document.getElementById('usuario').value.trim();
+            var s = document.getElementById('senha').value;
+            if (u === 'master' && s === 'admin123') {
+                document.getElementById('telaLogin').style.display = 'none';
+                document.getElementById('painelAdmin').style.display = 'block';
+                document.getElementById('erro').style.display = 'none';
+            } else {
+                document.getElementById('erro').style.display = 'block';
+            }
+        }
+
+        function sair() {
+            document.getElementById('telaLogin').style.display = 'block';
+            document.getElementById('painelAdmin').style.display = 'none';
+            document.getElementById('senha').value = '';
+        }
+
+        function mostrarTab(tab) {
+            var tabs = ['estoque', 'c2', 'pedidos', 'pagamentos', 'config'];
+            tabs.forEach(function(t) {
+                document.getElementById('aba-' + t).style.display = 'none';
+            });
+            document.getElementById('aba-' + tab).style.display = 'block';
+            // Atualizar botão ativo
+            var botoes = document.querySelectorAll('.tab-btn');
+            botoes.forEach(function(b) { b.classList.remove('active'); });
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
