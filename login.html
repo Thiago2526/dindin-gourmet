@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Dindins Gourmet FX</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #5C3317; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .box { background: #FFF8DC; padding: 30px; border-radius: 15px; border: 2px solid #DAA520; text-align: center; width: 350px; }
+        .logo { width: 70px; height: 70px; border-radius: 50%; background: #CC5500; color: white; font-size: 28px; font-weight: bold; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+        h2 { color: #CC5500; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border: 2px solid #DAA520; border-radius: 8px; font-size: 16px; }
+        button { width: 100%; padding: 14px; background: #CC5500; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .erro { color: red; display: none; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="logo">DFX</div>
+        <h2>Dindins Gourmet FX</h2>
+        <input type="text" id="usuario" placeholder="Usuário: master">
+        <input type="password" id="senha" placeholder="Senha: admin123">
+        <button onclick="entrar()">🚀 Entrar</button>
+        <p class="erro" id="erro">❌ Usuário ou senha incorretos!</p>
+    </div>
+    <script>
+        function entrar() {
+            var u = document.getElementById('usuario').value;
+            var s = document.getElementById('senha').value;
+            if (u === 'master' && s === 'admin123') {
+                alert('✅ LOGIN REALIZADO!');
+            } else {
+                document.getElementById('erro').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
