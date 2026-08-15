@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Dindins Gourmet FX</title>
-    <!-- Supabase SDK (link UMD direto) -->
+    <!-- Supabase SDK UMD -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <style>
         :root { --marrom:#5C3317; --laranja:#CC5500; --dourado:#DAA520; --amarelo:#FFD700; --creme:#FFF8DC; }
@@ -209,27 +209,33 @@
     <script>
         console.log('✅ Script carregado!');
 
-        // ============ SUPABASE ============
-        var supabase = null;
+        // ============ SUPABASE INICIALIZAÇÃO ============
+        var supabaseClient = null;
         var supabaseOnline = false;
 
         var SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
         var SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
 
-        try {
-            if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Obter o SDK global
+        var sdk = window.supabase || supabase;
+
+        if (sdk && typeof sdk.createClient === 'function') {
+            try {
+                supabaseClient = sdk.createClient(SUPABASE_URL, SUPABASE_KEY);
                 supabaseOnline = true;
                 console.log('✅ Supabase conectado!');
                 document.getElementById('statusSupabase').textContent = '🟢 Online - Supabase conectado';
                 document.getElementById('statusSupabase').style.color = 'green';
-            } else {
-                throw new Error('SDK não carregou');
+            } catch(e) {
+                console.warn('⚠️ Erro ao criar cliente:', e);
+                supabaseOnline = false;
+                document.getElementById('statusSupabase').textContent = '🔴 Offline - Erro na conexão';
+                document.getElementById('statusSupabase').style.color = 'red';
             }
-        } catch(e) {
-            console.warn('⚠️ Supabase offline:', e);
+        } else {
+            console.warn('⚠️ SDK do Supabase não encontrado');
             supabaseOnline = false;
-            document.getElementById('statusSupabase').textContent = '🔴 Offline - Usando armazenamento local';
+            document.getElementById('statusSupabase').textContent = '🔴 Offline - SDK não carregado';
             document.getElementById('statusSupabase').style.color = 'red';
         }
 
@@ -303,9 +309,9 @@
 
         // ============ DADOS ============
         async function getEstoque() {
-            if (supabaseOnline) {
+            if (supabaseOnline && supabaseClient) {
                 try {
-                    var r = await supabase.from('estoqueCentral').select('*');
+                    var r = await supabaseClient.from('estoqueCentral').select('*');
                     if (r.error) throw r.error;
                     return r.data || [];
                 } catch(e) { console.warn('Erro Supabase, usando localStorage:', e); }
@@ -315,18 +321,18 @@
 
         async function setEstoque(dados) {
             localStorage.setItem('estoqueCentral', JSON.stringify(dados));
-            if (supabaseOnline) {
+            if (supabaseOnline && supabaseClient) {
                 try {
-                    await supabase.from('estoqueCentral').delete().neq('id', 0);
-                    if (dados.length > 0) await supabase.from('estoqueCentral').insert(dados);
+                    await supabaseClient.from('estoqueCentral').delete().neq('id', 0);
+                    if (dados.length > 0) await supabaseClient.from('estoqueCentral').insert(dados);
                 } catch(e) { console.warn('Falha ao salvar no Supabase', e); }
             }
         }
 
         async function getC2() {
-            if (supabaseOnline) {
+            if (supabaseOnline && supabaseClient) {
                 try {
-                    var r = await supabase.from('cardapio2').select('*');
+                    var r = await supabaseClient.from('cardapio2').select('*');
                     if (r.error) throw r.error;
                     return r.data || [];
                 } catch(e) {}
@@ -336,18 +342,18 @@
 
         async function setC2(dados) {
             localStorage.setItem('cardapio2', JSON.stringify(dados));
-            if (supabaseOnline) {
+            if (supabaseOnline && supabaseClient) {
                 try {
-                    await supabase.from('cardapio2').delete().neq('id', 0);
-                    if (dados.length > 0) await supabase.from('cardapio2').insert(dados);
+                    await supabaseClient.from('cardapio2').delete().neq('id', 0);
+                    if (dados.length > 0) await supabaseClient.from('cardapio2').insert(dados);
                 } catch(e) {}
             }
         }
 
         async function getPedidos() {
-            if (supabaseOnline) {
+            if (supabaseOnline && supabaseClient) {
                 try {
-                    var r = await supabase.from('todosPedidos').select('*').order('data', { ascending: false });
+                    var r = await supabaseClient.from('todosPedidos').select('*').order('data', { ascending: false });
                     if (r.error) throw r.error;
                     return r.data || [];
                 } catch(e) {}
@@ -356,9 +362,9 @@
         }
 
         async function getConfig() {
-            if (supabaseOnline) {
+            if (supabaseOnline && supabaseClient) {
                 try {
-                    var r = await supabase.from('config').select('*').eq('chave', 'admin');
+                    var r = await supabaseClient.from('config').select('*').eq('chave', 'admin');
                     if (r.data && r.data.length > 0) return r.data[0].dados || {};
                 } catch(e) {}
             }
@@ -367,9 +373,9 @@
 
         async function setConfigLocal(dados) {
             localStorage.setItem('adminConfig', JSON.stringify(dados));
-            if (supabaseOnline) {
+            if (supabaseOnline && supabaseClient) {
                 try {
-                    await supabase.from('config').upsert({ chave: 'admin', dados: dados });
+                    await supabaseClient.from('config').upsert({ chave: 'admin', dados: dados });
                 } catch(e) {}
             }
         }
@@ -472,8 +478,8 @@
         }
 
         async function confirmarPag(pedidoId) {
-            if (supabaseOnline) {
-                await supabase.from('todosPedidos').update({ pagamentoStatus: 'pago', dataPagamento: new Date().toISOString() }).eq('pedido_id', pedidoId);
+            if (supabaseOnline && supabaseClient) {
+                await supabaseClient.from('todosPedidos').update({ pagamentoStatus: 'pago', dataPagamento: new Date().toISOString() }).eq('pedido_id', pedidoId);
             }
             carregarPagamentos(); carregarPedidos();
             alert('✅ Confirmado!');
