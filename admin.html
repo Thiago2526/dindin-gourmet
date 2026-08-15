@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Dindins Gourmet FX</title>
-   <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <!-- Supabase SDK (link UMD direto) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <style>
         :root { --marrom:#5C3317; --laranja:#CC5500; --dourado:#DAA520; --amarelo:#FFD700; --creme:#FFF8DC; }
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -207,9 +208,8 @@
 
     <script>
         console.log('✅ Script carregado!');
-        console.log('✅ Função fazerLogin DEFINIDA!');
 
-        // ============ SUPABASE (declaração única) ============
+        // ============ SUPABASE ============
         var supabase = null;
         var supabaseOnline = false;
 
@@ -217,7 +217,7 @@
         var SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
 
         try {
-            if (window.supabase) {
+            if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 supabaseOnline = true;
                 console.log('✅ Supabase conectado!');
@@ -235,13 +235,9 @@
 
         // ============ LOGIN ============
         function fazerLogin() {
-            console.log('🔑 Tentando login...');
             var usuario = document.getElementById('campoUsuario').value.trim().toLowerCase();
             var senha = document.getElementById('campoSenha').value;
-            console.log('Usuário:', usuario);
-
             if (usuario === 'master' && senha === 'admin123') {
-                console.log('✅ LOGIN OK!');
                 document.getElementById('telaLogin').style.display = 'none';
                 document.getElementById('painelAdmin').style.display = 'block';
                 document.getElementById('userDisplay').textContent = 'Admin Master';
@@ -249,11 +245,9 @@
                 carregarTudo();
                 return;
             }
-
             var admins = JSON.parse(localStorage.getItem('admins') || '[]');
             var admin = admins.find(function(a) { return a.usuario === usuario && a.senha === senha && a.ativo; });
             if (admin) {
-                console.log('✅ Login admin:', admin.nome);
                 document.getElementById('telaLogin').style.display = 'none';
                 document.getElementById('painelAdmin').style.display = 'block';
                 document.getElementById('userDisplay').textContent = admin.nome;
@@ -262,8 +256,6 @@
                 carregarTudo();
                 return;
             }
-
-            console.log('❌ Login falhou');
             document.getElementById('erroLogin').style.display = 'block';
         }
 
@@ -289,7 +281,6 @@
             if (e.key === 'Enter') fazerLogin();
         });
 
-        // ============ TABS ============
         function mudarTab(tab) {
             var tabs = ['estoque', 'c2', 'pedidos', 'pagamentos', 'financeiro', 'setores', 'admins', 'config'];
             tabs.forEach(function(t) {
@@ -300,7 +291,6 @@
             });
             document.getElementById('conteudo-' + tab).classList.add('active');
             document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1) + 'Btn').classList.add('active');
-
             if (tab === 'estoque') carregarEstoque();
             if (tab === 'c2') carregarC2();
             if (tab === 'pedidos') carregarPedidos();
@@ -311,7 +301,7 @@
             if (tab === 'config') carregarConfig();
         }
 
-        // ============ DADOS (Supabase + localStorage) ============
+        // ============ DADOS ============
         async function getEstoque() {
             if (supabaseOnline) {
                 try {
@@ -392,7 +382,6 @@
             var qtd = parseInt(document.getElementById('estoqueQtd').value) || 0;
             var desc = document.getElementById('estoqueDesc').value.trim();
             if (!nome || !preco) { alert('Preencha nome e preço!'); return; }
-
             var estoque = await getEstoque();
             var item = estoque.find(i => i.nome.toLowerCase() === nome.toLowerCase());
             if (item) {
@@ -420,8 +409,7 @@
                     select.innerHTML += '<option value="' + i.id + '">' + i.nome + ' - Disp: ' + d + '</option>';
                 });
             }
-            var lista = document.getElementById('listaEstoque');
-            lista.innerHTML = estoque.length === 0 ? '<p style="color:#8B4513;">Nenhum item.</p>' :
+            document.getElementById('listaEstoque').innerHTML = estoque.length === 0 ? '<p style="color:#8B4513;">Nenhum item.</p>' :
                 estoque.map(i => {
                     var d = (i.quantidadeTotal || 0) - (i.alocadoCardapio2 || 0);
                     return '<div class="card-item"><strong>' + (i.emoji||'🍫') + ' ' + i.nome + '</strong> - R$ ' + (i.preco||0).toFixed(2) + '<br><small>Total: ' + (i.quantidadeTotal||0) + ' | C2: ' + (i.alocadoCardapio2||0) + ' | Disp: ' + d + '</small></div>';
@@ -429,7 +417,6 @@
             atualizarResumo();
         }
 
-        // ============ CARDÁPIO 2 ============
         async function alocarC2() {
             var id = document.getElementById('alocarSabor').value;
             var q = parseInt(document.getElementById('alocarQtd').value);
@@ -463,14 +450,12 @@
             atualizarResumo();
         }
 
-        // ============ PEDIDOS ============
         async function carregarPedidos() {
             var p = await getPedidos();
             document.getElementById('listaPedidos').innerHTML = p.length === 0 ? '<p>Nenhum pedido.</p>' :
                 p.map(x => '<div class="card-item"><strong>👤 ' + x.cliente + '</strong> - R$ ' + (x.total||0).toFixed(2) + '<br><small>📅 ' + new Date(x.data).toLocaleString('pt-BR') + ' | 💳 ' + x.pagamento + '</small></div>').join('');
         }
 
-        // ============ PAGAMENTOS ============
         async function carregarPagamentos() {
             var p = await getPedidos();
             var pagos = p.filter(x => x.pagamentoStatus === 'pago').reduce((s,x) => s + (x.total||0), 0);
@@ -499,7 +484,6 @@
             window.open('https://wa.me/55' + tel + '?text=' + encodeURIComponent(msg), '_blank');
         }
 
-        // ============ FINANCEIRO ============
         async function carregarFinanceiro() {
             var p = await getPedidos();
             var c1 = p.filter(x => x.cardapio === 'cardapio1' && x.pagamentoStatus === 'pago').reduce((s,x) => s + (x.total||0), 0);
@@ -510,7 +494,6 @@
             document.getElementById('finPedidos').textContent = p.length;
         }
 
-        // ============ SETORES ============
         function salvarSetor() {
             var n = document.getElementById('setorNome').value.trim();
             var t = parseFloat(document.getElementById('setorTaxa').value);
@@ -536,7 +519,6 @@
             carregarSetores();
         }
 
-        // ============ ADMINS ============
         function salvarAdmin() {
             var n = document.getElementById('adminNome').value.trim();
             var u = document.getElementById('adminUsuario').value.trim().toLowerCase();
@@ -583,7 +565,6 @@
             carregarAdmins();
         }
 
-        // ============ CONFIG ============
         async function carregarConfig() {
             var c = await getConfig();
             document.getElementById('configWhatsapp').value = c.whatsapp || '';
@@ -602,7 +583,6 @@
             alert('✅ Salvo!');
         }
 
-        // ============ RESUMO ============
         async function atualizarResumo() {
             var e = await getEstoque();
             var c2 = await getC2();
