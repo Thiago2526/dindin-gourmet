@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Dindins Gourmet FX</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --marrom: #5C3317; --laranja: #CC5500; --dourado: #DAA520; --amarelo: #FFD700; --creme: #FFF8DC; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #5C3317, #8B4513, #A0522D); min-height: 100vh; font-size: 16px; }
         .login-box { max-width: 400px; margin: 80px auto; background: #FFF8DC; padding: 30px; border-radius: 15px; border: 2px solid #DAA520; text-align: center; }
@@ -192,21 +190,7 @@
     </div>
 
     <script>
-        console.log('✅ Script carregado!');
-
-        // ============ SUPABASE ============
-        let supabase = null;
-        let supabaseOnline = false;
-        try {
-            supabase = window.supabase.createClient(
-                'https://khgkneegpxcgufslupby.supabase.co',
-                'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G'
-            );
-            supabaseOnline = true;
-            console.log('✅ Supabase conectado');
-        } catch(e) {
-            console.log('⚠️ Supabase offline');
-        }
+        console.log('✅ Script carregado! SEM Supabase, usando localStorage puro.');
 
         // ============ DADOS ============
         function getDados(chave) { return JSON.parse(localStorage.getItem(chave) || '[]'); }
@@ -438,7 +422,6 @@
             if (pedido) { pedido.pagamentoStatus = 'pago'; pedido.dataPagamento = new Date().toISOString(); setDados('todosPedidos', p); carregarPagamentos(); alert('✅ Confirmado!'); }
         }
 
-        // ============ BOTÃO LEMBRAR PAGAMENTO ============
         function lembrarPagamento(telefone, nome, total) {
             var msg = '🍫 *LEMBRETE - Dindins Gourmet FX*\n\nOlá *' + nome + '*!\n\n⏳ Seu pedido está aguardando pagamento.\n💵 *Valor: R$ ' + total.toFixed(2) + '*\n\n📱 Pague via PIX e envie o comprovante!\n🙏 Obrigado!';
             window.open('https://wa.me/55' + telefone + '?text=' + encodeURIComponent(msg), '_blank');
