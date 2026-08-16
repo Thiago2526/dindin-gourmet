@@ -13,8 +13,8 @@
         .header h1 { font-size: 1.6em; }
         .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; padding: 15px; }
         .menu-item { background: #FFF8DC; border: 2px solid #DAA520; border-radius: 12px; padding: 15px; text-align: center; }
-        .menu-item .foto-item { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; margin: 0 auto 8px; display: block; }
-        .menu-item .emoji-item { font-size: 3em; margin-bottom: 8px; }
+        .menu-item .foto-item { width: 100%; height: 120px; border-radius: 10px; object-fit: cover; margin-bottom: 8px; display: block; }
+        .menu-item .emoji-item { font-size: 4em; margin-bottom: 8px; display: block; }
         .menu-item h3 { color: #CC5500; font-size: 1em; }
         .preco { font-size: 1.3em; color: #CC5500; font-weight: bold; }
         .qtd-controle { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 8px; }
@@ -61,8 +61,6 @@
     <script>
         var supabase = window.supabase.createClient('https://khgkneegpxcgufslupby.supabase.co', 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G');
         let carrinho = [], cardapioDados = [];
-        function getDados(chave) { return JSON.parse(localStorage.getItem(chave) || '[]'); }
-        function setDados(chave, dados) { localStorage.setItem(chave, JSON.stringify(dados)); }
 
         async function carregarCardapio() {
             var { data } = await supabase.from('cardapio2').select('*');
@@ -70,7 +68,7 @@
             var m = document.getElementById('menu-grid');
             if (cardapioDados.length === 0) { m.innerHTML = '<p style="color:#8B4513;">Indisponível.</p>'; return; }
             m.innerHTML = cardapioDados.map(function(i) {
-                var fotoHtml = i.foto ? '<img src="' + i.foto + '" class="foto-item" alt="' + i.nome + '">' : '<div class="emoji-item">' + (i.emoji||'🍦') + '</div>';
+                var fotoHtml = i.foto ? '<img src="' + i.foto + '" class="foto-item" alt="' + i.nome + '">' : '<span class="emoji-item">' + (i.emoji||'🍦') + '</span>';
                 return '<div class="menu-item">' + fotoHtml + '<h3>' + i.nome + '</h3><div class="preco">R$ ' + (i.preco||0).toFixed(2) + '</div><p style="font-size:0.85em;">📦 ' + (i.quantidade||0) + ' unid.</p><div class="qtd-controle"><button class="btn-qtd" onclick="add(\'' + i.id + '\',-1)">−</button><span class="quantidade" id="q-' + i.id + '">0</span><button class="btn-qtd" onclick="add(\'' + i.id + '\',1)">+</button></div></div>';
             }).join('');
             var { data: config } = await supabase.from('config').select('*').eq('chave','admin').maybeSingle();
@@ -79,15 +77,15 @@
         }
 
         function add(id, q) {
-            var i = cardapioDados.find(function(x) { return x.id === id; }); if (!i) return;
-            var mx = i.quantidade||0, cc = carrinho.find(function(x) { return x.id === id; });
-            if (cc) { var n = cc.quantidade + q; if (n <= 0) carrinho = carrinho.filter(function(x) { return x.id !== id; }); else if (n > mx) { alert('Máx: ' + mx); return; } else cc.quantidade = n; }
+            var i = cardapioDados.find(function(x) { return x.id == id; }); if (!i) return;
+            var mx = i.quantidade||0, cc = carrinho.find(function(x) { return x.id == id; });
+            if (cc) { var n = cc.quantidade + q; if (n <= 0) carrinho = carrinho.filter(function(x) { return x.id != id; }); else if (n > mx) { alert('Máx: ' + mx); return; } else cc.quantidade = n; }
             else if (q > 0) { if (q > mx) { alert('Máx: ' + mx); return; } carrinho.push({ id: id, nome: i.nome, emoji: i.emoji, preco: i.preco, quantidade: q }); }
             atualizar();
         }
 
         function atualizar() {
-            cardapioDados.forEach(function(i) { var el = document.getElementById('q-' + i.id); if (el) { var cc = carrinho.find(function(x) { return x.id === i.id; }); el.textContent = cc ? cc.quantidade : 0; } });
+            cardapioDados.forEach(function(i) { var el = document.getElementById('q-' + i.id); if (el) { var cc = carrinho.find(function(x) { return x.id == i.id; }); el.textContent = cc ? cc.quantidade : 0; } });
             var div = document.getElementById('carrinho-itens');
             div.innerHTML = carrinho.length === 0 ? '<p style="color:#FFD700;">Vazio</p>' : carrinho.map(function(i) { return '<div style="display:flex;justify-content:space-between;padding:8px;background:#FFF8DC;border-radius:6px;margin-bottom:5px;"><span>' + (i.emoji||'🍦') + ' ' + i.quantidade + 'x ' + i.nome + '</span><span style="color:#CC5500;">R$ ' + (i.preco*i.quantidade).toFixed(2) + '</span></div>'; }).join('');
             var fs = document.getElementById('form-section'), ts = document.getElementById('total-section');
@@ -113,9 +111,6 @@
             if (!nome || !tel || !pag || carrinho.length === 0) { alert('Preencha!'); return; }
             var pedidoId = Date.now();
             await supabase.from('todosPedidos').insert([{ pedido_id: pedidoId, data: new Date().toISOString(), cardapio: 'cardapio2', cliente: nome, telefone: tel, pagamento: pag, total: sub, itens: carrinho.map(function(i) { return { nome: i.nome, emoji: i.emoji, quantidade: i.quantidade, preco: i.preco }; }), status: 'novo', pagamentoStatus: 'pendente' }]);
-            var c2 = getDados('cardapio2');
-            carrinho.forEach(function(i) { var item = c2.find(function(x) { return x.id === i.id; }); if (item) item.quantidade = Math.max(0, item.quantidade - i.quantidade); });
-            setDados('cardapio2', c2);
             var c = JSON.parse(localStorage.getItem('adminConfig') || '{}');
             var msg = '🍦 *NOVO PEDIDO* 🍦\n\n👤 *' + nome + '*\n📱 *' + tel + '*\n📦 *Pedido #' + pedidoId + '*\n💳 *' + pag + '*\n\n📋 *ITENS:*\n';
             carrinho.forEach(function(i) { msg += (i.emoji||'🍦') + ' ' + i.quantidade + 'x ' + i.nome + ' - R$ ' + (i.preco*i.quantidade).toFixed(2) + '\n'; });
