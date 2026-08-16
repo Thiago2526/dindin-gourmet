@@ -140,7 +140,7 @@
         <div class="conteudo" id="conteudo-historico">
             <h3>📜 Histórico de Entrada e Saída</h3>
             <button class="btn btn-success" onclick="carregarHistorico()" style="width:auto;">🔄 Atualizar</button>
-            <div id="listaHistorico"></div>
+            <div id="listaHistorico" style="margin-top:10px;"></div>
         </div>
 
         <!-- CONFIG -->
@@ -217,22 +217,36 @@
             if (tab === 'config') carregarConfig();
         }
 
-        // ============ REGISTRAR HISTÓRICO ============
-        function registrarHistorico(tipo, item, quantidade, obs) {
-            supabase.from('historicoEstoque').insert([{
-                data: new Date().toLocaleString('pt-BR'),
-                tipo: tipo,
-                item: item,
-                quantidade: quantidade,
-                obs: obs || ''
-            }]);
+        // ============ HISTÓRICO ============
+        async function registrarHistorico(tipo, item, quantidade, obs) {
+            try {
+                var { error } = await supabase.from('historicoEstoque').insert([{
+                    data: new Date().toLocaleString('pt-BR'),
+                    tipo: tipo,
+                    item: item,
+                    quantidade: quantidade,
+                    obs: obs || ''
+                }]);
+                if (error) { console.error('Erro histórico:', error); }
+                else { console.log('✅ Histórico:', tipo, item, quantidade); }
+            } catch(e) { console.error('Exceção:', e); }
         }
 
         async function carregarHistorico() {
-            var { data } = await supabase.from('historicoEstoque').select('*').order('created_at', { ascending: false });
+            console.log('🔄 Carregando histórico...');
+            var { data, error } = await supabase.from('historicoEstoque').select('*').order('id', { ascending: false }).limit(100);
+            if (error) {
+                console.error('Erro:', error);
+                document.getElementById('listaHistorico').innerHTML = '<p style="color:red;">Erro: ' + error.message + '</p>';
+                return;
+            }
             var h = data || [];
+            console.log('📜 Registros:', h.length);
             var lista = document.getElementById('listaHistorico');
-            if (h.length === 0) { lista.innerHTML = '<p>Nenhum registro.</p>'; return; }
+            if (h.length === 0) {
+                lista.innerHTML = '<p>Nenhum registro ainda. Cadastre itens ou faça alocações.</p>';
+                return;
+            }
             var html = '<table><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Obs</th></tr></thead><tbody>';
             h.forEach(function(x) {
                 var badge = x.tipo === 'entrada' ? 'badge-entrada' : x.tipo === 'saida' ? 'badge-saida' : 'badge-alocacao';
@@ -258,10 +272,10 @@
                     quantidadeTotal: (existente.quantidadeTotal || 0) + qtd,
                     preco: preco, emoji: emoji, foto: fotoEmBase64 || existente.foto || null
                 }).eq('id', existente.id);
-                registrarHistorico('entrada', nome, qtd, 'Adição ao estoque');
+                await registrarHistorico('entrada', nome, qtd, 'Adição ao estoque');
             } else {
                 await supabase.from('estoqueCentral').insert([{ nome: nome, emoji: emoji, preco: preco, quantidadeTotal: qtd || 50, alocadoCardapio2: 0, foto: fotoEmBase64 }]);
-                registrarHistorico('entrada', nome, qtd || 50, 'Cadastro inicial');
+                await registrarHistorico('entrada', nome, qtd || 50, 'Cadastro inicial');
             }
 
             fotoEmBase64 = null;
@@ -299,11 +313,9 @@
 
         // ============ EXCLUIR ============
         async function excluirItem(id) {
-            if (!confirm('🗑️ Excluir este item do estoque?')) return;
+            if (!confirm('🗑️ Excluir este item?')) return;
             var { data: item } = await supabase.from('estoqueCentral').select('*').eq('id', id).maybeSingle();
-            if (item) {
-                registrarHistorico('saida', item.nome, item.quantidadeTotal, 'Item excluído');
-            }
+            if (item) { await registrarHistorico('saida', item.nome, item.quantidadeTotal, 'Item excluído'); }
             var { error } = await supabase.from('estoqueCentral').delete().eq('id', id);
             if (error) { alert('Erro: ' + error.message); return; }
             alert('✅ Excluído!');
@@ -341,7 +353,7 @@
             } else {
                 await supabase.from('cardapio2').insert([{ nome: item.nome, emoji: item.emoji, preco: item.preco, quantidade: q, foto: item.foto }]);
             }
-            registrarHistorico('alocacao', item.nome, q, 'Alocado para Cardápio 2');
+            await registrarHistorico('alocacao', item.nome, q, 'Alocado para Cardápio 2');
             carregarEstoque(); carregarC1(); carregarC2();
             alert('✅ Alocado!');
         }
