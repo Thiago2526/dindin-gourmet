@@ -27,6 +27,379 @@
         .btn-primary { background: #CC5500; color: white; }
         .btn-success { background: #228B22; color: white; }
         .btn-danger { background: #8B0000; color: white; }
+        .btn-warning { background: #DAA520; color: #5C3317; }
+        .btn-whatsapp { background: #25D366; color: white; }
+        .btn-small { padding: 5px 10px; font-size: 12px; width: auto; }
+        .card-item { background: #FFF8DC; padding: 15px; border-radius: 8px; border: 1px solid #DAA520; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .card-item-info { flex: 1; min-width: 200px; display: flex; align-items: center; gap: 10px; }
+        .card-item-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+        .item-foto { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; border: 2px solid #DAA520; cursor: pointer; }
+        .item-foto-placeholder { width: 60px; height: 60px; border-radius: 10px; border: 2px dashed #DAA520; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; background: #FFF8DC; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .badge-pago { background: #90EE90; color: #006400; }
+        .badge-pendente { background: #FFD700; color: #8B4513; }
+        .status-conexao { font-size: 12px; margin-top: 10px; color: green; }
+        .preview-foto { max-width: 100%; max-height: 150px; border-radius: 10px; margin-top: 10px; border: 2px solid #DAA520; }
+        @media (max-width: 600px) { .tabs { flex-direction: column; } }
+    </style>
+</head>
+<body>
+
+    <input type="file" id="inputFoto" accept="image/*" style="display:none;">
+
+    <div id="telaLogin">
+        <div class="login-box">
+            <div class="logo">DFX</div>
+            <h2>Dindins Gourmet FX</h2>
+            <p>Painel do Administrador</p>
+            <input type="text" id="campoUsuario" placeholder="Usuário">
+            <input type="password" id="campoSenha" placeholder="Senha">
+            <button onclick="fazerLogin()">🚀 Entrar</button>
+            <p class="erro" id="erroLogin">❌ Usuário ou senha incorretos!</p>
+            <p style="margin-top:15px;font-size:14px;">master / admin123</p>
+            <p class="status-conexao">🟢 Banco conectado!</p>
+        </div>
+    </div>
+
+    <div class="painel" id="painelAdmin">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <h2>🍦 Dindins Gourmet FX</h2>
+            <button class="btn btn-danger" onclick="sair()" style="width:auto;">🚪 Sair</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="mudarTab('estoque')">📦 Estoque</button>
+            <button class="tab-btn" onclick="mudarTab('c1')">📋 Cardápio 1</button>
+            <button class="tab-btn" onclick="mudarTab('c2')">🔥 Cardápio 2</button>
+            <button class="tab-btn" onclick="mudarTab('pedidos')">📋 Pedidos</button>
+            <button class="tab-btn" onclick="mudarTab('pagamentos')">💳 Pagamentos</button>
+            <button class="tab-btn" onclick="mudarTab('financeiro')">💰 Financeiro</button>
+            <button class="tab-btn" onclick="mudarTab('config')">⚙️ Config</button>
+        </div>
+
+        <div class="conteudo active" id="conteudo-estoque">
+            <h3>📦 Estoque Geral</h3>
+            <div class="form-group"><label>Nome</label><input type="text" id="estoqueNome" placeholder="Ex: Chocolate"></div>
+            <div class="form-group"><label>Emoji</label><input type="text" id="estoqueEmoji" maxlength="2" placeholder="🍦" value="🍦"></div>
+            <div class="form-group"><label>Preço R$</label><input type="number" id="estoquePreco" placeholder="5.00" step="0.01"></div>
+            <div class="form-group"><label>Quantidade</label><input type="number" id="estoqueQtd" value="50"></div>
+            <div class="form-group"><label>📸 Foto do Item (opcional)</label><input type="file" id="estoqueFoto" accept="image/*" onchange="previewFotoAdmin(this)"></div>
+            <div id="previewFotoContainer" style="display:none;margin-bottom:10px;">
+                <img id="previewFotoAdmin" class="preview-foto" src="" alt="Pré-visualização">
+            </div>
+            <button class="btn btn-primary" onclick="cadastrarItem()">💾 Cadastrar</button>
+            <button class="btn btn-success" onclick="carregarEstoque()">🔄 Atualizar Lista</button>
+            <div id="listaEstoque" style="margin-top:15px;"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-c1">
+            <h3>📋 Cardápio 1 (Principal)</h3>
+            <div class="card-item" style="background:#FFF3CD;">
+                <div class="card-item-info"><strong>ℹ️ Mostra: Estoque Total - Alocado C2</strong></div>
+            </div>
+            <div id="listaC1"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-c2">
+            <h3>🔥 Cardápio 2</h3>
+            <div class="form-group"><label>Sabor</label><select id="alocarSabor"></select></div>
+            <div class="form-group"><label>Quantidade</label><input type="number" id="alocarQtd" value="10"></div>
+            <button class="btn btn-success" onclick="alocarC2()">📤 Alocar</button>
+            <div id="listaC2" style="margin-top:15px;"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-pedidos">
+            <h3>📋 Pedidos</h3>
+            <div id="listaPedidos"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-pagamentos">
+            <h3>💳 Pagamentos</h3>
+            <div id="listaPagamentos"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-financeiro">
+            <h3>💰 Financeiro</h3>
+            <div id="listaFinanceiro"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-config">
+            <h3>⚙️ Configurações</h3>
+            <div class="form-group"><label>WhatsApp (com DDD)</label><input type="text" id="configWhatsapp" placeholder="5561986471897"></div>
+            <div class="form-group"><label>Chave PIX</label><input type="text" id="configPix" placeholder="pix@dindingourmet.com.br"></div>
+            <div class="form-group"><label>Endereço Retirada</label><input type="text" id="configEndereco"></div>
+            <button class="btn btn-success" onclick="salvarConfig()">💾 Salvar</button>
+        </div>
+    </div>
+
+    <script>
+        console.log('✅ Script carregado!');
+
+        var supabase = window.supabase.createClient(
+            'https://khgkneegpxcgufslupby.supabase.co',
+            'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G'
+        );
+
+        var fotoEmBase64 = null;
+
+        function previewFotoAdmin(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    fotoEmBase64 = e.target.result;
+                    document.getElementById('previewFotoContainer').style.display = 'block';
+                    document.getElementById('previewFotoAdmin').src = fotoEmBase64;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function fazerLogin() {
+            var u = document.getElementById('campoUsuario').value.trim();
+            var s = document.getElementById('campoSenha').value;
+            if (u === 'master' && s === 'admin123') {
+                document.getElementById('telaLogin').style.display = 'none';
+                document.getElementById('painelAdmin').style.display = 'block';
+                carregarTudo();
+            } else {
+                document.getElementById('erroLogin').style.display = 'block';
+            }
+        }
+
+        function sair() {
+            document.getElementById('telaLogin').style.display = 'block';
+            document.getElementById('painelAdmin').style.display = 'none';
+        }
+
+        document.getElementById('campoSenha').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') fazerLogin();
+        });
+
+        function mudarTab(tab) {
+            var conteudos = ['estoque', 'c1', 'c2', 'pedidos', 'pagamentos', 'financeiro', 'config'];
+            conteudos.forEach(function(c) { document.getElementById('conteudo-' + c).classList.remove('active'); });
+            document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.getElementById('conteudo-' + tab).classList.add('active');
+            event.target.classList.add('active');
+            if (tab === 'estoque') carregarEstoque();
+            if (tab === 'c1') carregarC1();
+            if (tab === 'c2') carregarC2();
+            if (tab === 'pedidos') carregarPedidos();
+            if (tab === 'pagamentos') carregarPagamentos();
+            if (tab === 'financeiro') carregarFinanceiro();
+            if (tab === 'config') carregarConfig();
+        }
+
+        async function cadastrarItem() {
+            var nome = document.getElementById('estoqueNome').value.trim();
+            var emoji = document.getElementById('estoqueEmoji').value.trim() || '🍦';
+            var preco = parseFloat(document.getElementById('estoquePreco').value);
+            var qtd = parseInt(document.getElementById('estoqueQtd').value) || 0;
+            if (!nome || !preco) { alert('Preencha nome e preço!'); return; }
+
+            var { data: existente } = await supabase.from('estoqueCentral').select('*').eq('nome', nome).maybeSingle();
+
+            if (existente) {
+                var { error } = await supabase.from('estoqueCentral').update({
+                    quantidadeTotal: existente.quantidadeTotal + qtd,
+                    preco: preco,
+                    emoji: emoji,
+                    foto: fotoEmBase64 || existente.foto || null
+                }).eq('id', existente.id);
+                if (error) { alert('Erro: ' + error.message); return; }
+            } else {
+                var { error } = await supabase.from('estoqueCentral').insert([{
+                    nome: nome, emoji: emoji, preco: preco,
+                    quantidadeTotal: qtd || 50, alocadoCardapio2: 0,
+                    foto: fotoEmBase64
+                }]);
+                if (error) { alert('Erro: ' + error.message); return; }
+            }
+
+            fotoEmBase64 = null;
+            document.getElementById('previewFotoContainer').style.display = 'none';
+            document.getElementById('estoqueFoto').value = '';
+            await carregarEstoque();
+            alert('✅ Salvo!');
+            document.getElementById('estoqueNome').value = '';
+            document.getElementById('estoquePreco').value = '';
+        }
+
+        async function carregarEstoque() {
+            var { data } = await supabase.from('estoqueCentral').select('*');
+            var estoque = data || [];
+            var lista = document.getElementById('listaEstoque');
+            var select = document.getElementById('alocarSabor');
+            if (select) {
+                select.innerHTML = '<option value="">Selecione...</option>';
+                estoque.forEach(function(i) {
+                    var d = (i.quantidadeTotal || 0) - (i.alocadoCardapio2 || 0);
+                    select.innerHTML += '<option value="' + i.id + '">' + i.nome + ' - Disp: ' + d + '</option>';
+                });
+            }
+            if (estoque.length === 0) { lista.innerHTML = '<p>Nenhum item cadastrado.</p>'; return; }
+            lista.innerHTML = estoque.map(function(i) {
+                var d = (i.quantidadeTotal || 0) - (i.alocadoCardapio2 || 0);
+                var fotoHtml = i.foto ? '<img src="' + i.foto + '" class="item-foto" alt="' + i.nome + '">' : '<div class="item-foto-placeholder">' + (i.emoji || '🍦') + '</div>';
+                return '<div class="card-item">' +
+                    '<div class="card-item-info">' + fotoHtml +
+                    '<div><strong>' + (i.emoji||'🍦') + ' ' + i.nome + '</strong> - R$ ' + (i.preco||0).toFixed(2) + '<br><small>Total: ' + (i.quantidadeTotal||0) + ' | C2: ' + (i.alocadoCardapio2||0) + ' | Disp: ' + d + '</small></div></div>' +
+                    '<div class="card-item-actions"><button class="btn btn-danger btn-small" onclick="excluirItem(' + i.id + ')">🗑️ Excluir</button></div></div>';
+            }).join('');
+        }
+
+        async function excluirItem(id) {
+            if (!confirm('Tem certeza que deseja EXCLUIR este item?')) return;
+            var { error } = await supabase.from('estoqueCentral').delete().eq('id', id);
+            if (error) { alert('Erro: ' + error.message); return; }
+            alert('✅ Item excluído!');
+            carregarEstoque(); carregarC1();
+        }
+
+        async function carregarC1() {
+            var { data } = await supabase.from('estoqueCentral').select('*');
+            var estoque = data || [];
+            var lista = document.getElementById('listaC1');
+            var c1 = estoque.map(function(i) {
+                return { nome: i.nome, emoji: i.emoji || '🍦', foto: i.foto, preco: i.preco, quantidade: Math.max(0, (i.quantidadeTotal||0) - (i.alocadoCardapio2||0)) };
+            }).filter(function(i) { return i.quantidade > 0; });
+            if (c1.length === 0) { lista.innerHTML = '<p>Nenhum item.</p>'; return; }
+            lista.innerHTML = c1.map(function(i) {
+                var fotoHtml = i.foto ? '<img src="' + i.foto + '" class="item-foto" alt="' + i.nome + '">' : '<div class="item-foto-placeholder">' + i.emoji + '</div>';
+                return '<div class="card-item"><div class="card-item-info">' + fotoHtml + '<div><strong>' + i.emoji + ' ' + i.nome + '</strong> - R$ ' + i.preco.toFixed(2) + ' | <strong>Disp: ' + i.quantidade + '</strong></div></div></div>';
+            }).join('');
+        }
+
+        async function alocarC2() {
+            var id = document.getElementById('alocarSabor').value;
+            var q = parseInt(document.getElementById('alocarQtd').value);
+            if (!id || !q || q < 1) { alert('Selecione!'); return; }
+            var { data: item } = await supabase.from('estoqueCentral').select('*').eq('id', id).maybeSingle();
+            if (!item) { alert('Item não encontrado!'); return; }
+            var d = (item.quantidadeTotal || 0) - (item.alocadoCardapio2 || 0);
+            if (q > d) { alert('Máximo: ' + d); return; }
+            await supabase.from('estoqueCentral').update({ alocadoCardapio2: (item.alocadoCardapio2 || 0) + q }).eq('id', id);
+            var { data: existente } = await supabase.from('cardapio2').select('*').eq('nome', item.nome).maybeSingle();
+            if (existente) {
+                await supabase.from('cardapio2').update({ quantidade: (existente.quantidade || 0) + q, foto: item.foto || existente.foto }).eq('id', existente.id);
+            } else {
+                await supabase.from('cardapio2').insert([{ nome: item.nome, emoji: item.emoji, preco: item.preco, quantidade: q, foto: item.foto }]);
+            }
+            carregarEstoque(); carregarC1(); carregarC2();
+            alert('✅ Alocado!');
+        }
+
+        async function carregarC2() {
+            var { data } = await supabase.from('cardapio2').select('*');
+            var c2 = data || [];
+            var lista = document.getElementById('listaC2');
+            if (c2.length === 0) { lista.innerHTML = '<p>Nenhum item.</p>'; return; }
+            lista.innerHTML = c2.map(function(i) {
+                var fotoHtml = i.foto ? '<img src="' + i.foto + '" class="item-foto" alt="' + i.nome + '">' : '<div class="item-foto-placeholder">' + (i.emoji||'🍦') + '</div>';
+                return '<div class="card-item"><div class="card-item-info">' + fotoHtml + '<div><strong>' + (i.emoji||'🍦') + ' ' + i.nome + '</strong> - R$ ' + (i.preco||0).toFixed(2) + ' | Qtd: ' + (i.quantidade||0) + '</div></div><div class="card-item-actions"><button class="btn btn-danger btn-small" onclick="excluirC2(' + i.id + ')">🗑️</button></div></div>';
+            }).join('');
+        }
+
+        async function excluirC2(id) {
+            if (!confirm('Excluir do Cardápio 2?')) return;
+            await supabase.from('cardapio2').delete().eq('id', id);
+            carregarC2();
+            alert('✅ Excluído!');
+        }
+
+        async function carregarPedidos() {
+            var { data } = await supabase.from('todosPedidos').select('*').order('data', { ascending: false });
+            var p = data || [];
+            var lista = document.getElementById('listaPedidos');
+            if (p.length === 0) { lista.innerHTML = '<p>Nenhum pedido.</p>'; return; }
+            lista.innerHTML = p.map(function(x) { return '<div class="card-item"><div class="card-item-info"><strong>👤 ' + x.cliente + '</strong> - R$ ' + (x.total||0).toFixed(2) + '</div></div>'; }).join('');
+        }
+
+        async function carregarPagamentos() {
+            var { data } = await supabase.from('todosPedidos').select('*').order('data', { ascending: false });
+            var p = data || [];
+            var lista = document.getElementById('listaPagamentos');
+            if (p.length === 0) { lista.innerHTML = '<p>Nenhum.</p>'; return; }
+            lista.innerHTML = p.map(function(x) {
+                var st = x.pagamentoStatus === 'pago' ? '<span class="badge badge-pago">✅ PAGO</span>' : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
+                var btn = x.pagamentoStatus !== 'pago' ? '<button class="btn btn-success btn-small" onclick="confirmarPag(' + x.pedido_id + ')">✅ Confirmar</button>' : '';
+                var btnLembrar = x.pagamentoStatus !== 'pago' && x.telefone ? '<button class="btn btn-whatsapp btn-small" onclick="lembrar(\'' + x.telefone + '\',\'' + x.cliente + '\',' + (x.total||0) + ')">📱 Lembrar</button>' : '';
+                return '<div class="card-item"><div class="card-item-info"><strong>👤 ' + x.cliente + '</strong> ' + st + '<br><small>R$ ' + (x.total||0).toFixed(2) + '</small></div><div class="card-item-actions">' + btn + ' ' + btnLembrar + '</div></div>';
+            }).join('');
+        }
+
+        async function confirmarPag(pedidoId) {
+            await supabase.from('todosPedidos').update({ pagamentoStatus: 'pago' }).eq('pedido_id', pedidoId);
+            carregarPagamentos();
+            alert('✅ Confirmado!');
+        }
+
+        function lembrar(telefone, nome, total) {
+            var msg = '🍦 *LEMBRETE*\n\nOlá ' + nome + '!\nSeu pedido aguarda pagamento.\nValor: R$ ' + total.toFixed(2);
+            window.open('https://wa.me/55' + telefone + '?text=' + encodeURIComponent(msg), '_blank');
+        }
+
+        async function carregarFinanceiro() {
+            var { data } = await supabase.from('todosPedidos').select('*');
+            var p = data || [];
+            var c1 = p.filter(function(x) { return x.cardapio === 'cardapio1' && x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
+            var c2 = p.filter(function(x) { return x.cardapio === 'cardapio2' && x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
+            var total = p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
+            var lista = document.getElementById('listaFinanceiro');
+            lista.innerHTML = '<div class="card-item"><div class="card-item-info"><strong>💰 Total Recebido:</strong> R$ ' + total.toFixed(2) + '</div></div>' +
+                '<div class="card-item"><div class="card-item-info"><strong>📋 Cardápio 1:</strong> R$ ' + c1.toFixed(2) + '</div></div>' +
+                '<div class="card-item"><div class="card-item-info"><strong>🔥 Cardápio 2:</strong> R$ ' + c2.toFixed(2) + '</div></div>' +
+                '<div class="card-item"><div class="card-item-info"><strong>📦 Total Pedidos:</strong> ' + p.length + '</div></div>' +
+                '<div class="card-item"><div class="card-item-info"><strong>✅ Pagos:</strong> ' + p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).length + '</div></div>' +
+                '<div class="card-item"><div class="card-item-info"><strong>⏳ Pendentes:</strong> ' + p.filter(function(x) { return x.pagamentoStatus !== 'pago'; }).length + '</div></div>';
+        }
+
+        async function carregarConfig() {
+            var { data: c } = await supabase.from('config').select('*').eq('chave', 'admin').maybeSingle();
+            var dados = c ? (c.dados || {}) : {};
+            document.getElementById('configWhatsapp').value = dados.whatsapp || '';
+            document.getElementById('configPix').value = dados.pix || '';
+            document.getElementById('configEndereco').value = dados.endereco || '';
+        }
+
+        async function salvarConfig() {
+            var dados = { whatsapp: document.getElementById('configWhatsapp').value, pix: document.getElementById('configPix').value, endereco: document.getElementById('configEndereco').value };
+            await supabase.from('config').upsert({ chave: 'admin', dados: dados });
+            alert('✅ Salvo!');
+        }
+
+        function carregarTudo() { carregarEstoque(); carregarC1(); carregarC2(); }
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Dindins Gourmet FX</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #5C3317; min-height: 100vh; }
+        .login-box { max-width: 400px; margin: 80px auto; background: #FFF8DC; padding: 30px; border-radius: 15px; border: 2px solid #DAA520; text-align: center; }
+        .logo { width: 70px; height: 70px; border-radius: 50%; background: #CC5500; color: white; font-size: 28px; font-weight: bold; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+        h2 { color: #CC5500; }
+        p { color: #8B4513; margin-bottom: 15px; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border: 2px solid #DAA520; border-radius: 8px; font-size: 16px; background: #FFF8DC; box-sizing: border-box; }
+        button { width: 100%; padding: 14px; background: #CC5500; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 5px; }
+        .erro { color: red; margin-top: 10px; display: none; }
+        .painel { display: none; max-width: 1200px; margin: 20px auto; background: #FFF8DC; padding: 20px; border-radius: 15px; border: 2px solid #DAA520; }
+        .tabs { display: flex; gap: 5px; flex-wrap: wrap; margin: 15px 0; }
+        .tab-btn { padding: 10px 15px; background: #D2691E; color: #FFD700; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .tab-btn.active { background: #FFD700; color: #8B4513; }
+        .conteudo { display: none; background: #FFF8DC; padding: 20px; border-radius: 10px; border: 1px solid #DAA520; }
+        .conteudo.active { display: block; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: bold; color: #8B4513; margin-bottom: 4px; }
+        .btn { padding: 10px 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 2px; font-size: 14px; }
+        .btn-primary { background: #CC5500; color: white; }
+        .btn-success { background: #228B22; color: white; }
+        .btn-danger { background: #8B0000; color: white; }
         .btn-whatsapp { background: #25D366; color: white; }
         .btn-small { padding: 5px 10px; font-size: 12px; }
         .card-item { background: #FFF8DC; padding: 15px; border-radius: 8px; border: 1px solid #DAA520; margin-bottom: 10px; }
