@@ -15,11 +15,12 @@
         input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 2px solid #DAA520; border-radius: 8px; font-size: 16px; background: #FFF8DC; }
         button { width: 100%; padding: 14px; background: #CC5500; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .erro { color: red; margin-top: 10px; display: none; }
-        .painel { display: none; max-width: 1200px; margin: 20px auto; background: #FFF8DC; padding: 20px; border-radius: 15px; border: 2px solid #DAA520; }
+        .painel { display: none; max-width: 1300px; margin: 20px auto; background: #FFF8DC; padding: 20px; border-radius: 15px; border: 2px solid #DAA520; }
         .tabs { display: flex; gap: 5px; flex-wrap: wrap; margin: 15px 0; }
-        .tab-btn { padding: 10px 15px; background: #D2691E; color: #FFD700; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .tab-btn { padding: 10px 15px; background: #D2691E; color: #FFD700; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .tab-btn.active { background: #FFD700; color: #8B4513; }
-        .conteudo { background: #FFF8DC; padding: 20px; border-radius: 10px; border: 1px solid #DAA520; }
+        .conteudo { display: none; background: #FFF8DC; padding: 20px; border-radius: 10px; border: 1px solid #DAA520; }
+        .conteudo.active { display: block; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-weight: bold; color: #8B4513; margin-bottom: 4px; }
         .btn { padding: 10px 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 2px; font-size: 14px; }
@@ -39,7 +40,11 @@
         .badge-alocacao { background: #87CEEB; color: #00008B; }
         .badge-pago { background: #90EE90; color: #006400; }
         .badge-pendente { background: #FFD700; color: #8B4513; }
-        .status-conexao { font-size: 12px; margin-top: 10px; }
+        .resumo-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        .resumo-card { background: #FFF8DC; padding: 15px; border-radius: 10px; border: 1px solid #DAA520; text-align: center; }
+        .resumo-card .icon { font-size: 1.8em; }
+        .resumo-card .valor { font-size: 1.3em; font-weight: bold; color: #CC5500; }
+        .status-conexao { font-size: 12px; margin-top: 10px; color: green; }
         @media (max-width: 600px) { .tabs { flex-direction: column; } }
     </style>
 </head>
@@ -56,13 +61,13 @@
             <button onclick="fazerLogin()">🚀 Entrar</button>
             <p class="erro" id="erroLogin">❌ Usuário ou senha incorretos!</p>
             <p style="margin-top:15px;font-size:14px;">master / admin123</p>
-            <p class="status-conexao" id="statusConexao">Conectando ao banco...</p>
+            <p class="status-conexao" id="statusConexao"></p>
         </div>
     </div>
 
     <!-- PAINEL -->
     <div class="painel" id="painelAdmin">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
             <h2>🍫 Dindins Gourmet FX</h2>
             <button class="btn btn-danger" onclick="sair()">🚪 Sair</button>
         </div>
@@ -72,11 +77,13 @@
             <button class="tab-btn" onclick="mudarTab('c2')">🔥 Cardápio 2</button>
             <button class="tab-btn" onclick="mudarTab('pedidos')">📋 Pedidos</button>
             <button class="tab-btn" onclick="mudarTab('pagamentos')">💳 Pagamentos</button>
+            <button class="tab-btn" onclick="mudarTab('financeiro')">💰 Financeiro</button>
             <button class="tab-btn" onclick="mudarTab('historico')">📜 Histórico</button>
             <button class="tab-btn" onclick="mudarTab('config')">⚙️ Config</button>
         </div>
 
-        <div class="conteudo" id="conteudo-estoque">
+        <!-- ESTOQUE -->
+        <div class="conteudo active" id="conteudo-estoque">
             <h3>📦 Estoque Geral</h3>
             <div class="form-group"><label>Nome</label><input type="text" id="estoqueNome"></div>
             <div class="form-group"><label>Emoji</label><input type="text" id="estoqueEmoji" maxlength="2" placeholder="🍫"></div>
@@ -86,7 +93,8 @@
             <div id="listaEstoque" style="margin-top:15px;"></div>
         </div>
 
-        <div class="conteudo" id="conteudo-c2" style="display:none;">
+        <!-- CARDÁPIO 2 -->
+        <div class="conteudo" id="conteudo-c2">
             <h3>🔥 Cardápio 2</h3>
             <div class="form-group"><label>Sabor</label><select id="alocarSabor"></select></div>
             <div class="form-group"><label>Quantidade</label><input type="number" id="alocarQtd" value="10"></div>
@@ -94,22 +102,43 @@
             <div id="listaC2" style="margin-top:15px;"></div>
         </div>
 
-        <div class="conteudo" id="conteudo-pedidos" style="display:none;">
+        <!-- PEDIDOS -->
+        <div class="conteudo" id="conteudo-pedidos">
             <h3>📋 Pedidos</h3>
             <div id="listaPedidos"></div>
         </div>
 
-        <div class="conteudo" id="conteudo-pagamentos" style="display:none;">
+        <!-- PAGAMENTOS -->
+        <div class="conteudo" id="conteudo-pagamentos">
             <h3>💳 Pagamentos</h3>
+            <div class="resumo-cards">
+                <div class="resumo-card"><div class="icon">💰</div><div class="valor" id="pgRecebido" style="color:green;">R$0</div><small>Recebido</small></div>
+                <div class="resumo-card"><div class="icon">⏳</div><div class="valor" id="pgPendente" style="color:orange;">R$0</div><small>Pendente</small></div>
+            </div>
             <div id="listaPagamentos"></div>
         </div>
 
-        <div class="conteudo" id="conteudo-historico" style="display:none;">
-            <h3>📜 Histórico</h3>
+        <!-- FINANCEIRO -->
+        <div class="conteudo" id="conteudo-financeiro">
+            <h3>💰 Relatório Financeiro</h3>
+            <div class="resumo-cards">
+                <div class="resumo-card"><div class="icon">💵</div><div class="valor" id="finTotal" style="color:green;">R$0</div><small>Total Recebido</small></div>
+                <div class="resumo-card"><div class="icon">📋</div><div class="valor" id="finC1">R$0</div><small>Cardápio 1</small></div>
+                <div class="resumo-card"><div class="icon">🔥</div><div class="valor" id="finC2">R$0</div><small>Cardápio 2</small></div>
+                <div class="resumo-card"><div class="icon">📦</div><div class="valor" id="finPedidos">0</div><small>Total Pedidos</small></div>
+                <div class="resumo-card"><div class="icon">✅</div><div class="valor" id="finPagos" style="color:green;">0</div><small>Pedidos Pagos</small></div>
+                <div class="resumo-card"><div class="icon">⏳</div><div class="valor" id="finPendentes" style="color:orange;">0</div><small>Pedidos Pendentes</small></div>
+            </div>
+        </div>
+
+        <!-- HISTÓRICO -->
+        <div class="conteudo" id="conteudo-historico">
+            <h3>📜 Histórico de Entrada/Saída</h3>
             <div id="listaHistorico"></div>
         </div>
 
-        <div class="conteudo" id="conteudo-config" style="display:none;">
+        <!-- CONFIG -->
+        <div class="conteudo" id="conteudo-config">
             <h3>⚙️ Configurações</h3>
             <div class="form-group"><label>WhatsApp (com DDD)</label><input type="text" id="configWhatsapp"></div>
             <div class="form-group"><label>Chave PIX</label><input type="text" id="configPix"></div>
@@ -122,25 +151,20 @@
         console.log('✅ Script carregado!');
 
         // ============ SUPABASE ============
-        var SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
-        var SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
-        var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        console.log('✅ Supabase inicializado!');
-        
-        document.getElementById('statusConexao').textContent = '🟢 Banco conectado!';
-        document.getElementById('statusConexao').style.color = 'green';
+        var supabase = window.supabase.createClient(
+            'https://khgkneegpxcgufslupby.supabase.co',
+            'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G'
+        );
+        console.log('✅ Supabase OK');
+        document.getElementById('statusConexao').textContent = '🟢 Banco de dados conectado!';
 
         // ============ LOGIN ============
         function fazerLogin() {
-            console.log('🔑 Tentando login...');
             var u = document.getElementById('campoUsuario').value.trim();
             var s = document.getElementById('campoSenha').value;
-            
             if (u === 'master' && s === 'admin123') {
-                console.log('✅ Login OK!');
                 document.getElementById('telaLogin').style.display = 'none';
                 document.getElementById('painelAdmin').style.display = 'block';
-                document.getElementById('erroLogin').style.display = 'none';
                 carregarTudo();
             } else {
                 document.getElementById('erroLogin').style.display = 'block';
@@ -158,27 +182,31 @@
 
         // ============ TABS ============
         function mudarTab(tab) {
-            var conteudos = ['estoque', 'c2', 'pedidos', 'pagamentos', 'historico', 'config'];
-            conteudos.forEach(function(c) { document.getElementById('conteudo-' + c).style.display = 'none'; });
+            var conteudos = ['estoque', 'c2', 'pedidos', 'pagamentos', 'financeiro', 'historico', 'config'];
+            conteudos.forEach(function(c) {
+                document.getElementById('conteudo-' + c).classList.remove('active');
+            });
             document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-            document.getElementById('conteudo-' + tab).style.display = 'block';
+            document.getElementById('conteudo-' + tab).classList.add('active');
             event.target.classList.add('active');
+            
             if (tab === 'estoque') carregarEstoque();
             if (tab === 'c2') carregarC2();
             if (tab === 'pedidos') carregarPedidos();
             if (tab === 'pagamentos') carregarPagamentos();
+            if (tab === 'financeiro') carregarFinanceiro();
             if (tab === 'historico') carregarHistorico();
             if (tab === 'config') carregarConfig();
         }
 
-        // ============ ESTOQUE (SUPABASE) ============
+        // ============ ESTOQUE ============
         async function cadastrarItem() {
             var nome = document.getElementById('estoqueNome').value.trim();
             var emoji = document.getElementById('estoqueEmoji').value.trim();
             var preco = parseFloat(document.getElementById('estoquePreco').value);
             var qtd = parseInt(document.getElementById('estoqueQtd').value) || 0;
             if (!nome || !preco) { alert('Preencha!'); return; }
-
+            
             try {
                 var { data: existente } = await supabase.from('estoqueCentral').select('*').eq('nome', nome).single();
                 if (existente) {
@@ -187,10 +215,9 @@
                     await supabase.from('estoqueCentral').insert([{ nome: nome, emoji: emoji || '🍫', preco: preco, quantidadeTotal: qtd || 50, alocadoCardapio2: 0 }]);
                 }
                 carregarEstoque();
-                alert('✅ Salvo no banco!');
+                alert('✅ Salvo!');
             } catch(e) {
-                console.error('Erro:', e);
-                alert('❌ Erro ao salvar. Verifique o console.');
+                alert('❌ Erro: ' + e.message);
             }
         }
 
@@ -209,9 +236,7 @@
                     var d = i.quantidadeTotal - i.alocadoCardapio2;
                     return '<div class="card-item"><strong>' + i.emoji + ' ' + i.nome + '</strong> - R$ ' + i.preco.toFixed(2) + '<br><small>Total: ' + i.quantidadeTotal + ' | C2: ' + i.alocadoCardapio2 + ' | Disp: ' + d + '</small></div>';
                 }).join('');
-            } catch(e) {
-                console.error('Erro ao carregar:', e);
-            }
+            } catch(e) { console.error(e); }
         }
 
         // ============ CARDÁPIO 2 ============
@@ -219,28 +244,21 @@
             var id = document.getElementById('alocarSabor').value;
             var q = parseInt(document.getElementById('alocarQtd').value);
             if (!id || !q || q < 1) { alert('Selecione!'); return; }
-
             try {
                 var { data: item } = await supabase.from('estoqueCentral').select('*').eq('id', id).single();
                 if (!item) return;
                 var d = item.quantidadeTotal - item.alocadoCardapio2;
                 if (q > d) { alert('Máx: ' + d); return; }
-
                 await supabase.from('estoqueCentral').update({ alocadoCardapio2: item.alocadoCardapio2 + q }).eq('id', id);
-
                 var { data: existente } = await supabase.from('cardapio2').select('*').eq('nome', item.nome).single();
                 if (existente) {
                     await supabase.from('cardapio2').update({ quantidade: existente.quantidade + q }).eq('id', existente.id);
                 } else {
                     await supabase.from('cardapio2').insert([{ nome: item.nome, emoji: item.emoji, preco: item.preco, quantidade: q }]);
                 }
-
                 carregarEstoque(); carregarC2();
                 alert('✅ Alocado!');
-            } catch(e) {
-                console.error('Erro:', e);
-                alert('❌ Erro ao alocar.');
-            }
+            } catch(e) { alert('❌ Erro: ' + e.message); }
         }
 
         async function carregarC2() {
@@ -269,6 +287,10 @@
             try {
                 var { data: p } = await supabase.from('todosPedidos').select('*').order('data', { ascending: false });
                 p = p || [];
+                var pagos = p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
+                var pend = p.filter(function(x) { return x.pagamentoStatus !== 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
+                document.getElementById('pgRecebido').textContent = 'R$ ' + pagos.toFixed(2);
+                document.getElementById('pgPendente').textContent = 'R$ ' + pend.toFixed(2);
                 var lista = document.getElementById('listaPagamentos');
                 if (p.length === 0) { lista.innerHTML = '<p>Nenhum.</p>'; return; }
                 lista.innerHTML = p.map(function(x) {
@@ -282,23 +304,44 @@
 
         async function confirmarPag(pedidoId) {
             await supabase.from('todosPedidos').update({ pagamentoStatus: 'pago' }).eq('pedido_id', pedidoId);
-            carregarPagamentos();
+            carregarPagamentos(); carregarFinanceiro();
             alert('✅ Confirmado!');
         }
 
         function lembrar(telefone, nome, total) {
-            var msg = '🍫 *LEMBRETE*\n\nOlá ' + nome + '!\nSeu pedido está aguardando pagamento.\nValor: R$ ' + total.toFixed(2);
+            var msg = '🍫 *LEMBRETE - Dindins Gourmet FX*\n\nOlá ' + nome + '!\n\nSeu pedido está aguardando pagamento.\nValor: R$ ' + total.toFixed(2) + '\n\nPague via PIX e envie o comprovante!';
             window.open('https://wa.me/55' + telefone + '?text=' + encodeURIComponent(msg), '_blank');
+        }
+
+        // ============ FINANCEIRO ============
+        async function carregarFinanceiro() {
+            try {
+                var { data: p } = await supabase.from('todosPedidos').select('*');
+                p = p || [];
+                var c1 = p.filter(function(x) { return x.cardapio === 'cardapio1' && x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
+                var c2 = p.filter(function(x) { return x.cardapio === 'cardapio2' && x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
+                var totalPago = p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
+                var totalPedidos = p.length;
+                var pagos = p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).length;
+                var pendentes = p.filter(function(x) { return x.pagamentoStatus !== 'pago'; }).length;
+                
+                document.getElementById('finTotal').textContent = 'R$ ' + totalPago.toFixed(2);
+                document.getElementById('finC1').textContent = 'R$ ' + c1.toFixed(2);
+                document.getElementById('finC2').textContent = 'R$ ' + c2.toFixed(2);
+                document.getElementById('finPedidos').textContent = totalPedidos;
+                document.getElementById('finPagos').textContent = pagos;
+                document.getElementById('finPendentes').textContent = pendentes;
+            } catch(e) { console.error(e); }
         }
 
         // ============ HISTÓRICO ============
         async function carregarHistorico() {
             try {
-                var { data: h } = await supabase.from('historicoEstoque').select('*').order('data', { ascending: false });
+                var { data: h } = await supabase.from('historicoEstoque').select('*').order('created_at', { ascending: false });
                 h = h || [];
                 var lista = document.getElementById('listaHistorico');
                 if (h.length === 0) { lista.innerHTML = '<p>Nenhum registro.</p>'; return; }
-                lista.innerHTML = h.map(function(x) { return '<div class="card-item">' + x.data + ' - ' + x.tipo + ' - ' + x.item + ' (' + x.quantidade + ')</div>'; }).join('');
+                lista.innerHTML = h.map(function(x) { return '<div class="card-item">' + (x.data || '') + ' - ' + (x.tipo || '') + ' - ' + (x.item || '') + ' (' + (x.quantidade || 0) + ')</div>'; }).join('');
             } catch(e) { console.error(e); }
         }
 
