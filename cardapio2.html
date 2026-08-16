@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cardápio - Dindins Gourmet FX</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #3E1F0D, #5C3317, #8B4513); min-height: 100vh; padding: 15px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #3E1F0D, #5C3317, #8B4513); min-height: 100vh; padding: 15px; }
         .container { max-width: 800px; margin: 0 auto; background: #FFF8DC; border-radius: 16px; overflow: hidden; border: 2px solid #DAA520; }
         .header { background: linear-gradient(135deg, #5C3317, #8B4513); color: #FFD700; padding: 20px; text-align: center; }
         .header h1 { font-size: 1.5em; }
@@ -36,9 +37,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Cardápio</h1>
-        </div>
+        <div class="header"><h1>Cardápio</h1></div>
         <div class="menu-grid" id="menu-grid"></div>
         <div class="carrinho-section">
             <h3 style="color:#FFD700;text-align:center;margin-bottom:15px;">🛒 Seu Pedido</h3>
@@ -58,15 +57,15 @@
     </div>
 
     <script>
-        console.log('✅ Cardápio 2 carregado!');
+        console.log('✅ Cardápio carregado!');
         let carrinho = [], cardapioDados = [];
-
+        
         function getDados(chave) { return JSON.parse(localStorage.getItem(chave) || '[]'); }
         function setDados(chave, dados) { localStorage.setItem(chave, JSON.stringify(dados)); }
-
+        
         function carregarCardapio() {
             cardapioDados = getDados('cardapio2');
-            console.log('📦 Itens no Cardápio 2:', cardapioDados.length);
+            console.log('📦 Itens:', cardapioDados.length);
             var m = document.getElementById('menu-grid');
             if (cardapioDados.length === 0) { m.innerHTML = '<p style="color:#8B4513;">Cardápio indisponível.</p>'; return; }
             m.innerHTML = cardapioDados.map(function(i) {
@@ -76,7 +75,7 @@
             var c = JSON.parse(localStorage.getItem('adminConfig') || '{}');
             document.getElementById('pix-chave-display').textContent = c.pix || 'pix@dindingourmet.com.br';
         }
-
+        
         function add(id, q) {
             var i = cardapioDados.find(function(x) { return x.id === id; });
             if (!i) return;
@@ -86,7 +85,7 @@
             else if (q > 0) { if (q > mx) { alert('Máx: ' + mx); return; } carrinho.push({ id: id, nome: i.nome, emoji: i.emoji, preco: i.preco, quantidade: q }); }
             atualizar();
         }
-
+        
         function atualizar() {
             cardapioDados.forEach(function(i) { var el = document.getElementById('q-' + i.id); if (el) { var cc = carrinho.find(function(x) { return x.id === i.id; }); el.textContent = cc ? cc.quantidade : 0; } });
             var div = document.getElementById('carrinho-itens');
@@ -96,16 +95,16 @@
             document.getElementById('total-geral').textContent = 'R$ ' + carrinho.reduce(function(s,i) { return s + (i.preco*i.quantidade); }, 0).toFixed(2);
             validar();
         }
-
+        
         function validar() {
             document.getElementById('btn-finalizar').disabled = !(carrinho.length > 0 && document.getElementById('nome-cliente').value.trim() && document.getElementById('telefone-cliente').value.trim() && document.getElementById('pagamento-select').value);
         }
-
+        
         function copiarPix() {
             var c = JSON.parse(localStorage.getItem('adminConfig') || '{}');
             navigator.clipboard.writeText(c.pix || 'pix@dindingourmet.com.br').then(function() { alert('✅ Copiado!'); });
         }
-
+        
         function finalizarPedido() {
             var nome = document.getElementById('nome-cliente').value.trim();
             var tel = document.getElementById('telefone-cliente').value.trim().replace(/\D/g,'');
@@ -116,15 +115,9 @@
             var pedidos = getDados('todosPedidos');
             pedidos.push({ pedido_id: pedidoId, data: new Date().toISOString(), cardapio: 'cardapio2', cliente: nome, telefone: tel, pagamento: pag, total: sub, itens: carrinho.map(function(i) { return { nome: i.nome, emoji: i.emoji, quantidade: i.quantidade, preco: i.preco }; }), status: 'novo', pagamentoStatus: 'pendente' });
             setDados('todosPedidos', pedidos);
-            
-            // Diminuir estoque do cardápio 2
             var c2 = getDados('cardapio2');
-            carrinho.forEach(function(i) {
-                var item = c2.find(function(x) { return x.id === i.id; });
-                if (item) item.quantidade = Math.max(0, item.quantidade - i.quantidade);
-            });
+            carrinho.forEach(function(i) { var item = c2.find(function(x) { return x.id === i.id; }); if (item) item.quantidade = Math.max(0, item.quantidade - i.quantidade); });
             setDados('cardapio2', c2);
-            
             var c = JSON.parse(localStorage.getItem('adminConfig') || '{}');
             var msg = '🍫 *NOVO PEDIDO* 🍫\n\n👤 *' + nome + '*\n📱 *' + tel + '*\n📦 *Pedido #' + pedidoId + '*\n💳 *' + pag + '*\n\n📋 *ITENS:*\n';
             carrinho.forEach(function(i) { msg += i.emoji + ' ' + i.quantidade + 'x ' + i.nome + ' - R$ ' + (i.preco*i.quantidade).toFixed(2) + '\n'; });
@@ -136,7 +129,7 @@
             document.getElementById('btn-finalizar').style.display = 'none';
             carrinho = []; atualizar(); carregarCardapio();
         }
-
+        
         document.getElementById('telefone-cliente').addEventListener('input', function(e) {
             var v = e.target.value.replace(/\D/g,'').slice(0,11);
             if (v.length > 2) v = '(' + v.slice(0,2) + ') ' + v.slice(2);
@@ -147,7 +140,7 @@
         document.getElementById('pagamento-select').addEventListener('change', function() {
             document.getElementById('pix-info').style.display = this.value === 'PIX' ? 'block' : 'none'; validar();
         });
-
+        
         carregarCardapio(); atualizar();
     </script>
 </body>
