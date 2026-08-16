@@ -74,6 +74,7 @@
 
         <div class="tabs">
             <button class="tab-btn active" onclick="mudarTab('estoque')">📦 Estoque</button>
+            <button class="tab-btn" onclick="mudarTab('c1')">📋 Cardápio 1</button>
             <button class="tab-btn" onclick="mudarTab('c2')">🔥 Cardápio 2</button>
             <button class="tab-btn" onclick="mudarTab('pedidos')">📋 Pedidos</button>
             <button class="tab-btn" onclick="mudarTab('pagamentos')">💳 Pagamentos</button>
@@ -91,6 +92,16 @@
             <div class="form-group"><label>Quantidade</label><input type="number" id="estoqueQtd" value="10"></div>
             <button class="btn btn-primary" onclick="cadastrarItem()">💾 Cadastrar</button>
             <div id="listaEstoque" style="margin-top:15px;"></div>
+        </div>
+
+        <!-- CARDÁPIO 1 -->
+        <div class="conteudo" id="conteudo-c1">
+            <h3>📋 Cardápio 1 (Principal)</h3>
+            <div class="card-item" style="background:#FFF3CD;">
+                <strong>ℹ️ Este cardápio mostra automaticamente:</strong><br>
+                <small>Estoque Total - Alocado para Cardápio 2</small>
+            </div>
+            <div id="listaC1"></div>
         </div>
 
         <!-- CARDÁPIO 2 -->
@@ -150,7 +161,6 @@
     <script>
         console.log('✅ Script carregado!');
 
-        // ============ SUPABASE ============
         var supabase = window.supabase.createClient(
             'https://khgkneegpxcgufslupby.supabase.co',
             'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G'
@@ -158,7 +168,6 @@
         console.log('✅ Supabase OK');
         document.getElementById('statusConexao').textContent = '🟢 Banco de dados conectado!';
 
-        // ============ LOGIN ============
         function fazerLogin() {
             var u = document.getElementById('campoUsuario').value.trim();
             var s = document.getElementById('campoSenha').value;
@@ -180,9 +189,8 @@
             if (e.key === 'Enter') fazerLogin();
         });
 
-        // ============ TABS ============
         function mudarTab(tab) {
-            var conteudos = ['estoque', 'c2', 'pedidos', 'pagamentos', 'financeiro', 'historico', 'config'];
+            var conteudos = ['estoque', 'c1', 'c2', 'pedidos', 'pagamentos', 'financeiro', 'historico', 'config'];
             conteudos.forEach(function(c) {
                 document.getElementById('conteudo-' + c).classList.remove('active');
             });
@@ -191,6 +199,7 @@
             event.target.classList.add('active');
             
             if (tab === 'estoque') carregarEstoque();
+            if (tab === 'c1') carregarC1();
             if (tab === 'c2') carregarC2();
             if (tab === 'pedidos') carregarPedidos();
             if (tab === 'pagamentos') carregarPagamentos();
@@ -199,14 +208,12 @@
             if (tab === 'config') carregarConfig();
         }
 
-        // ============ ESTOQUE ============
         async function cadastrarItem() {
             var nome = document.getElementById('estoqueNome').value.trim();
             var emoji = document.getElementById('estoqueEmoji').value.trim();
             var preco = parseFloat(document.getElementById('estoquePreco').value);
             var qtd = parseInt(document.getElementById('estoqueQtd').value) || 0;
             if (!nome || !preco) { alert('Preencha!'); return; }
-            
             try {
                 var { data: existente } = await supabase.from('estoqueCentral').select('*').eq('nome', nome).single();
                 if (existente) {
@@ -216,9 +223,7 @@
                 }
                 carregarEstoque();
                 alert('✅ Salvo!');
-            } catch(e) {
-                alert('❌ Erro: ' + e.message);
-            }
+            } catch(e) { alert('❌ Erro: ' + e.message); }
         }
 
         async function carregarEstoque() {
@@ -234,12 +239,28 @@
                 if (estoque.length === 0) { lista.innerHTML = '<p>Nenhum item.</p>'; return; }
                 lista.innerHTML = estoque.map(function(i) {
                     var d = i.quantidadeTotal - i.alocadoCardapio2;
-                    return '<div class="card-item"><strong>' + i.emoji + ' ' + i.nome + '</strong> - R$ ' + i.preco.toFixed(2) + '<br><small>Total: ' + i.quantidadeTotal + ' | C2: ' + i.alocadoCardapio2 + ' | Disp: ' + d + '</small></div>';
+                    return '<div class="card-item"><strong>' + i.emoji + ' ' + i.nome + '</strong> - R$ ' + i.preco.toFixed(2) + '<br><small>Total: ' + i.quantidadeTotal + ' | C2: ' + i.alocadoCardapio2 + ' | Disp C1: ' + d + '</small></div>';
                 }).join('');
             } catch(e) { console.error(e); }
         }
 
-        // ============ CARDÁPIO 2 ============
+        // ============ CARDÁPIO 1 ============
+        async function carregarC1() {
+            try {
+                var { data: estoque } = await supabase.from('estoqueCentral').select('*');
+                estoque = estoque || [];
+                var lista = document.getElementById('listaC1');
+                var c1 = estoque.map(function(i) {
+                    return { nome: i.nome, emoji: i.emoji || '🍫', preco: i.preco, quantidade: Math.max(0, i.quantidadeTotal - i.alocadoCardapio2) };
+                }).filter(function(i) { return i.quantidade > 0; });
+                
+                if (c1.length === 0) { lista.innerHTML = '<p>Nenhum item disponível no Cardápio 1.</p>'; return; }
+                lista.innerHTML = c1.map(function(i) {
+                    return '<div class="card-item"><strong>' + i.emoji + ' ' + i.nome + '</strong> - R$ ' + i.preco.toFixed(2) + ' | <strong>Disponível: ' + i.quantidade + '</strong></div>';
+                }).join('');
+            } catch(e) { console.error(e); }
+        }
+
         async function alocarC2() {
             var id = document.getElementById('alocarSabor').value;
             var q = parseInt(document.getElementById('alocarQtd').value);
@@ -256,7 +277,7 @@
                 } else {
                     await supabase.from('cardapio2').insert([{ nome: item.nome, emoji: item.emoji, preco: item.preco, quantidade: q }]);
                 }
-                carregarEstoque(); carregarC2();
+                carregarEstoque(); carregarC1(); carregarC2();
                 alert('✅ Alocado!');
             } catch(e) { alert('❌ Erro: ' + e.message); }
         }
@@ -271,18 +292,16 @@
             } catch(e) { console.error(e); }
         }
 
-        // ============ PEDIDOS ============
         async function carregarPedidos() {
             try {
                 var { data: p } = await supabase.from('todosPedidos').select('*').order('data', { ascending: false });
                 p = p || [];
                 var lista = document.getElementById('listaPedidos');
                 if (p.length === 0) { lista.innerHTML = '<p>Nenhum pedido.</p>'; return; }
-                lista.innerHTML = p.map(function(x) { return '<div class="card-item"><strong>👤 ' + x.cliente + '</strong> - R$ ' + x.total.toFixed(2) + '<br><small>' + x.pagamento + '</small></div>'; }).join('');
+                lista.innerHTML = p.map(function(x) { return '<div class="card-item"><strong>👤 ' + x.cliente + '</strong> - R$ ' + x.total.toFixed(2) + '<br><small>' + x.pagamento + ' | ' + (x.cardapio === 'cardapio1' ? 'C1' : 'C2') + '</small></div>'; }).join('');
             } catch(e) { console.error(e); }
         }
 
-        // ============ PAGAMENTOS ============
         async function carregarPagamentos() {
             try {
                 var { data: p } = await supabase.from('todosPedidos').select('*').order('data', { ascending: false });
@@ -313,7 +332,6 @@
             window.open('https://wa.me/55' + telefone + '?text=' + encodeURIComponent(msg), '_blank');
         }
 
-        // ============ FINANCEIRO ============
         async function carregarFinanceiro() {
             try {
                 var { data: p } = await supabase.from('todosPedidos').select('*');
@@ -321,20 +339,15 @@
                 var c1 = p.filter(function(x) { return x.cardapio === 'cardapio1' && x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
                 var c2 = p.filter(function(x) { return x.cardapio === 'cardapio2' && x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
                 var totalPago = p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
-                var totalPedidos = p.length;
-                var pagos = p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).length;
-                var pendentes = p.filter(function(x) { return x.pagamentoStatus !== 'pago'; }).length;
-                
                 document.getElementById('finTotal').textContent = 'R$ ' + totalPago.toFixed(2);
                 document.getElementById('finC1').textContent = 'R$ ' + c1.toFixed(2);
                 document.getElementById('finC2').textContent = 'R$ ' + c2.toFixed(2);
-                document.getElementById('finPedidos').textContent = totalPedidos;
-                document.getElementById('finPagos').textContent = pagos;
-                document.getElementById('finPendentes').textContent = pendentes;
+                document.getElementById('finPedidos').textContent = p.length;
+                document.getElementById('finPagos').textContent = p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).length;
+                document.getElementById('finPendentes').textContent = p.filter(function(x) { return x.pagamentoStatus !== 'pago'; }).length;
             } catch(e) { console.error(e); }
         }
 
-        // ============ HISTÓRICO ============
         async function carregarHistorico() {
             try {
                 var { data: h } = await supabase.from('historicoEstoque').select('*').order('created_at', { ascending: false });
@@ -345,7 +358,6 @@
             } catch(e) { console.error(e); }
         }
 
-        // ============ CONFIG ============
         async function carregarConfig() {
             var { data: c } = await supabase.from('config').select('*').eq('chave', 'admin').single();
             var dados = c ? (c.dados || {}) : {};
@@ -360,7 +372,7 @@
             alert('✅ Salvo!');
         }
 
-        function carregarTudo() { carregarEstoque(); carregarC2(); }
+        function carregarTudo() { carregarEstoque(); carregarC1(); carregarC2(); }
     </script>
 </body>
 </html>
