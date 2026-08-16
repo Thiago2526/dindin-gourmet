@@ -217,10 +217,10 @@
             if (tab === 'config') carregarConfig();
         }
 
-        // ============ HISTÓRICO ============
+        // ============ HISTÓRICO (usando nome minúsculo) ============
         async function registrarHistorico(tipo, item, quantidade, obs) {
             try {
-                var { error } = await supabase.from('historicoEstoque').insert([{
+                var { error } = await supabase.from('historicoestoque').insert([{
                     data: new Date().toLocaleString('pt-BR'),
                     tipo: tipo,
                     item: item,
@@ -234,7 +234,7 @@
 
         async function carregarHistorico() {
             console.log('🔄 Carregando histórico...');
-            var { data, error } = await supabase.from('historicoEstoque').select('*').order('id', { ascending: false }).limit(100);
+            var { data, error } = await supabase.from('historicoestoque').select('*').order('id', { ascending: false }).limit(100);
             if (error) {
                 console.error('Erro:', error);
                 document.getElementById('listaHistorico').innerHTML = '<p style="color:red;">Erro: ' + error.message + '</p>';
@@ -244,7 +244,7 @@
             console.log('📜 Registros:', h.length);
             var lista = document.getElementById('listaHistorico');
             if (h.length === 0) {
-                lista.innerHTML = '<p>Nenhum registro ainda. Cadastre itens ou faça alocações.</p>';
+                lista.innerHTML = '<p>Nenhum registro ainda.</p>';
                 return;
             }
             var html = '<table><thead><tr><th>Data/Hora</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Obs</th></tr></thead><tbody>';
@@ -379,7 +379,7 @@
 
         // ============ PEDIDOS ============
         async function carregarPedidos() {
-            var { data } = await supabase.from('todosPedidos').select('*').order('data', { ascending: false });
+            var { data } = await supabase.from('todosPedidos').select('*').order('id', { ascending: false });
             var p = data || [];
             var lista = document.getElementById('listaPedidos');
             if (p.length === 0) { lista.innerHTML = '<p>Nenhum pedido.</p>'; return; }
@@ -390,7 +390,7 @@
 
         // ============ PAGAMENTOS ============
         async function carregarPagamentos() {
-            var { data } = await supabase.from('todosPedidos').select('*').order('data', { ascending: false });
+            var { data } = await supabase.from('todosPedidos').select('*').order('id', { ascending: false });
             var p = data || [];
             var lista = document.getElementById('listaPagamentos');
             if (p.length === 0) { lista.innerHTML = '<p>Nenhum.</p>'; return; }
