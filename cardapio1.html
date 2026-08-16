@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dindins Gourmet Cardápio - Dindins Gourmet FX</title>
+    <title>Cardápio - Dindins Gourmet FX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #5C3317, #8B4513, #A0522D); min-height: 100vh; padding: 15px; font-size: 16px; }
         .container { max-width: 800px; margin: 0 auto; background: #FFF8DC; border-radius: 16px; overflow: hidden; border: 2px solid #DAA520; }
         .header { background: linear-gradient(135deg, #8B4513, #A0522D); color: #FFD700; padding: 20px; text-align: center; }
-        .header h1 { font-size: 1.5em; }
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; padding: 15px; }
+        .header h1 { font-size: 1.6em; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; padding: 15px; }
         .menu-item { background: #FFF8DC; border: 2px solid #DAA520; border-radius: 12px; padding: 15px; text-align: center; }
-        .menu-item h3 { color: #CC5500; }
+        .menu-item .foto-item { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; margin: 0 auto 8px; display: block; }
+        .menu-item .emoji-item { font-size: 3em; margin-bottom: 8px; }
+        .menu-item h3 { color: #CC5500; font-size: 1em; }
         .preco { font-size: 1.3em; color: #CC5500; font-weight: bold; }
         .qtd-controle { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 8px; }
         .btn-qtd { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #CC5500; background: #FFF8DC; color: #CC5500; font-size: 1.2em; cursor: pointer; font-weight: bold; }
@@ -28,19 +30,18 @@
         .total-final { font-size: 1.4em; font-weight: bold; color: #CC5500; display: flex; justify-content: space-between; }
         .btn-finalizar { width: 100%; padding: 14px; background: #25D366; color: white; border: none; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; }
         .btn-finalizar:disabled { opacity: 0.5; background: #ccc; }
-        .btn-localizacao { width: 100%; padding: 12px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 8px; }
         .pix-info { display: none; background: #FFF8DC; padding: 15px; border-radius: 10px; border: 2px solid #DAA520; margin-bottom: 15px; }
         .pix-chave { background: white; padding: 10px; border-radius: 8px; text-align: center; word-break: break-all; }
         .btn-copiar-pix { width: 100%; padding: 10px; background: #CC5500; color: #FFD700; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 8px; }
+        .btn-localizacao { width: 100%; padding: 10px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 8px; }
         .sucesso-msg { display: none; background: #d4edda; color: #155724; padding: 18px; border-radius: 10px; text-align: center; margin-top: 15px; }
-        .endereco-info { background: #FFF8DC; padding: 15px; border-radius: 10px; border: 2px solid #DAA520; margin-bottom: 15px; display: none; }
         @media (max-width: 480px) { .menu-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🍫 Dindins Gourmet Cardápio</h1>
+            <h1>🍦 Cardápio Principal</h1>
             <p style="color:#F4A460;">Dindins Gourmet FX</p>
         </div>
         <div class="menu-grid" id="menu-grid"></div>
@@ -60,9 +61,9 @@
                     </select>
                 </div>
                 <div id="area-retirada" style="display:none;">
-                    <div class="endereco-info" id="endereco-info">
+                    <div class="form-group" style="background:#FFF3CD;padding:10px;border-radius:8px;">
                         <strong>📍 Endereço:</strong>
-                        <p id="endereco-texto" style="margin:8px 0;"></p>
+                        <p id="endereco-texto" style="margin:5px 0;"></p>
                         <button class="btn-localizacao" onclick="enviarLocalizacao()">📍 Enviar localização</button>
                     </div>
                 </div>
@@ -81,51 +82,51 @@
     </div>
 
     <script>
-        console.log('✅ Cardápio 1 carregado!');
+        var supabase = window.supabase.createClient('https://khgkneegpxcgufslupby.supabase.co', 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G');
         let carrinho = [], cardapioDados = [];
-        
         function getDados(chave) { return JSON.parse(localStorage.getItem(chave) || '[]'); }
         function setDados(chave, dados) { localStorage.setItem(chave, JSON.stringify(dados)); }
-        
-        function carregarCardapio() {
-            cardapioDados = getDados('cardapio1');
-            console.log('📦 Itens:', cardapioDados.length);
+
+        async function carregarCardapio() {
+            var { data: estoque } = await supabase.from('estoqueCentral').select('*');
+            var { data: c2 } = await supabase.from('cardapio2').select('*');
+            cardapioDados = (estoque||[]).map(function(i) {
+                return { id: i.id, nome: i.nome, emoji: i.emoji || '🍦', foto: i.foto, preco: i.preco, quantidade: Math.max(0, (i.quantidadeTotal||0) - (i.alocadoCardapio2||0)) };
+            }).filter(function(i) { return i.quantidade > 0; });
+
             var m = document.getElementById('menu-grid');
-            if (cardapioDados.length === 0) { m.innerHTML = '<p style="color:#8B4513;">Cardápio indisponível.</p>'; return; }
+            if (cardapioDados.length === 0) { m.innerHTML = '<p style="color:#8B4513;">Indisponível.</p>'; return; }
             m.innerHTML = cardapioDados.map(function(i) {
-                var qtd = i.quantidade || 0;
-                return '<div class="menu-item"><div style="font-size:2.5em;">' + (i.emoji||'🍫') + '</div><h3>' + i.nome + '</h3><div class="preco">R$ ' + (i.preco||0).toFixed(2) + '</div><p style="font-size:0.9em;">📦 <strong>' + qtd + '</strong> unid.</p><div class="qtd-controle"><button class="btn-qtd" onclick="add(\'' + i.id + '\',-1)">−</button><span class="quantidade" id="q-' + i.id + '">0</span><button class="btn-qtd" onclick="add(\'' + i.id + '\',1)">+</button></div></div>';
+                var fotoHtml = i.foto ? '<img src="' + i.foto + '" class="foto-item" alt="' + i.nome + '">' : '<div class="emoji-item">' + i.emoji + '</div>';
+                return '<div class="menu-item">' + fotoHtml + '<h3>' + i.nome + '</h3><div class="preco">R$ ' + i.preco.toFixed(2) + '</div><p style="font-size:0.85em;">📦 ' + i.quantidade + ' unid.</p><div class="qtd-controle"><button class="btn-qtd" onclick="add(\'' + i.id + '\',-1)">−</button><span class="quantidade" id="q-' + i.id + '">0</span><button class="btn-qtd" onclick="add(\'' + i.id + '\',1)">+</button></div></div>';
             }).join('');
-            
+
             var setores = getDados('setores');
             var sel = document.getElementById('setor-select');
             sel.innerHTML = '<option value="">Selecione...</option>';
-            setores.forEach(function(s) {
-                sel.innerHTML += '<option value="' + s.id + '" data-taxa="' + s.taxa + '" data-nome="' + s.nome + '">' + s.nome + ' - R$ ' + s.taxa.toFixed(2) + '</option>';
-            });
-            
-            var c = JSON.parse(localStorage.getItem('adminConfig') || '{}');
-            document.getElementById('endereco-texto').textContent = c.endereco || 'Endereço não cadastrado';
-            document.getElementById('pix-chave-display').textContent = c.pix || 'pix@dindingourmet.com.br';
+            setores.forEach(function(s) { sel.innerHTML += '<option value="' + s.id + '" data-taxa="' + s.taxa + '" data-nome="' + s.nome + '">' + s.nome + ' - R$ ' + s.taxa.toFixed(2) + '</option>'; });
+
+            var { data: config } = await supabase.from('config').select('*').eq('chave','admin').maybeSingle();
+            var dados = config ? (config.dados || {}) : {};
+            document.getElementById('endereco-texto').textContent = dados.endereco || 'Não cadastrado';
+            document.getElementById('pix-chave-display').textContent = dados.pix || 'pix@dindingourmet.com.br';
         }
-        
+
         function tipoEntregaChange() {
             var te = document.getElementById('tipo-entrega').value;
             document.getElementById('area-retirada').style.display = te === 'retirada' ? 'block' : 'none';
             document.getElementById('area-entrega').style.display = te === 'entrega' ? 'block' : 'none';
             validar();
         }
-        
+
         function add(id, q) {
-            var i = cardapioDados.find(function(x) { return x.id === id; });
-            if (!i) return;
-            var mx = i.quantidade || 0;
-            var cc = carrinho.find(function(x) { return x.id === id; });
+            var i = cardapioDados.find(function(x) { return x.id === id; }); if (!i) return;
+            var mx = i.quantidade, cc = carrinho.find(function(x) { return x.id === id; });
             if (cc) { var n = cc.quantidade + q; if (n <= 0) carrinho = carrinho.filter(function(x) { return x.id !== id; }); else if (n > mx) { alert('Máx: ' + mx); return; } else cc.quantidade = n; }
             else if (q > 0) { if (q > mx) { alert('Máx: ' + mx); return; } carrinho.push({ id: id, nome: i.nome, emoji: i.emoji, preco: i.preco, quantidade: q }); }
             atualizar();
         }
-        
+
         function atualizar() {
             cardapioDados.forEach(function(i) { var el = document.getElementById('q-' + i.id); if (el) { var cc = carrinho.find(function(x) { return x.id === i.id; }); el.textContent = cc ? cc.quantidade : 0; } });
             var div = document.getElementById('carrinho-itens');
@@ -134,60 +135,54 @@
             if (carrinho.length > 0) { fs.style.display = 'block'; ts.style.display = 'block'; } else { fs.style.display = 'none'; ts.style.display = 'none'; }
             atualizarTotal(); validar();
         }
-        
+
         function atualizarTotal() {
             var sub = carrinho.reduce(function(s,i) { return s + (i.preco*i.quantidade); }, 0);
             var sel = document.getElementById('setor-select');
-            var taxa = sel && sel.selectedIndex > 0 ? parseFloat(sel.options[sel.selectedIndex].dataset.taxa)||0 : 0;
+            var taxa = sel.selectedIndex > 0 ? parseFloat(sel.options[sel.selectedIndex].dataset.taxa)||0 : 0;
             document.getElementById('total-geral').textContent = 'R$ ' + (sub+taxa).toFixed(2);
         }
-        
+
         function validar() {
             var te = document.getElementById('tipo-entrega').value;
             document.getElementById('btn-finalizar').disabled = !(carrinho.length > 0 && document.getElementById('nome-cliente').value.trim() && document.getElementById('telefone-cliente').value.trim() && document.getElementById('pagamento-select').value && te);
         }
-        
+
         function enviarLocalizacao() {
             var c = JSON.parse(localStorage.getItem('adminConfig') || '{}');
             var nome = document.getElementById('nome-cliente').value || 'Cliente';
-            var msg = '📍 *Pedido - Dindins Gourmet FX*\n\n👤 ' + nome + '\n🚶 Retirada no local\n\nPor favor, envie sua localização!';
+            var msg = '📍 *Pedido*\n\n👤 ' + nome + '\n🚶 Retirada no local\n\nEnvie sua localização!';
             window.open('https://wa.me/' + (c.whatsapp || '5561986471897') + '?text=' + encodeURIComponent(msg), '_blank');
         }
-        
+
         function copiarPix() {
             var c = JSON.parse(localStorage.getItem('adminConfig') || '{}');
             navigator.clipboard.writeText(c.pix || 'pix@dindingourmet.com.br').then(function() { alert('✅ Copiado!'); });
         }
-        
-        function finalizarPedido() {
+
+        async function finalizarPedido() {
             var nome = document.getElementById('nome-cliente').value.trim();
             var tel = document.getElementById('telefone-cliente').value.trim().replace(/\D/g,'');
             var pag = document.getElementById('pagamento-select').value;
             var te = document.getElementById('tipo-entrega').value;
             var sub = carrinho.reduce(function(s,i) { return s + (i.preco*i.quantidade); }, 0);
-            var taxa = 0, setorNome = 'Retirada no local';
-            if (te === 'entrega') {
-                var sel = document.getElementById('setor-select');
-                if (sel.selectedIndex > 0) { taxa = parseFloat(sel.options[sel.selectedIndex].dataset.taxa)||0; setorNome = sel.options[sel.selectedIndex].dataset.nome; }
-            }
+            var taxa = 0, setorNome = 'Retirada';
+            if (te === 'entrega') { var sel = document.getElementById('setor-select'); if (sel.selectedIndex > 0) { taxa = parseFloat(sel.options[sel.selectedIndex].dataset.taxa)||0; setorNome = sel.options[sel.selectedIndex].dataset.nome; } }
             var total = sub + taxa;
             var pedidoId = Date.now();
-            var pedidos = getDados('todosPedidos');
-            pedidos.push({ pedido_id: pedidoId, data: new Date().toISOString(), cardapio: 'cardapio1', cliente: nome, telefone: tel, setor: setorNome, taxaEntrega: taxa, pagamento: pag, total: total, itens: carrinho.map(function(i) { return { nome: i.nome, emoji: i.emoji, quantidade: i.quantidade, preco: i.preco }; }), status: 'novo', pagamentoStatus: 'pendente' });
-            setDados('todosPedidos', pedidos);
+            await supabase.from('todosPedidos').insert([{ pedido_id: pedidoId, data: new Date().toISOString(), cardapio: 'cardapio1', cliente: nome, telefone: tel, setor: setorNome, taxaEntrega: taxa, pagamento: pag, total: total, itens: carrinho.map(function(i) { return { nome: i.nome, emoji: i.emoji, quantidade: i.quantidade, preco: i.preco }; }), status: 'novo', pagamentoStatus: 'pendente' }]);
             var c = JSON.parse(localStorage.getItem('adminConfig') || '{}');
-            var msg = '🍫 *NOVO PEDIDO - Cardápio Principal* 🍫\n\n👤 *' + nome + '*\n📱 *' + tel + '*\n📍 *' + setorNome + '*\n💳 *' + pag + '*\n\n📋 *ITENS:*\n';
+            var msg = '🍦 *NOVO PEDIDO* 🍦\n\n👤 *' + nome + '*\n📱 *' + tel + '*\n📍 *' + setorNome + '*\n💳 *' + pag + '*\n\n📋 *ITENS:*\n';
             carrinho.forEach(function(i) { msg += i.emoji + ' ' + i.quantidade + 'x ' + i.nome + ' - R$ ' + (i.preco*i.quantidade).toFixed(2) + '\n'; });
             msg += '\n💵 *TOTAL: R$ ' + total.toFixed(2) + '*';
             if (pag === 'PIX') msg += '\n\n📱 *PIX:* `' + (c.pix || 'pix@dindingourmet.com.br') + '`';
-            if (te === 'entrega') msg += '\n\n📍 *Por favor, envie sua localização!*';
             window.open('https://wa.me/' + (c.whatsapp || '5561986471897') + '?text=' + encodeURIComponent(msg), '_blank');
             document.getElementById('pedido-id').textContent = '#' + pedidoId;
             document.getElementById('sucesso-msg').style.display = 'block';
             document.getElementById('btn-finalizar').style.display = 'none';
             carrinho = []; atualizar(); carregarCardapio();
         }
-        
+
         document.getElementById('telefone-cliente').addEventListener('input', function(e) {
             var v = e.target.value.replace(/\D/g,'').slice(0,11);
             if (v.length > 2) v = '(' + v.slice(0,2) + ') ' + v.slice(2);
@@ -199,7 +194,7 @@
             document.getElementById('pix-info').style.display = this.value === 'PIX' ? 'block' : 'none'; validar();
         });
         document.getElementById('tipo-entrega').addEventListener('change', tipoEntregaChange);
-        
+
         carregarCardapio(); atualizar();
     </script>
 </body>
