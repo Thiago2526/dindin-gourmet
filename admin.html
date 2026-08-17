@@ -6,50 +6,58 @@
     <title>Admin - Dindins Gourmet FX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #5C3317; min-height: 100vh; }
-        .login-box { max-width: 400px; margin: 80px auto; background: #FFF8DC; padding: 30px; border-radius: 15px; border: 2px solid #DAA520; text-align: center; }
-        .logo { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #CC5500, #DAA520); color: white; font-size: 35px; font-weight: bold; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
-        h2 { color: #CC5500; margin-bottom: 5px; }
-        p { color: #8B4513; margin-bottom: 15px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border: 2px solid #DAA520; border-radius: 8px; font-size: 16px; background: #FFF8DC; box-sizing: border-box; }
-        button { width: 100%; padding: 14px; background: #CC5500; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 5px; }
-        .erro { color: red; margin-top: 10px; display: none; }
-        .painel { display: none; max-width: 1200px; margin: 20px auto; background: #FFF8DC; padding: 20px; border-radius: 15px; border: 2px solid #DAA520; }
-        .tabs { display: flex; gap: 5px; flex-wrap: wrap; margin: 15px 0; }
-        .tab-btn { padding: 10px 15px; background: #D2691E; color: #FFD700; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .tab-btn.active { background: #FFD700; color: #8B4513; }
-        .conteudo { display: none; background: #FFF8DC; padding: 20px; border-radius: 10px; border: 1px solid #DAA520; }
-        .conteudo.active { display: block; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-weight: bold; color: #8B4513; margin-bottom: 4px; }
-        .btn { padding: 10px 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 2px; font-size: 14px; }
-        .btn-primary { background: #CC5500; color: white; }
-        .btn-success { background: #228B22; color: white; }
-        .btn-danger { background: #8B0000; color: white; }
-        .btn-whatsapp { background: #25D366; color: white; }
-        .btn-small { padding: 5px 10px; font-size: 12px; width: auto; }
-        .card-item { background: #FFF8DC; padding: 15px; border-radius: 8px; border: 1px solid #DAA520; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .card-item-info { flex: 1; min-width: 200px; display: flex; align-items: center; gap: 10px; }
-        .card-item-actions { display: flex; gap: 5px; flex-wrap: wrap; }
-        .item-foto { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; border: 2px solid #DAA520; }
-        .item-foto-placeholder { width: 60px; height: 60px; border-radius: 10px; border: 2px dashed #DAA520; display: flex; align-items: center; justify-content: center; font-size: 30px; background: #FFF8DC; }
-        .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
-        .badge-pago { background: #90EE90; color: #006400; }
-        .badge-pendente { background: #FFD700; color: #8B4513; }
-        .badge-entrada { background: #90EE90; color: #006400; }
-        .badge-saida { background: #FFB6C1; color: #8B0000; }
-        .badge-alocacao { background: #87CEEB; color: #00008B; }
-        .preview-foto { max-width: 100%; max-height: 150px; border-radius: 10px; margin-top: 10px; border: 2px solid #DAA520; }
-        .hidden { display: none !important; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #D2691E; color: #FFD700; padding: 10px; text-align: left; font-size: 14px; }
-        td { padding: 10px; border-bottom: 1px solid #DAA520; font-size: 14px; }
-        @media (max-width: 600px) { .tabs { flex-direction: column; } }
+        :root { --marrom:#5C3317; --laranja:#CC5500; --dourado:#DAA520; --amarelo:#FFD700; --creme:#FFF8DC; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,sans-serif; background:linear-gradient(135deg,#5C3317,#8B4513,#A0522D); min-height:100vh; font-size:18px; }
+        .login-box { max-width:420px; margin:80px auto; background:#FFF8DC; padding:30px; border-radius:15px; border:2px solid #DAA520; text-align:center; }
+        .logo { width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,#CC5500,#DAA520); color:white; font-size:40px; font-weight:bold; display:flex; align-items:center; justify-content:center; margin:0 auto 15px; }
+        h2 { color:#CC5500; font-size:1.8em; }
+        p { color:#8B4513; margin-bottom:15px; }
+        input, select { width:100%; padding:14px; margin-bottom:10px; border:2px solid #DAA520; border-radius:8px; font-size:18px; background:#FFF8DC; box-sizing:border-box; }
+        button { width:100%; padding:14px; background:#CC5500; color:white; border:none; border-radius:8px; font-size:18px; font-weight:bold; cursor:pointer; margin-bottom:5px; }
+        .erro { color:red; margin-top:10px; display:none; }
+        .painel { display:none; max-width:1300px; margin:20px auto; background:#FFF8DC; padding:20px; border-radius:15px; border:2px solid #DAA520; }
+        .tabs { display:flex; gap:5px; flex-wrap:wrap; margin:15px 0; }
+        .tab-btn { padding:14px 20px; background:#D2691E; color:#FFD700; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px; }
+        .tab-btn.active { background:#FFD700; color:#8B4513; }
+        .conteudo { display:none; background:#FFF8DC; padding:20px; border-radius:10px; border:1px solid #DAA520; }
+        .conteudo.active { display:block; }
+        .form-group { margin-bottom:12px; }
+        .form-group label { display:block; font-weight:bold; color:#8B4513; margin-bottom:4px; font-size:1.1em; }
+        .btn { padding:12px 20px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin:2px; font-size:16px; }
+        .btn-primary { background:#CC5500; color:white; }
+        .btn-success { background:#228B22; color:white; }
+        .btn-danger { background:#8B0000; color:white; }
+        .btn-whatsapp { background:#25D366; color:white; }
+        .btn-small { padding:8px 14px; font-size:14px; width:auto; }
+        .card-item { background:#FFF8DC; padding:18px; border-radius:8px; border:1px solid #DAA520; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+        .card-item-info { flex:1; min-width:200px; display:flex; align-items:center; gap:10px; }
+        .card-item-info strong { font-size:1.2em; }
+        .card-item-info small { font-size:0.95em; }
+        .card-item-actions { display:flex; gap:5px; flex-wrap:wrap; }
+        .item-foto { width:70px; height:70px; border-radius:10px; object-fit:cover; border:2px solid #DAA520; }
+        .item-foto-placeholder { width:70px; height:70px; border-radius:10px; border:2px dashed #DAA520; display:flex; align-items:center; justify-content:center; font-size:35px; background:#FFF8DC; }
+        .badge { padding:5px 12px; border-radius:12px; font-size:14px; font-weight:bold; }
+        .badge-pago { background:#90EE90; color:#006400; }
+        .badge-pendente { background:#FFD700; color:#8B4513; }
+        .badge-entrada { background:#90EE90; color:#006400; }
+        .badge-saida { background:#FFB6C1; color:#8B0000; }
+        .badge-alocacao { background:#87CEEB; color:#00008B; }
+        .preview-foto { max-width:100%; max-height:180px; border-radius:10px; margin-top:10px; border:2px solid #DAA520; }
+        .hidden { display:none !important; }
+        table { width:100%; border-collapse:collapse; margin-top:10px; }
+        th { background:#D2691E; color:#FFD700; padding:14px; text-align:left; font-size:16px; }
+        td { padding:14px; border-bottom:1px solid #DAA520; font-size:16px; }
+        .filtro-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px; align-items:center; background:#FFF8DC; padding:15px; border-radius:10px; border:1px solid #DAA520; }
+        .filtro-bar input, .filtro-bar select { width:auto; flex:1; min-width:140px; padding:12px; border:2px solid #DAA520; border-radius:8px; font-size:16px; background:#FFF8DC; }
+        .filtro-bar label { font-weight:bold; color:#8B4513; font-size:14px; }
+        .filtro-item { display:flex; flex-direction:column; gap:4px; }
+        @media (max-width:600px) { .tabs { flex-direction:column; } .filtro-bar { flex-direction:column; } .filtro-bar input, .filtro-bar select { width:100%; } }
     </style>
 </head>
 <body>
 
+    <!-- LOGIN -->
     <div id="telaLogin">
         <div class="login-box">
             <div class="logo">🍦</div>
@@ -60,13 +68,13 @@
             <button onclick="fazerLogin()">🚀 Entrar</button>
             <p class="erro" id="erroLogin">❌ Usuário ou senha incorretos!</p>
             <p style="margin-top:15px;font-size:14px;">master / admin123</p>
-            <p style="color:green;font-size:12px;">🟢 Banco conectado!</p>
         </div>
     </div>
 
+    <!-- PAINEL -->
     <div class="painel hidden" id="painelAdmin">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-            <h2>🍦 Dindins Gourmet FX</h2>
+            <h2 style="font-size:1.6em;">🍦 Dindins Gourmet FX</h2>
             <button class="btn btn-danger" onclick="sair()" style="width:auto;">🚪 Sair</button>
         </div>
 
@@ -81,8 +89,9 @@
             <button class="tab-btn" onclick="mudarTab('config')">⚙️ Config</button>
         </div>
 
+        <!-- ESTOQUE -->
         <div class="conteudo active" id="conteudo-estoque">
-            <h3>📦 Estoque Geral</h3>
+            <h3 style="font-size:1.4em;">📦 Estoque Geral</h3>
             <div class="form-group"><label>Nome</label><input type="text" id="estoqueNome"></div>
             <div class="form-group"><label>Emoji</label><input type="text" id="estoqueEmoji" maxlength="2" value="🍦"></div>
             <div class="form-group"><label>Preço R$</label><input type="number" id="estoquePreco" step="0.01"></div>
@@ -91,48 +100,87 @@
             <div id="previewFotoContainer" style="display:none;"><img id="previewFotoAdmin" class="preview-foto" src=""></div>
             <button class="btn btn-primary" onclick="cadastrarItem()">💾 Cadastrar</button>
             <button class="btn btn-success" onclick="carregarEstoque()">🔄 Atualizar</button>
+            
+            <!-- FILTRO ESTOQUE -->
+            <div class="filtro-bar">
+                <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroEstoqueNome" placeholder="Filtrar por nome..." oninput="aplicarFiltroEstoque()"></div>
+            </div>
             <div id="listaEstoque" style="margin-top:15px;"></div>
         </div>
 
+        <!-- CARDÁPIO 1 -->
         <div class="conteudo" id="conteudo-c1">
-            <h3>📋 Cardápio 1</h3>
-            <div class="card-item" style="background:#FFF3CD;"><div class="card-item-info"><strong>ℹ️ Estoque - Alocado C2</strong></div></div>
+            <h3 style="font-size:1.4em;">📋 Cardápio 1</h3>
+            <div class="filtro-bar">
+                <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroC1Nome" placeholder="Filtrar por nome..." oninput="aplicarFiltroC1()"></div>
+            </div>
             <div id="listaC1"></div>
         </div>
 
+        <!-- CARDÁPIO 2 -->
         <div class="conteudo" id="conteudo-c2">
-            <h3>🔥 Cardápio 2</h3>
+            <h3 style="font-size:1.4em;">🔥 Cardápio 2</h3>
             <div class="form-group"><label>Sabor</label><select id="alocarSabor"></select></div>
             <div class="form-group"><label>Quantidade</label><input type="number" id="alocarQtd" value="10"></div>
             <button class="btn btn-success" onclick="alocarC2()">📤 Alocar</button>
+            <div class="filtro-bar" style="margin-top:15px;">
+                <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroC2Nome" placeholder="Filtrar por nome..." oninput="aplicarFiltroC2()"></div>
+            </div>
             <div id="listaC2" style="margin-top:15px;"></div>
         </div>
 
+        <!-- PEDIDOS -->
         <div class="conteudo" id="conteudo-pedidos">
-            <h3>📋 Pedidos</h3>
+            <h3 style="font-size:1.4em;">📋 Pedidos</h3>
+            <div class="filtro-bar">
+                <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroPedidosNome" placeholder="Nome do cliente..." oninput="aplicarFiltroPedidos()"></div>
+                <div class="filtro-item"><label>📱 Telefone</label><input type="text" id="filtroPedidosTel" placeholder="Telefone..." oninput="aplicarFiltroPedidos()"></div>
+                <div class="filtro-item"><label>📅 Data Início</label><input type="date" id="filtroPedidosDataIni" onchange="aplicarFiltroPedidos()"></div>
+                <div class="filtro-item"><label>📅 Data Fim</label><input type="date" id="filtroPedidosDataFim" onchange="aplicarFiltroPedidos()"></div>
+            </div>
             <div id="listaPedidos"></div>
         </div>
 
+        <!-- PAGAMENTOS -->
         <div class="conteudo" id="conteudo-pagamentos">
-            <h3>💳 Pagamentos</h3>
+            <h3 style="font-size:1.4em;">💳 Pagamentos</h3>
+            <div class="filtro-bar">
+                <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroPagNome" placeholder="Nome..." oninput="aplicarFiltroPagamentos()"></div>
+                <div class="filtro-item"><label>📱 Telefone</label><input type="text" id="filtroPagTel" placeholder="Telefone..." oninput="aplicarFiltroPagamentos()"></div>
+                <div class="filtro-item"><label>💳 Status</label><select id="filtroPagStatus" onchange="aplicarFiltroPagamentos()"><option value="todos">Todos</option><option value="pago">✅ Pagos</option><option value="pendente">⏳ Pendentes</option></select></div>
+                <div class="filtro-item"><label>📅 Data Início</label><input type="date" id="filtroPagDataIni" onchange="aplicarFiltroPagamentos()"></div>
+                <div class="filtro-item"><label>📅 Data Fim</label><input type="date" id="filtroPagDataFim" onchange="aplicarFiltroPagamentos()"></div>
+            </div>
             <div id="listaPagamentos"></div>
         </div>
 
+        <!-- FINANCEIRO -->
         <div class="conteudo" id="conteudo-financeiro">
-            <h3>💰 Financeiro</h3>
+            <h3 style="font-size:1.4em;">💰 Financeiro</h3>
+            <div class="filtro-bar">
+                <div class="filtro-item"><label>📅 Data Início</label><input type="date" id="filtroFinDataIni" onchange="carregarFinanceiro()"></div>
+                <div class="filtro-item"><label>📅 Data Fim</label><input type="date" id="filtroFinDataFim" onchange="carregarFinanceiro()"></div>
+            </div>
             <div id="listaFinanceiro"></div>
         </div>
 
+        <!-- HISTÓRICO -->
         <div class="conteudo" id="conteudo-historico">
-            <h3>📜 Histórico</h3>
-            <button class="btn btn-success" onclick="carregarHistorico()" style="width:auto;">🔄 Atualizar</button>
+            <h3 style="font-size:1.4em;">📜 Histórico</h3>
+            <div class="filtro-bar">
+                <div class="filtro-item"><label>🔍 Item</label><input type="text" id="filtroHistItem" placeholder="Filtrar por item..." oninput="aplicarFiltroHistorico()"></div>
+                <div class="filtro-item"><label>💳 Tipo</label><select id="filtroHistTipo" onchange="aplicarFiltroHistorico()"><option value="todos">Todos</option><option value="entrada">🟢 Entrada</option><option value="saida">🔴 Saída</option><option value="alocacao">📤 Alocação</option></select></div>
+                <div class="filtro-item"><label>📅 Data Início</label><input type="date" id="filtroHistDataIni" onchange="aplicarFiltroHistorico()"></div>
+                <div class="filtro-item"><label>📅 Data Fim</label><input type="date" id="filtroHistDataFim" onchange="aplicarFiltroHistorico()"></div>
+            </div>
             <div id="listaHistorico" style="margin-top:10px;"></div>
         </div>
 
+        <!-- CONFIG -->
         <div class="conteudo" id="conteudo-config">
-            <h3>⚙️ Configurações</h3>
-            <div class="form-group"><label>WhatsApp</label><input type="text" id="configWhatsapp"></div>
-            <div class="form-group"><label>PIX</label><input type="text" id="configPix"></div>
+            <h3 style="font-size:1.4em;">⚙️ Configurações</h3>
+            <div class="form-group"><label>WhatsApp (com DDD)</label><input type="text" id="configWhatsapp"></div>
+            <div class="form-group"><label>Chave PIX</label><input type="text" id="configPix"></div>
             <div class="form-group"><label>Endereço Retirada</label><input type="text" id="configEndereco"></div>
             <button class="btn btn-success" onclick="salvarConfig()">💾 Salvar</button>
         </div>
@@ -140,13 +188,9 @@
 
     <script>
         console.log('✅ Script carregado!');
-
-        var supabase = window.supabase.createClient(
-            'https://khgkneegpxcgufslupby.supabase.co',
-            'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G'
-        );
-
+        var supabase = window.supabase.createClient('https://khgkneegpxcgufslupby.supabase.co', 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G');
         var fotoEmBase64 = null;
+        var cacheEstoque = [], cacheC1 = [], cacheC2 = [], cachePedidos = [], cachePagamentos = [], cacheHistorico = [];
 
         function previewFotoAdmin(input) {
             if (input.files && input.files[0]) {
@@ -168,9 +212,7 @@
                 document.getElementById('painelAdmin').classList.remove('hidden');
                 document.getElementById('painelAdmin').style.display = 'block';
                 carregarTudo();
-            } else {
-                document.getElementById('erroLogin').style.display = 'block';
-            }
+            } else { document.getElementById('erroLogin').style.display = 'block'; }
         }
 
         function sair() {
@@ -178,13 +220,10 @@
             document.getElementById('painelAdmin').classList.add('hidden');
             document.getElementById('painelAdmin').style.display = 'none';
         }
-
-        document.getElementById('campoSenha').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') fazerLogin();
-        });
+        document.getElementById('campoSenha').addEventListener('keypress', function(e) { if (e.key === 'Enter') fazerLogin(); });
 
         function mudarTab(tab) {
-            var conteudos = ['estoque', 'c1', 'c2', 'pedidos', 'pagamentos', 'financeiro', 'historico', 'config'];
+            var conteudos = ['estoque','c1','c2','pedidos','pagamentos','financeiro','historico','config'];
             conteudos.forEach(function(c) { document.getElementById('conteudo-' + c).classList.remove('active'); });
             document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
             document.getElementById('conteudo-' + tab).classList.add('active');
@@ -199,26 +238,38 @@
             if (tab === 'config') carregarConfig();
         }
 
-        async function registrarHistorico(tipo, item, quantidade, obs) {
-            try {
-                await supabase.from('historicoestoque').insert([{ data: new Date().toLocaleString('pt-BR'), tipo: tipo, item: item, quantidade: quantidade, obs: obs || '' }]);
-            } catch(e) { console.error(e); }
+        function formatarData(data) {
+            if (!data) return '';
+            var d = new Date(data);
+            return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR');
         }
 
-        async function carregarHistorico() {
-            var { data, error } = await supabase.from('historicoestoque').select('*').order('id', { ascending: false }).limit(100);
-            if (error) { document.getElementById('listaHistorico').innerHTML = '<p style="color:red;">Erro: ' + error.message + '</p>'; return; }
-            var h = data || [];
-            var lista = document.getElementById('listaHistorico');
-            if (h.length === 0) { lista.innerHTML = '<p>Nenhum registro.</p>'; return; }
-            var html = '<table><thead><tr><th>Data</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Obs</th></tr></thead><tbody>';
-            h.forEach(function(x) {
-                var badge = x.tipo === 'entrada' ? 'badge-entrada' : x.tipo === 'saida' ? 'badge-saida' : 'badge-alocacao';
-                var txt = x.tipo === 'entrada' ? '🟢 Entrada' : x.tipo === 'saida' ? '🔴 Saída' : '📤 Alocação';
-                html += '<tr><td>' + (x.data || '') + '</td><td><span class="badge ' + badge + '">' + txt + '</span></td><td>' + (x.item || '') + '</td><td>' + (x.quantidade || 0) + '</td><td>' + (x.obs || '') + '</td></tr>';
-            });
-            html += '</tbody></table>';
-            lista.innerHTML = html;
+        // ============ ESTOQUE ============
+        async function carregarEstoque() {
+            var { data } = await supabase.from('estoqueCentral').select('*');
+            cacheEstoque = data || [];
+            renderizarEstoque(cacheEstoque);
+            var select = document.getElementById('alocarSabor');
+            if (select) {
+                select.innerHTML = '<option value="">Selecione...</option>';
+                cacheEstoque.forEach(function(i) { var d = (i.quantidadeTotal||0)-(i.alocadoCardapio2||0); select.innerHTML += '<option value="'+i.id+'">'+i.nome+' - Disp: '+d+'</option>'; });
+            }
+        }
+
+        function renderizarEstoque(estoque) {
+            var lista = document.getElementById('listaEstoque');
+            if (estoque.length === 0) { lista.innerHTML = '<p>Nenhum item.</p>'; return; }
+            lista.innerHTML = estoque.map(function(i) {
+                var d = (i.quantidadeTotal||0)-(i.alocadoCardapio2||0);
+                var fotoHtml = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+(i.emoji||'🍦')+'</div>';
+                return '<div class="card-item"><div class="card-item-info">'+fotoHtml+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+'<br><small>Total: '+(i.quantidadeTotal||0)+' | C2: '+(i.alocadoCardapio2||0)+' | Disp: '+d+'</small></div></div><div class="card-item-actions"><button class="btn btn-danger btn-small" onclick="excluirItem('+i.id+')">🗑️</button></div></div>';
+            }).join('');
+        }
+
+        function aplicarFiltroEstoque() {
+            var f = document.getElementById('filtroEstoqueNome').value.toLowerCase();
+            var filtrado = cacheEstoque.filter(function(x) { return (x.nome||'').toLowerCase().includes(f); });
+            renderizarEstoque(filtrado);
         }
 
         async function cadastrarItem() {
@@ -227,20 +278,14 @@
             var preco = parseFloat(document.getElementById('estoquePreco').value);
             var qtd = parseInt(document.getElementById('estoqueQtd').value) || 0;
             if (!nome || !preco) { alert('Preencha!'); return; }
-
             var { data: existente } = await supabase.from('estoqueCentral').select('*').eq('nome', nome).maybeSingle();
-
             if (existente) {
-                await supabase.from('estoqueCentral').update({
-                    quantidadeTotal: (existente.quantidadeTotal || 0) + qtd,
-                    preco: preco, emoji: emoji, foto: fotoEmBase64 || existente.foto || null
-                }).eq('id', existente.id);
+                await supabase.from('estoqueCentral').update({ quantidadeTotal: (existente.quantidadeTotal||0)+qtd, preco: preco, emoji: emoji, foto: fotoEmBase64 || existente.foto || null }).eq('id', existente.id);
                 await registrarHistorico('entrada', nome, qtd, 'Adição');
             } else {
-                await supabase.from('estoqueCentral').insert([{ nome: nome, emoji: emoji, preco: preco, quantidadeTotal: qtd || 50, alocadoCardapio2: 0, foto: fotoEmBase64 }]);
-                await registrarHistorico('entrada', nome, qtd || 50, 'Cadastro inicial');
+                await supabase.from('estoqueCentral').insert([{ nome: nome, emoji: emoji, preco: preco, quantidadeTotal: qtd||50, alocadoCardapio2: 0, foto: fotoEmBase64 }]);
+                await registrarHistorico('entrada', nome, qtd||50, 'Cadastro');
             }
-
             fotoEmBase64 = null;
             document.getElementById('previewFotoContainer').style.display = 'none';
             document.getElementById('estoqueFoto').value = '';
@@ -250,63 +295,52 @@
             document.getElementById('estoquePreco').value = '';
         }
 
-        async function carregarEstoque() {
-            var { data } = await supabase.from('estoqueCentral').select('*');
-            var estoque = data || [];
-            var lista = document.getElementById('listaEstoque');
-            var select = document.getElementById('alocarSabor');
-            if (select) {
-                select.innerHTML = '<option value="">Selecione...</option>';
-                estoque.forEach(function(i) {
-                    var d = (i.quantidadeTotal || 0) - (i.alocadoCardapio2 || 0);
-                    select.innerHTML += '<option value="' + i.id + '">' + i.nome + ' - Disp: ' + d + '</option>';
-                });
-            }
-            if (estoque.length === 0) { lista.innerHTML = '<p>Nenhum item.</p>'; return; }
-            lista.innerHTML = estoque.map(function(i) {
-                var d = (i.quantidadeTotal || 0) - (i.alocadoCardapio2 || 0);
-                var fotoHtml = i.foto ? '<img src="' + i.foto + '" class="item-foto">' : '<div class="item-foto-placeholder">' + (i.emoji || '🍦') + '</div>';
-                return '<div class="card-item"><div class="card-item-info">' + fotoHtml + '<div><strong>' + (i.emoji || '🍦') + ' ' + i.nome + '</strong> - R$ ' + (i.preco || 0).toFixed(2) + '<br><small>Total: ' + (i.quantidadeTotal || 0) + ' | C2: ' + (i.alocadoCardapio2 || 0) + ' | Disp: ' + d + '</small></div></div><div class="card-item-actions"><button class="btn btn-danger btn-small" onclick="excluirItem(' + i.id + ')">🗑️ Excluir</button></div></div>';
-            }).join('');
-        }
-
         async function excluirItem(id) {
-            console.log('Excluindo ID:', id);
             if (!id) { alert('ID inválido!'); return; }
-            if (!confirm('Excluir este item?')) return;
+            if (!confirm('Excluir?')) return;
             var { data: item } = await supabase.from('estoqueCentral').select('*').eq('id', id).maybeSingle();
-            if (item) { await registrarHistorico('saida', item.nome, item.quantidadeTotal, 'Item excluído'); }
+            if (item) { await registrarHistorico('saida', item.nome, item.quantidadeTotal, 'Excluído'); }
             await supabase.from('estoqueCentral').delete().eq('id', id);
-            alert('✅ Excluído!');
             carregarEstoque(); carregarC1();
+            alert('✅ Excluído!');
         }
 
+        // ============ CARDÁPIO 1 ============
         async function carregarC1() {
             var { data } = await supabase.from('estoqueCentral').select('*');
-            var estoque = data || [];
-            var lista = document.getElementById('listaC1');
-            var c1 = estoque.map(function(i) {
-                return { nome: i.nome, emoji: i.emoji || '🍦', foto: i.foto, preco: i.preco, quantidade: Math.max(0, (i.quantidadeTotal || 0) - (i.alocadoCardapio2 || 0)) };
+            cacheC1 = (data||[]).map(function(i) {
+                return { nome: i.nome, emoji: i.emoji||'🍦', foto: i.foto, preco: i.preco, quantidade: Math.max(0, (i.quantidadeTotal||0)-(i.alocadoCardapio2||0)) };
             }).filter(function(i) { return i.quantidade > 0; });
+            renderizarC1(cacheC1);
+        }
+
+        function renderizarC1(c1) {
+            var lista = document.getElementById('listaC1');
             if (c1.length === 0) { lista.innerHTML = '<p>Nenhum item.</p>'; return; }
             lista.innerHTML = c1.map(function(i) {
-                var fotoHtml = i.foto ? '<img src="' + i.foto + '" class="item-foto">' : '<div class="item-foto-placeholder">' + i.emoji + '</div>';
-                return '<div class="card-item"><div class="card-item-info">' + fotoHtml + '<div><strong>' + i.emoji + ' ' + i.nome + '</strong> - R$ ' + (i.preco || 0).toFixed(2) + ' | Disp: ' + i.quantidade + '</div></div></div>';
+                var fotoHtml = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+i.emoji+'</div>';
+                return '<div class="card-item"><div class="card-item-info">'+fotoHtml+'<div><strong>'+i.emoji+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+' | <strong>Disp: '+i.quantidade+'</strong></div></div></div>';
             }).join('');
         }
 
+        function aplicarFiltroC1() {
+            var f = document.getElementById('filtroC1Nome').value.toLowerCase();
+            renderizarC1(cacheC1.filter(function(x) { return (x.nome||'').toLowerCase().includes(f); }));
+        }
+
+        // ============ CARDÁPIO 2 ============
         async function alocarC2() {
             var id = document.getElementById('alocarSabor').value;
             var q = parseInt(document.getElementById('alocarQtd').value);
             if (!id || !q || q < 1) { alert('Selecione!'); return; }
             var { data: item } = await supabase.from('estoqueCentral').select('*').eq('id', id).maybeSingle();
             if (!item) return;
-            var d = (item.quantidadeTotal || 0) - (item.alocadoCardapio2 || 0);
-            if (q > d) { alert('Máx: ' + d); return; }
-            await supabase.from('estoqueCentral').update({ alocadoCardapio2: (item.alocadoCardapio2 || 0) + q }).eq('id', id);
+            var d = (item.quantidadeTotal||0)-(item.alocadoCardapio2||0);
+            if (q > d) { alert('Máx: '+d); return; }
+            await supabase.from('estoqueCentral').update({ alocadoCardapio2: (item.alocadoCardapio2||0)+q }).eq('id', id);
             var { data: existente } = await supabase.from('cardapio2').select('*').eq('nome', item.nome).maybeSingle();
             if (existente) {
-                await supabase.from('cardapio2').update({ quantidade: (existente.quantidade || 0) + q, foto: item.foto }).eq('id', existente.id);
+                await supabase.from('cardapio2').update({ quantidade: (existente.quantidade||0)+q, foto: item.foto }).eq('id', existente.id);
             } else {
                 await supabase.from('cardapio2').insert([{ nome: item.nome, emoji: item.emoji, preco: item.preco, quantidade: q, foto: item.foto }]);
             }
@@ -317,43 +351,96 @@
 
         async function carregarC2() {
             var { data } = await supabase.from('cardapio2').select('*');
-            var c2 = data || [];
+            cacheC2 = data || [];
+            renderizarC2(cacheC2);
+        }
+
+        function renderizarC2(c2) {
             var lista = document.getElementById('listaC2');
             if (c2.length === 0) { lista.innerHTML = '<p>Nenhum item.</p>'; return; }
             lista.innerHTML = c2.map(function(i) {
-                var fotoHtml = i.foto ? '<img src="' + i.foto + '" class="item-foto">' : '<div class="item-foto-placeholder">' + (i.emoji || '🍦') + '</div>';
-                return '<div class="card-item"><div class="card-item-info">' + fotoHtml + '<div><strong>' + (i.emoji || '🍦') + ' ' + i.nome + '</strong> - R$ ' + (i.preco || 0).toFixed(2) + ' | Qtd: ' + (i.quantidade || 0) + '</div></div><div class="card-item-actions"><button class="btn btn-danger btn-small" onclick="excluirC2(' + i.id + ')">🗑️</button></div></div>';
+                var fotoHtml = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+(i.emoji||'🍦')+'</div>';
+                return '<div class="card-item"><div class="card-item-info">'+fotoHtml+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+' | Qtd: '+(i.quantidade||0)+'</div></div><div class="card-item-actions"><button class="btn btn-danger btn-small" onclick="excluirC2('+i.id+')">🗑️</button></div></div>';
             }).join('');
+        }
+
+        function aplicarFiltroC2() {
+            var f = document.getElementById('filtroC2Nome').value.toLowerCase();
+            renderizarC2(cacheC2.filter(function(x) { return (x.nome||'').toLowerCase().includes(f); }));
         }
 
         async function excluirC2(id) {
             if (!id) { alert('ID inválido!'); return; }
-            if (!confirm('Excluir do C2?')) return;
+            if (!confirm('Excluir?')) return;
             await supabase.from('cardapio2').delete().eq('id', id);
             carregarC2();
             alert('✅ Excluído!');
         }
 
+        // ============ PEDIDOS ============
         async function carregarPedidos() {
             var { data } = await supabase.from('todosPedidos').select('*').order('id', { ascending: false });
-            var p = data || [];
-            var lista = document.getElementById('listaPedidos');
-            if (p.length === 0) { lista.innerHTML = '<p>Nenhum pedido.</p>'; return; }
-            lista.innerHTML = p.map(function(x) { return '<div class="card-item"><div class="card-item-info"><strong>👤 ' + x.cliente + '</strong> - R$ ' + (x.total || 0).toFixed(2) + '</div></div>'; }).join('');
+            cachePedidos = data || [];
+            renderizarPedidos(cachePedidos);
         }
 
-        async function carregarPagamentos() {
-            var { data } = await supabase.from('todosPedidos').select('*').order('id', { ascending: false });
-            var p = data || [];
-            var lista = document.getElementById('listaPagamentos');
-            if (p.length === 0) { lista.innerHTML = '<p>Nenhum.</p>'; return; }
+        function renderizarPedidos(p) {
+            var lista = document.getElementById('listaPedidos');
+            if (p.length === 0) { lista.innerHTML = '<p>Nenhum pedido.</p>'; return; }
             lista.innerHTML = p.map(function(x) {
-                var st = x.pagamentoStatus === 'pago' ? '<span class="badge badge-pago">✅ PAGO</span>' : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
-                var btn = x.pagamentoStatus !== 'pago' ? '<button class="btn btn-success btn-small" onclick="confirmarPag(' + x.pedido_id + ')">✅ Confirmar</button>' : '';
-                var btnLembrar = x.pagamentoStatus !== 'pago' && x.telefone ? '<button class="btn btn-whatsapp btn-small" onclick="lembrar(\'' + x.telefone + '\',\'' + x.cliente + '\',' + (x.total || 0) + ')">📱 Lembrar</button>' : '';
-                return '<div class="card-item"><div class="card-item-info"><strong>👤 ' + x.cliente + '</strong> ' + st + '<br><small>R$ ' + (x.total || 0).toFixed(2) + '</small></div><div class="card-item-actions">' + btn + ' ' + btnLembrar + '</div></div>';
+                return '<div class="card-item"><div class="card-item-info"><strong>👤 '+x.cliente+'</strong> - R$ '+(x.total||0).toFixed(2)+'<br><small>📱 '+(x.telefone||'')+' | 📅 '+formatarData(x.data)+' | '+(x.cardapio==='cardapio1'?'C1':'C2')+' | '+(x.pagamento||'')+'</small></div></div>';
             }).join('');
         }
+
+        function aplicarFiltroPedidos() {
+            var nome = document.getElementById('filtroPedidosNome').value.toLowerCase();
+            var tel = document.getElementById('filtroPedidosTel').value;
+            var ini = document.getElementById('filtroPedidosDataIni').value;
+            var fim = document.getElementById('filtroPedidosDataFim').value;
+            var filtrado = cachePedidos.filter(function(x) {
+                var okNome = !nome || (x.cliente||'').toLowerCase().includes(nome);
+                var okTel = !tel || (x.telefone||'').includes(tel);
+                var d = new Date(x.data);
+                var okIni = !ini || d >= new Date(ini);
+                var okFim = !fim || d <= new Date(fim + 'T23:59:59');
+                return okNome && okTel && okIni && okFim;
+            });
+            renderizarPedidos(filtrado);
+        }
+
+        // ============ PAGAMENTOS ============
+        async function carregarPagamentos() {
+            var { data } = await supabase.from('todosPedidos').select('*').order('id', { ascending: false });
+            cachePagamentos = data || [];
+            renderizarPagamentos(cachePagamentos);
+        }
+
+        function renderizarPagamentos(p) {
+            var status = document.getElementById('filtroPagStatus').value;
+            var nome = document.getElementById('filtroPagNome').value.toLowerCase();
+            var tel = document.getElementById('filtroPagTel').value;
+            var ini = document.getElementById('filtroPagDataIni').value;
+            var fim = document.getElementById('filtroPagDataFim').value;
+            var filtrado = p.filter(function(x) {
+                var okStatus = status === 'todos' || (status === 'pago' && x.pagamentoStatus === 'pago') || (status === 'pendente' && x.pagamentoStatus !== 'pago');
+                var okNome = !nome || (x.cliente||'').toLowerCase().includes(nome);
+                var okTel = !tel || (x.telefone||'').includes(tel);
+                var d = new Date(x.data);
+                var okIni = !ini || d >= new Date(ini);
+                var okFim = !fim || d <= new Date(fim + 'T23:59:59');
+                return okStatus && okNome && okTel && okIni && okFim;
+            });
+            var lista = document.getElementById('listaPagamentos');
+            if (filtrado.length === 0) { lista.innerHTML = '<p>Nenhum.</p>'; return; }
+            lista.innerHTML = filtrado.map(function(x) {
+                var st = x.pagamentoStatus === 'pago' ? '<span class="badge badge-pago">✅ PAGO</span>' : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
+                var btn = x.pagamentoStatus !== 'pago' ? '<button class="btn btn-success btn-small" onclick="confirmarPag('+x.pedido_id+')">✅ Confirmar</button>' : '';
+                var btnLembrar = x.pagamentoStatus !== 'pago' && x.telefone ? '<button class="btn btn-whatsapp btn-small" onclick="lembrar(\''+x.telefone+'\',\''+x.cliente+'\','+(x.total||0)+')">📱 Lembrar</button>' : '';
+                return '<div class="card-item"><div class="card-item-info"><strong>👤 '+x.cliente+'</strong> '+st+'<br><small>📱 '+(x.telefone||'')+' | 📅 '+formatarData(x.data)+' | R$ '+(x.total||0).toFixed(2)+'</small></div><div class="card-item-actions">'+btn+' '+btnLembrar+'</div></div>';
+            }).join('');
+        }
+
+        function aplicarFiltroPagamentos() { renderizarPagamentos(cachePagamentos); }
 
         async function confirmarPag(pedidoId) {
             await supabase.from('todosPedidos').update({ pagamentoStatus: 'pago' }).eq('pedido_id', pedidoId);
@@ -362,21 +449,74 @@
         }
 
         function lembrar(telefone, nome, total) {
-            var msg = '🍦 *LEMBRETE*\n\nOlá ' + nome + '!\nSeu pedido aguarda pagamento.\nValor: R$ ' + total.toFixed(2);
-            window.open('https://wa.me/55' + telefone + '?text=' + encodeURIComponent(msg), '_blank');
+            var msg = '🍦 *LEMBRETE*\n\nOlá '+nome+'!\nSeu pedido aguarda pagamento.\nValor: R$ '+total.toFixed(2);
+            window.open('https://wa.me/55'+telefone+'?text='+encodeURIComponent(msg), '_blank');
         }
 
+        // ============ FINANCEIRO ============
         async function carregarFinanceiro() {
             var { data } = await supabase.from('todosPedidos').select('*');
             var p = data || [];
-            var total = p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total || 0); }, 0);
+            var ini = document.getElementById('filtroFinDataIni').value;
+            var fim = document.getElementById('filtroFinDataFim').value;
+            if (ini || fim) {
+                p = p.filter(function(x) {
+                    var d = new Date(x.data);
+                    var okIni = !ini || d >= new Date(ini);
+                    var okFim = !fim || d <= new Date(fim + 'T23:59:59');
+                    return okIni && okFim;
+                });
+            }
+            var total = p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
             var lista = document.getElementById('listaFinanceiro');
-            lista.innerHTML = '<div class="card-item"><strong>💰 Total Recebido: R$ ' + total.toFixed(2) + '</strong></div>' +
-                '<div class="card-item"><strong>📦 Total Pedidos: ' + p.length + '</strong></div>' +
-                '<div class="card-item"><strong>✅ Pagos: ' + p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).length + '</strong></div>' +
-                '<div class="card-item"><strong>⏳ Pendentes: ' + p.filter(function(x) { return x.pagamentoStatus !== 'pago'; }).length + '</strong></div>';
+            lista.innerHTML = '<div class="card-item"><strong>💰 Total Recebido: R$ '+total.toFixed(2)+'</strong></div>' +
+                '<div class="card-item"><strong>📦 Total Pedidos: '+p.length+'</strong></div>' +
+                '<div class="card-item"><strong>✅ Pagos: '+p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).length+'</strong></div>' +
+                '<div class="card-item"><strong>⏳ Pendentes: '+p.filter(function(x) { return x.pagamentoStatus !== 'pago'; }).length+'</strong></div>';
         }
 
+        // ============ HISTÓRICO ============
+        async function registrarHistorico(tipo, item, quantidade, obs) {
+            try { await supabase.from('historicoestoque').insert([{data: new Date().toLocaleString('pt-BR'), tipo: tipo, item: item, quantidade: quantidade, obs: obs || ''}]); } catch(e) {}
+        }
+
+        async function carregarHistorico() {
+            var { data } = await supabase.from('historicoestoque').select('*').order('id', { ascending: false }).limit(200);
+            cacheHistorico = data || [];
+            renderizarHistorico(cacheHistorico);
+        }
+
+        function renderizarHistorico(h) {
+            var lista = document.getElementById('listaHistorico');
+            if (h.length === 0) { lista.innerHTML = '<p>Nenhum registro.</p>'; return; }
+            var html = '<table><thead><tr><th>Data</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Obs</th></tr></thead><tbody>';
+            h.forEach(function(x) {
+                var badge = x.tipo === 'entrada' ? 'badge-entrada' : x.tipo === 'saida' ? 'badge-saida' : 'badge-alocacao';
+                var txt = x.tipo === 'entrada' ? '🟢 Entrada' : x.tipo === 'saida' ? '🔴 Saída' : '📤 Alocação';
+                html += '<tr><td>'+(x.data||'')+'</td><td><span class="badge '+badge+'">'+txt+'</span></td><td>'+(x.item||'')+'</td><td>'+(x.quantidade||0)+'</td><td>'+(x.obs||'')+'</td></tr>';
+            });
+            html += '</tbody></table>';
+            lista.innerHTML = html;
+        }
+
+        function aplicarFiltroHistorico() {
+            var item = document.getElementById('filtroHistItem').value.toLowerCase();
+            var tipo = document.getElementById('filtroHistTipo').value;
+            var ini = document.getElementById('filtroHistDataIni').value;
+            var fim = document.getElementById('filtroHistDataFim').value;
+            var filtrado = cacheHistorico.filter(function(x) {
+                var okItem = !item || (x.item||'').toLowerCase().includes(item);
+                var okTipo = tipo === 'todos' || x.tipo === tipo;
+                var dataPartes = (x.data||'').split(' ');
+                var dataDia = dataPartes[0] ? dataPartes[0].split('/').reverse().join('-') : '';
+                var okIni = !ini || !dataDia || dataDia >= ini;
+                var okFim = !fim || !dataDia || dataDia <= fim;
+                return okItem && okTipo && okIni && okFim;
+            });
+            renderizarHistorico(filtrado);
+        }
+
+        // ============ CONFIG ============
         async function carregarConfig() {
             var { data: c } = await supabase.from('config').select('*').eq('chave', 'admin').maybeSingle();
             var dados = c ? (c.dados || {}) : {};
@@ -392,6 +532,24 @@
         }
 
         function carregarTudo() { carregarEstoque(); carregarC1(); carregarC2(); }
+
+        // Eventos
+        document.getElementById('filtroEstoqueNome').addEventListener('input', aplicarFiltroEstoque);
+        document.getElementById('filtroC1Nome').addEventListener('input', aplicarFiltroC1);
+        document.getElementById('filtroC2Nome').addEventListener('input', aplicarFiltroC2);
+        document.getElementById('filtroPedidosNome').addEventListener('input', aplicarFiltroPedidos);
+        document.getElementById('filtroPedidosTel').addEventListener('input', aplicarFiltroPedidos);
+        document.getElementById('filtroPedidosDataIni').addEventListener('change', aplicarFiltroPedidos);
+        document.getElementById('filtroPedidosDataFim').addEventListener('change', aplicarFiltroPedidos);
+        document.getElementById('filtroPagNome').addEventListener('input', aplicarFiltroPagamentos);
+        document.getElementById('filtroPagTel').addEventListener('input', aplicarFiltroPagamentos);
+        document.getElementById('filtroPagStatus').addEventListener('change', aplicarFiltroPagamentos);
+        document.getElementById('filtroPagDataIni').addEventListener('change', aplicarFiltroPagamentos);
+        document.getElementById('filtroPagDataFim').addEventListener('change', aplicarFiltroPagamentos);
+        document.getElementById('filtroHistItem').addEventListener('input', aplicarFiltroHistorico);
+        document.getElementById('filtroHistTipo').addEventListener('change', aplicarFiltroHistorico);
+        document.getElementById('filtroHistDataIni').addEventListener('change', aplicarFiltroHistorico);
+        document.getElementById('filtroHistDataFim').addEventListener('change', aplicarFiltroHistorico);
     </script>
 </body>
 </html>
