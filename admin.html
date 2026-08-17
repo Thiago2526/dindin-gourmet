@@ -16,6 +16,10 @@
         input, select { width:100%; padding:14px; margin-bottom:10px; border:2px solid #DAA520; border-radius:8px; font-size:18px; background:#FFF8DC; box-sizing:border-box; }
         button { width:100%; padding:14px; background:#CC5500; color:white; border:none; border-radius:8px; font-size:18px; font-weight:bold; cursor:pointer; margin-bottom:5px; }
         .erro { color:red; margin-top:10px; display:none; }
+        .status-conexao { font-size:14px; margin-top:15px; font-weight:bold; }
+        .status-online { color:green; }
+        .status-offline { color:red; }
+        .status-checking { color:orange; }
         .painel { display:none; max-width:1300px; margin:20px auto; background:#FFF8DC; padding:20px; border-radius:15px; border:2px solid #DAA520; }
         .tabs { display:flex; gap:5px; flex-wrap:wrap; margin:15px 0; }
         .tab-btn { padding:14px 20px; background:#D2691E; color:#FFD700; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px; }
@@ -68,6 +72,7 @@
             <button onclick="fazerLogin()">🚀 Entrar</button>
             <p class="erro" id="erroLogin">❌ Usuário ou senha incorretos!</p>
             <p style="margin-top:15px;font-size:14px;">master / admin123</p>
+            <p class="status-conexao" id="statusConexao">🟡 <span class="status-checking">Verificando conexão...</span></p>
         </div>
     </div>
 
@@ -100,19 +105,17 @@
             <div id="previewFotoContainer" style="display:none;"><img id="previewFotoAdmin" class="preview-foto" src=""></div>
             <button class="btn btn-primary" onclick="cadastrarItem()">💾 Cadastrar</button>
             <button class="btn btn-success" onclick="carregarEstoque()">🔄 Atualizar</button>
-            
-            <!-- FILTRO ESTOQUE -->
-            <div class="filtro-bar">
-                <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroEstoqueNome" placeholder="Filtrar por nome..." oninput="aplicarFiltroEstoque()"></div>
+            <div class="filtro-bar" style="margin-top:15px;">
+                <div class="filtro-item"><label>🔍 Filtrar por nome</label><input type="text" id="filtroEstoqueNome" placeholder="Digite o nome..." oninput="aplicarFiltroEstoque()"></div>
             </div>
             <div id="listaEstoque" style="margin-top:15px;"></div>
         </div>
 
         <!-- CARDÁPIO 1 -->
         <div class="conteudo" id="conteudo-c1">
-            <h3 style="font-size:1.4em;">📋 Cardápio 1</h3>
+            <h3 style="font-size:1.4em;">📋 Cardápio 1 (Principal)</h3>
             <div class="filtro-bar">
-                <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroC1Nome" placeholder="Filtrar por nome..." oninput="aplicarFiltroC1()"></div>
+                <div class="filtro-item"><label>🔍 Filtrar por nome</label><input type="text" id="filtroC1Nome" placeholder="Digite o nome..." oninput="aplicarFiltroC1()"></div>
             </div>
             <div id="listaC1"></div>
         </div>
@@ -124,7 +127,7 @@
             <div class="form-group"><label>Quantidade</label><input type="number" id="alocarQtd" value="10"></div>
             <button class="btn btn-success" onclick="alocarC2()">📤 Alocar</button>
             <div class="filtro-bar" style="margin-top:15px;">
-                <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroC2Nome" placeholder="Filtrar por nome..." oninput="aplicarFiltroC2()"></div>
+                <div class="filtro-item"><label>🔍 Filtrar por nome</label><input type="text" id="filtroC2Nome" placeholder="Digite o nome..." oninput="aplicarFiltroC2()"></div>
             </div>
             <div id="listaC2" style="margin-top:15px;"></div>
         </div>
@@ -133,10 +136,10 @@
         <div class="conteudo" id="conteudo-pedidos">
             <h3 style="font-size:1.4em;">📋 Pedidos</h3>
             <div class="filtro-bar">
-                <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroPedidosNome" placeholder="Nome do cliente..." oninput="aplicarFiltroPedidos()"></div>
+                <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroPedidosNome" placeholder="Nome..." oninput="aplicarFiltroPedidos()"></div>
                 <div class="filtro-item"><label>📱 Telefone</label><input type="text" id="filtroPedidosTel" placeholder="Telefone..." oninput="aplicarFiltroPedidos()"></div>
-                <div class="filtro-item"><label>📅 Data Início</label><input type="date" id="filtroPedidosDataIni" onchange="aplicarFiltroPedidos()"></div>
-                <div class="filtro-item"><label>📅 Data Fim</label><input type="date" id="filtroPedidosDataFim" onchange="aplicarFiltroPedidos()"></div>
+                <div class="filtro-item"><label>📅 Início</label><input type="date" id="filtroPedidosDataIni" onchange="aplicarFiltroPedidos()"></div>
+                <div class="filtro-item"><label>📅 Fim</label><input type="date" id="filtroPedidosDataFim" onchange="aplicarFiltroPedidos()"></div>
             </div>
             <div id="listaPedidos"></div>
         </div>
@@ -148,8 +151,8 @@
                 <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroPagNome" placeholder="Nome..." oninput="aplicarFiltroPagamentos()"></div>
                 <div class="filtro-item"><label>📱 Telefone</label><input type="text" id="filtroPagTel" placeholder="Telefone..." oninput="aplicarFiltroPagamentos()"></div>
                 <div class="filtro-item"><label>💳 Status</label><select id="filtroPagStatus" onchange="aplicarFiltroPagamentos()"><option value="todos">Todos</option><option value="pago">✅ Pagos</option><option value="pendente">⏳ Pendentes</option></select></div>
-                <div class="filtro-item"><label>📅 Data Início</label><input type="date" id="filtroPagDataIni" onchange="aplicarFiltroPagamentos()"></div>
-                <div class="filtro-item"><label>📅 Data Fim</label><input type="date" id="filtroPagDataFim" onchange="aplicarFiltroPagamentos()"></div>
+                <div class="filtro-item"><label>📅 Início</label><input type="date" id="filtroPagDataIni" onchange="aplicarFiltroPagamentos()"></div>
+                <div class="filtro-item"><label>📅 Fim</label><input type="date" id="filtroPagDataFim" onchange="aplicarFiltroPagamentos()"></div>
             </div>
             <div id="listaPagamentos"></div>
         </div>
@@ -158,20 +161,20 @@
         <div class="conteudo" id="conteudo-financeiro">
             <h3 style="font-size:1.4em;">💰 Financeiro</h3>
             <div class="filtro-bar">
-                <div class="filtro-item"><label>📅 Data Início</label><input type="date" id="filtroFinDataIni" onchange="carregarFinanceiro()"></div>
-                <div class="filtro-item"><label>📅 Data Fim</label><input type="date" id="filtroFinDataFim" onchange="carregarFinanceiro()"></div>
+                <div class="filtro-item"><label>📅 Início</label><input type="date" id="filtroFinDataIni" onchange="carregarFinanceiro()"></div>
+                <div class="filtro-item"><label>📅 Fim</label><input type="date" id="filtroFinDataFim" onchange="carregarFinanceiro()"></div>
             </div>
             <div id="listaFinanceiro"></div>
         </div>
 
         <!-- HISTÓRICO -->
         <div class="conteudo" id="conteudo-historico">
-            <h3 style="font-size:1.4em;">📜 Histórico</h3>
+            <h3 style="font-size:1.4em;">📜 Histórico de Entrada e Saída</h3>
             <div class="filtro-bar">
                 <div class="filtro-item"><label>🔍 Item</label><input type="text" id="filtroHistItem" placeholder="Filtrar por item..." oninput="aplicarFiltroHistorico()"></div>
                 <div class="filtro-item"><label>💳 Tipo</label><select id="filtroHistTipo" onchange="aplicarFiltroHistorico()"><option value="todos">Todos</option><option value="entrada">🟢 Entrada</option><option value="saida">🔴 Saída</option><option value="alocacao">📤 Alocação</option></select></div>
-                <div class="filtro-item"><label>📅 Data Início</label><input type="date" id="filtroHistDataIni" onchange="aplicarFiltroHistorico()"></div>
-                <div class="filtro-item"><label>📅 Data Fim</label><input type="date" id="filtroHistDataFim" onchange="aplicarFiltroHistorico()"></div>
+                <div class="filtro-item"><label>📅 Início</label><input type="date" id="filtroHistDataIni" onchange="aplicarFiltroHistorico()"></div>
+                <div class="filtro-item"><label>📅 Fim</label><input type="date" id="filtroHistDataFim" onchange="aplicarFiltroHistorico()"></div>
             </div>
             <div id="listaHistorico" style="margin-top:10px;"></div>
         </div>
@@ -191,6 +194,25 @@
         var supabase = window.supabase.createClient('https://khgkneegpxcgufslupby.supabase.co', 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G');
         var fotoEmBase64 = null;
         var cacheEstoque = [], cacheC1 = [], cacheC2 = [], cachePedidos = [], cachePagamentos = [], cacheHistorico = [];
+
+        // ============ VERIFICAR CONEXÃO ============
+        async function verificarConexao() {
+            var statusEl = document.getElementById('statusConexao');
+            try {
+                var { error } = await supabase.from('estoqueCentral').select('*').limit(1);
+                if (error) {
+                    if (error.message.includes('does not exist') || error.message.includes('not found')) {
+                        statusEl.innerHTML = '🟡 <span class="status-checking">Tabela não encontrada. Execute o SQL no Supabase!</span>';
+                    } else {
+                        statusEl.innerHTML = '🔴 <span class="status-offline">Erro: ' + error.message + '</span>';
+                    }
+                } else {
+                    statusEl.innerHTML = '🟢 <span class="status-online">Banco de dados conectado!</span>';
+                }
+            } catch(e) {
+                statusEl.innerHTML = '🔴 <span class="status-offline">Sem conexão</span>';
+            }
+        }
 
         function previewFotoAdmin(input) {
             if (input.files && input.files[0]) {
@@ -268,8 +290,7 @@
 
         function aplicarFiltroEstoque() {
             var f = document.getElementById('filtroEstoqueNome').value.toLowerCase();
-            var filtrado = cacheEstoque.filter(function(x) { return (x.nome||'').toLowerCase().includes(f); });
-            renderizarEstoque(filtrado);
+            renderizarEstoque(cacheEstoque.filter(function(x) { return (x.nome||'').toLowerCase().includes(f); }));
         }
 
         async function cadastrarItem() {
@@ -533,7 +554,7 @@
 
         function carregarTudo() { carregarEstoque(); carregarC1(); carregarC2(); }
 
-        // Eventos
+        // ============ EVENTOS ============
         document.getElementById('filtroEstoqueNome').addEventListener('input', aplicarFiltroEstoque);
         document.getElementById('filtroC1Nome').addEventListener('input', aplicarFiltroC1);
         document.getElementById('filtroC2Nome').addEventListener('input', aplicarFiltroC2);
@@ -550,6 +571,9 @@
         document.getElementById('filtroHistTipo').addEventListener('change', aplicarFiltroHistorico);
         document.getElementById('filtroHistDataIni').addEventListener('change', aplicarFiltroHistorico);
         document.getElementById('filtroHistDataFim').addEventListener('change', aplicarFiltroHistorico);
+
+        // Iniciar
+        verificarConexao();
     </script>
 </body>
 </html>
