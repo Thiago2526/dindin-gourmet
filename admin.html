@@ -3,9 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Dindins Gourmet FX</title>
+    <title>Painel Administrativo — Dindins Gourmet FX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+
+        /* ===== TEMA CLARO / ESCURO ===== */
+        :root {
+            color-scheme: dark;
+            --body-bg: linear-gradient(135deg, #0d0805, #1a0f0a, #2d1a0e, #1a0f0a);
+        }
+        html[data-theme="light"] {
+            color-scheme: light;
+            --bg-primary: #fffaf3;
+            --bg-secondary: #fff1df;
+            --bg-card: #ffffff;
+            --bg-card-hover: #fff7ec;
+            --text-primary: #2d2118;
+            --text-secondary: #6b5b4d;
+            --border-color: #ead8c4;
+            --shadow-color: rgba(60,35,15,.14);
+            --input-bg: #ffffff;
+            --input-border: #d9c2aa;
+            --badge-bg: #f8eadc;
+            --body-bg: linear-gradient(135deg, #fffaf3, #fff4e7, #fffaf3);
+        }
+        html[data-theme="dark"] {
+            color-scheme: dark;
+        }
         :root { 
             --marrom: #5C3317; 
             --laranja: #CC5500; 
@@ -27,7 +51,7 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         body { 
             font-family:'Segoe UI',Tahoma,sans-serif; 
-            background: linear-gradient(135deg, #0d0805, #1a0f0a, #2d1a0e, #1a0f0a);
+            background: var(--body-bg);
             min-height: 100vh; 
             font-size: 16px; 
             color: var(--text-primary);
@@ -41,7 +65,7 @@
         .login-box { 
             max-width:400px; 
             margin:60px auto; 
-            background: rgba(45, 26, 14, 0.98); 
+            background: var(--bg-card); 
             padding:40px 30px; 
             border-radius:24px; 
             text-align:center; 
@@ -111,7 +135,7 @@
             display:flex; 
             justify-content:space-between; 
             align-items:center; 
-            background: rgba(45, 26, 14, 0.95); 
+            background: var(--bg-card); 
             padding:20px 25px; 
             border-radius:20px; 
             box-shadow:0 4px 20px rgba(0,0,0,0.5); 
@@ -153,7 +177,7 @@
         
         .conteudo { 
             display:none; 
-            background: rgba(45, 26, 14, 0.95); 
+            background: var(--bg-card); 
             padding:25px; 
             border-radius:20px; 
             box-shadow:0 4px 20px rgba(0,0,0,0.4); 
@@ -383,6 +407,7 @@
             <h2>🍦 Dindins Gourmet FX</h2>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
                 <span id="userLogado" style="font-weight:700;color:var(--dourado);align-self:center;"></span>
+                <button class="btn btn-warning" onclick="alternarTema()" id="btnTema" style="width:auto;" title="Alternar tema">☀️ Claro</button>
                 <button class="btn btn-info" onclick="mostrarTrocaSenha()" style="width:auto;">🔒 Trocar Senha</button>
                 <button class="btn btn-danger" onclick="sair()" style="width:auto;">🚪 Sair</button>
             </div>
@@ -590,6 +615,9 @@
             <h3>👥 Administradores</h3>
             <div class="card-item" style="flex-direction:column;align-items:stretch;">
                 <h4>➕ Cadastrar Novo Admin</h4>
+                <div style="background:#7c2d12;color:#ffedd5;padding:12px 14px;border-radius:12px;margin-bottom:14px;border:1px solid #c2410c;">
+                    ⚠️ <strong>Segurança:</strong> este cadastro ainda usa o sistema antigo de administradores no navegador. A migração para Supabase Auth será feita na próxima etapa.
+                </div>
                 <div class="form-group"><label>Nome Completo *</label><input type="text" id="adminNome" placeholder="Nome do administrador"></div>
                 <div class="form-group"><label>Usuário *</label><input type="text" id="adminUsuario" placeholder="Usuário para login"></div>
                 <div class="form-group"><label>Senha *</label><input type="password" id="adminSenha" placeholder="Mínimo 6 caracteres"></div>
@@ -621,10 +649,45 @@
 
     <script>
         console.log('✅ Script carregado!');
+        // ===== TEMA =====
+        (function iniciarTema() {
+            const salvo = localStorage.getItem('dindin-theme');
+            const preferido = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', salvo || preferido);
+        })();
+
+        function atualizarBotaoTema() {
+            const tema = document.documentElement.getAttribute('data-theme') || 'dark';
+            const btn = document.getElementById('btnTema');
+            if (btn) btn.textContent = tema === 'dark' ? '☀️ Claro' : '🌙 Escuro';
+        }
+
+        function alternarTema() {
+            const atual = document.documentElement.getAttribute('data-theme') || 'dark';
+            const novo = atual === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', novo);
+            localStorage.setItem('dindin-theme', novo);
+            atualizarBotaoTema();
+        }
+
+        document.addEventListener('DOMContentLoaded', atualizarBotaoTema);
+
         var supabase = window.supabase.createClient('https://khgkneegpxcgufslupby.supabase.co', 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G');
         var fotoEmBase64 = null;
         var cacheEstoque = [], cacheC2 = [], cachePedidos = [], cacheHistorico = [], cacheSetores = [], configDados = {};
         var adminAtual = null;
+
+
+        function tratarErroSupabase(contexto, error) {
+            if (!error) return false;
+            console.error(contexto, error);
+            mostrarToast('❌ ' + contexto + ': ' + (error.message || 'erro no banco'));
+            return true;
+        }
+
+        function moeda(valor) {
+            return Number(valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
 
         function mostrarToast(msg) { 
             var t = document.getElementById('toastNotificacao'); 
@@ -636,7 +699,7 @@
         async function verificarConexao() {
             var s = document.getElementById('statusConexao');
             try { 
-                var { error } = await supabase.from('estoquecentral').select('*').limit(1);
+                var { error } = await supabase.from('config').select('chave').eq('chave','admin').limit(1);
                 if (error) { s.innerHTML = '🔴 Erro'; } else { s.innerHTML = '🟢 Banco conectado!'; }
             } catch(e) { s.innerHTML = '🔴 Sem conexão'; }
         }
@@ -653,17 +716,19 @@
             }
         }
 
-        function fazerLogin() {
+        async function fazerLogin() {
             var u = document.getElementById('campoUsuario').value.trim().toLowerCase();
             var s = document.getElementById('campoSenha').value;
             var senhaMaster = localStorage.getItem('senhaMaster') || 'Dindins@2026';
             if (u === 'master' && s === senhaMaster) {
-                adminAtual = { nome: 'Admin Master', tipo: 'master', usuario: 'master', senha: senhaMaster, permissoes: { estoque:true, cardapio1:true, cardapio2:true, pedidos:true, pagamentos:true, financeiro:true, setores:true, admins:true } };
+                // Compatibilidade temporária com o login atual.
+                // A migração para Supabase Auth deve ser feita antes de remover este fallback.
+                adminAtual = { nome: 'Admin Master', tipo: 'master', usuario: 'master', permissoes: { estoque:true, cardapio1:true, cardapio2:true, pedidos:true, pagamentos:true, financeiro:true, setores:true, admins:true } };
                 entrarPainel(); return;
             }
             var admins = JSON.parse(localStorage.getItem('admins') || '[]');
             var admin = admins.find(function(a) { return a.usuario === u && a.senha === s && a.ativo !== false; });
-            if (admin) { adminAtual = admin; entrarPainel(); }
+            if (admin) { adminAtual = Object.assign({}, admin); delete adminAtual.senha; entrarPainel(); }
             else { document.getElementById('erroLogin').style.display = 'block'; }
         }
 
@@ -728,8 +793,11 @@
             var cs = ['dashboard','estoque','c1','c2','pedidos','pagamentos','financeiro','ranking','historico','setores','admins','config'];
             cs.forEach(function(c) { var el = document.getElementById('conteudo-' + c); if (el) el.classList.remove('active'); });
             document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-            document.getElementById('conteudo-' + tab).classList.add('active'); 
-            event.target.classList.add('active');
+            document.getElementById('conteudo-' + tab).classList.add('active');
+            var btn = Array.from(document.querySelectorAll('.tab-btn')).find(function(b) {
+                return b.getAttribute('onclick') === "mudarTab('" + tab + "')";
+            });
+            if (btn) btn.classList.add('active');
             if (tab === 'dashboard') carregarDashboard();
             if (tab === 'estoque') carregarEstoque();
             if (tab === 'c1') carregarC1();
@@ -870,7 +938,7 @@
                 var d = (i.quantidadetotal||0)-(i.alocadocardapio2||0);
                 var b = d <= 5 ? 'badge-baixo' : 'badge-normal';
                 var f = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+(i.emoji||'🍦')+'</div>';
-                return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+'<br><small style="color:var(--text-secondary);">Total: '+(i.quantidadetotal||0)+' | C2: '+(i.alocadocardapio2||0)+' | <span class="badge '+b+'">Disp: '+d+'</span></small></div></div><div class="card-item-actions"><button class="btn btn-warning btn-small" onclick="editarItem('+i.id+')">✏️</button><button class="btn btn-danger btn-small" onclick="excluirItem('+i.id+')">🗑️</button></div></div>';
+                return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+moeda(i.preco)+'<br><small style="color:var(--text-secondary);">Total: '+(i.quantidadetotal||0)+' | C2: '+(i.alocadocardapio2||0)+' | <span class="badge '+b+'">Disp: '+d+'</span></small></div></div><div class="card-item-actions"><button class="btn btn-warning btn-small" onclick="editarItem('+i.id+')">✏️</button><button class="btn btn-danger btn-small" onclick="excluirItem('+i.id+')">🗑️</button></div></div>';
             }).join('');
         }
         
@@ -962,7 +1030,7 @@
             if (c1.length === 0) { l.innerHTML = '<p style="color:var(--text-secondary);">Nenhum item disponível.</p>'; return; }
             l.innerHTML = c1.map(function(i) {
                 var f = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+i.emoji+'</div>';
-                return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+i.emoji+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+' | Disp: '+i.quantidade+'</div></div></div>';
+                return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+i.emoji+' '+i.nome+'</strong> - R$ '+moeda(i.preco)+' | Disp: '+i.quantidade+'</div></div></div>';
             }).join('');
         }
 
@@ -1014,7 +1082,7 @@
             if (cacheC2.length === 0) { l.innerHTML = '<p style="color:var(--text-secondary);">Nenhum item alocado.</p>'; return; }
             l.innerHTML = cacheC2.map(function(i) {
                 var f = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+(i.emoji||'🍦')+'</div>';
-                return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+' | Qtd: '+(i.quantidade||0)+'</div></div><button class="btn btn-danger btn-small" onclick="excluirC2('+i.id+')">🗑️</button></div>';
+                return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+moeda(i.preco)+' | Qtd: '+(i.quantidade||0)+'</div></div><button class="btn btn-danger btn-small" onclick="excluirC2('+i.id+')">🗑️</button></div>';
             }).join('');
         }
         
@@ -1044,7 +1112,7 @@
                 if (x.itens && x.itens.length > 0) {
                     itensHtml = '<div class="pedido-itens"><strong>📋 ITENS:</strong><br>';
                     x.itens.forEach(function(item) { 
-                        itensHtml += '<div class="pedido-item-linha">• '+(item.quantidade||0)+'x '+(item.nome||'Item')+' - R$ '+((item.preco||0)*(item.quantidade||0)).toFixed(2)+'</div>'; 
+                        itensHtml += '<div class="pedido-item-linha">• '+(item.quantidade||0)+'x '+(item.nome||'Item')+' - R$ '+moeda((item.preco||0)*(item.quantidade||0))+'</div>'; 
                     });
                     itensHtml += '</div>';
                 }
@@ -1081,7 +1149,7 @@
                 return '<div class="card-item" style="flex-direction:column;align-items:stretch;">'+
                     '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">'+
                         '<div><strong style="color:var(--dourado);">👤 '+x.cliente+'</strong><br><small style="color:var(--text-secondary);">📱 '+(x.telefone||'N/A')+' | 📅 '+formatarData(x.data)+'</small></div>'+
-                        '<div style="text-align:right;"><strong style="font-size:1.2em;color:var(--dourado);">R$ '+(x.total||0).toFixed(2)+'</strong><br>'+stPag+' '+stPed+'</div>'+
+                        '<div style="text-align:right;"><strong style="font-size:1.2em;color:var(--dourado);">R$ '+moeda(x.total)+'</strong><br>'+stPag+' '+stPed+'</div>'+
                     '</div>'+
                     itensHtml+
                     '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">'+
@@ -1181,7 +1249,7 @@
                 var st = x.pagamentostatus === 'pago' ? '<span class="badge badge-pago">✅ PAGO</span>' : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
                 var btn = x.pagamentostatus !== 'pago' ? '<button class="btn btn-success btn-small" onclick="confirmarPag('+x.pedido_id+')">✅ Confirmar</button>' : '';
                 var lem = x.pagamentostatus !== 'pago' && x.telefone ? '<button class="btn btn-whatsapp btn-small" onclick="lembrar(\''+x.telefone+'\',\''+x.cliente+'\','+(x.total||0)+')">📱 Lembrar</button>' : '';
-                return '<div class="card-item"><div class="card-item-info"><strong style="color:var(--dourado);">👤 '+x.cliente+'</strong> '+st+'<br><small style="color:var(--text-secondary);">📱 '+(x.telefone||'')+' | R$ '+(x.total||0).toFixed(2)+'</small></div><div class="card-item-actions">'+btn+' '+lem+'</div></div>';
+                return '<div class="card-item"><div class="card-item-info"><strong style="color:var(--dourado);">👤 '+x.cliente+'</strong> '+st+'<br><small style="color:var(--text-secondary);">📱 '+(x.telefone||'')+' | R$ '+moeda(x.total)+'</small></div><div class="card-item-actions">'+btn+' '+lem+'</div></div>';
             }).join('');
         }
 
@@ -1286,7 +1354,7 @@
                     });
                 }
             });
-            msg += '━━━━━━━━━━\n💵 *TOTAL: R$ '+cliente.total.toFixed(2)+'*\n\n📱 PIX: `'+(configDados.pix||'pix@dindingourmet.com.br')+'`\n\n⚠️ Envie o comprovante!';
+            msg += '━━━━━━━━━━\n💵 *TOTAL: R$ '+moeda(cliente.total)+'*\n\n📱 PIX: `'+(configDados.pix||'pix@dindingourmet.com.br')+'`\n\n⚠️ Envie o comprovante!';
             window.open('https://wa.me/55'+cliente.telefone+'?text='+encodeURIComponent(msg), '_blank');
         }
 
@@ -1311,7 +1379,7 @@
                 '</div>' +
                 '<div style="margin-top:20px;"><strong style="color:var(--dourado);">📋 Últimos Pedidos</strong></div>' +
                 p.slice(0, 10).map(function(x) {
-                    return '<div class="card-item"><div class="card-item-info"><strong style="color:var(--dourado);">👤 '+x.cliente+'</strong><small style="color:var(--text-secondary);">'+formatarData(x.data)+'</small></div><div style="text-align:right;"><strong>R$ '+(x.total||0).toFixed(2)+'</strong> '+(x.pagamentostatus==='pago'?'<span class="badge badge-pago">✅</span>':'<span class="badge badge-pendente">⏳</span>')+'</div></div>';
+                    return '<div class="card-item"><div class="card-item-info"><strong style="color:var(--dourado);">👤 '+x.cliente+'</strong><small style="color:var(--text-secondary);">'+formatarData(x.data)+'</small></div><div style="text-align:right;"><strong>R$ '+moeda(x.total)+'</strong> '+(x.pagamentostatus==='pago'?'<span class="badge badge-pago">✅</span>':'<span class="badge badge-pendente">⏳</span>')+'</div></div>';
                 }).join('');
         }
 
