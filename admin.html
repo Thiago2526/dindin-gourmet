@@ -12,10 +12,10 @@
             --dourado: #DAA520; 
             --amarelo: #FFD700; 
             --creme: #FFF8DC;
-            --bg-primary: #1a0f0a;
-            --bg-secondary: #2d1a0e;
-            --bg-card: #3d2618;
-            --bg-card-hover: #4d3020;
+            --bg-primary: #0d0805;
+            --bg-secondary: #1a0f0a;
+            --bg-card: #2d1a0e;
+            --bg-card-hover: #3d2618;
             --text-primary: #f5e6d3;
             --text-secondary: #d4c4b0;
             --border-color: #5a3d2b;
@@ -33,7 +33,6 @@
             color: var(--text-primary);
         }
         
-        /* SCROLLBAR */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-secondary); border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: var(--laranja); border-radius: 10px; }
@@ -225,6 +224,8 @@
         .badge-entrega { background:#4c1d95; color:#c4b5fd; }
         .badge-entregue { background:#064e3b; color:#6ee7b7; }
         .badge-cancelado { background:#7f1d1d; color:#fca5a5; }
+        .badge-ativo { background:#064e3b; color:#6ee7b7; }
+        .badge-inativo { background:#7f1d1d; color:#fca5a5; }
         
         .dashboard-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:15px; margin-bottom:20px; }
         .dash-card { 
@@ -335,6 +336,22 @@
         .resumo-card .label { font-size:0.85em; color: var(--text-secondary); }
         .resumo-card .destaque { font-size:2em; font-weight:900; color: var(--dourado); }
         
+        .setor-card {
+            background: var(--bg-card);
+            padding:14px 18px;
+            border-radius:12px;
+            border:1px solid var(--border-color);
+            margin-bottom:8px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            flex-wrap:wrap;
+            gap:10px;
+        }
+        .setor-card:hover { border-color: var(--dourado); }
+        .setor-nome { font-size:1.1em; font-weight:600; color: var(--text-primary); }
+        .setor-taxa { color: var(--dourado); font-weight:600; }
+        
         @media (max-width:600px) { 
             .tabs { flex-direction:column; } 
             .filtros-container { flex-direction:column; } 
@@ -381,6 +398,7 @@
             <button class="tab-btn" onclick="mudarTab('financeiro')">💰 Financeiro</button>
             <button class="tab-btn" onclick="mudarTab('ranking')">🏆 Ranking</button>
             <button class="tab-btn" onclick="mudarTab('historico')">📜 Histórico</button>
+            <button class="tab-btn" onclick="mudarTab('setores')">📍 Setores</button>
             <button class="tab-btn" onclick="mudarTab('admins')">👥 Admins</button>
             <button class="tab-btn" onclick="mudarTab('config')">⚙️ Config</button>
         </div>
@@ -543,6 +561,31 @@
             <div id="listaHistorico"></div>
         </div>
 
+        <!-- ========== ABA SETORES (NOVA) ========== -->
+        <div class="conteudo" id="conteudo-setores">
+            <h3>📍 Gerenciar Setores (Bairros)</h3>
+            
+            <div style="background:var(--bg-secondary);padding:20px;border-radius:16px;border:1px solid var(--border-color);margin-bottom:20px;">
+                <h4 style="color:var(--dourado);margin-bottom:15px;">➕ Adicionar Novo Setor</h4>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <div class="form-group" style="flex:2;min-width:200px;margin-bottom:0;">
+                        <label>Nome do Bairro *</label>
+                        <input type="text" id="setorNome" placeholder="Ex: Jardim América">
+                    </div>
+                    <div class="form-group" style="flex:1;min-width:120px;margin-bottom:0;">
+                        <label>Taxa de Entrega R$</label>
+                        <input type="number" id="setorTaxa" step="0.50" value="5.00" placeholder="0.00">
+                    </div>
+                    <div class="form-group" style="flex:0 0 120px;margin-bottom:0;display:flex;align-items:flex-end;">
+                        <button class="btn btn-success" onclick="cadastrarSetor()" style="width:100%;">➕ Adicionar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <h4 style="color:var(--douardo);margin-bottom:10px;">📋 Setores Cadastrados</h4>
+            <div id="listaSetores"></div>
+        </div>
+
         <div class="conteudo" id="conteudo-admins">
             <h3>👥 Administradores</h3>
             <div class="card-item" style="flex-direction:column;align-items:stretch;">
@@ -558,6 +601,7 @@
                     <div class="perm-item"><input type="checkbox" id="permPedidos" checked><label>📋 Pedidos</label></div>
                     <div class="perm-item"><input type="checkbox" id="permPagamentos" checked><label>💳 Pagamentos</label></div>
                     <div class="perm-item"><input type="checkbox" id="permFinanceiro"><label>💰 Financeiro</label></div>
+                    <div class="perm-item"><input type="checkbox" id="permSetores"><label>📍 Setores</label></div>
                     <div class="perm-item"><input type="checkbox" id="permAdmins"><label>👥 Gerenciar Admins</label></div>
                 </div>
                 <button class="btn btn-success" onclick="salvarAdmin()">✅ Cadastrar</button>
@@ -579,7 +623,7 @@
         console.log('✅ Script carregado!');
         var supabase = window.supabase.createClient('https://khgkneegpxcgufslupby.supabase.co', 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G');
         var fotoEmBase64 = null;
-        var cacheEstoque = [], cacheC2 = [], cachePedidos = [], cacheHistorico = [], configDados = {};
+        var cacheEstoque = [], cacheC2 = [], cachePedidos = [], cacheHistorico = [], cacheSetores = [], configDados = {};
         var adminAtual = null;
 
         function mostrarToast(msg) { 
@@ -614,7 +658,7 @@
             var s = document.getElementById('campoSenha').value;
             var senhaMaster = localStorage.getItem('senhaMaster') || 'Dindins@2026';
             if (u === 'master' && s === senhaMaster) {
-                adminAtual = { nome: 'Admin Master', tipo: 'master', usuario: 'master', senha: senhaMaster, permissoes: { estoque:true, cardapio1:true, cardapio2:true, pedidos:true, pagamentos:true, financeiro:true, admins:true } };
+                adminAtual = { nome: 'Admin Master', tipo: 'master', usuario: 'master', senha: senhaMaster, permissoes: { estoque:true, cardapio1:true, cardapio2:true, pedidos:true, pagamentos:true, financeiro:true, setores:true, admins:true } };
                 entrarPainel(); return;
             }
             var admins = JSON.parse(localStorage.getItem('admins') || '[]');
@@ -647,6 +691,7 @@
                 if (t.includes('Financeiro') && !p.financeiro) btn.style.display = 'none';
                 if (t.includes('Ranking') && !p.pedidos) btn.style.display = 'none';
                 if (t.includes('Histórico') && !p.estoque) btn.style.display = 'none';
+                if (t.includes('Setores') && !p.setores) btn.style.display = 'none';
                 if (t.includes('Admins') && !p.admins) btn.style.display = 'none';
             });
         }
@@ -680,7 +725,7 @@
         document.getElementById('campoSenha').addEventListener('keypress', function(e) { if (e.key === 'Enter') fazerLogin(); });
 
         function mudarTab(tab) {
-            var cs = ['dashboard','estoque','c1','c2','pedidos','pagamentos','financeiro','ranking','historico','admins','config'];
+            var cs = ['dashboard','estoque','c1','c2','pedidos','pagamentos','financeiro','ranking','historico','setores','admins','config'];
             cs.forEach(function(c) { var el = document.getElementById('conteudo-' + c); if (el) el.classList.remove('active'); });
             document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
             document.getElementById('conteudo-' + tab).classList.add('active'); 
@@ -694,6 +739,7 @@
             if (tab === 'financeiro') carregarFinanceiro();
             if (tab === 'ranking') carregarRanking();
             if (tab === 'historico') carregarHistorico();
+            if (tab === 'setores') carregarSetores();
             if (tab === 'admins') carregarListaAdmins();
             if (tab === 'config') carregarConfig();
         }
@@ -730,6 +776,7 @@
                     pedidos:document.getElementById('permPedidos').checked, 
                     pagamentos:document.getElementById('permPagamentos').checked, 
                     financeiro:document.getElementById('permFinanceiro').checked, 
+                    setores:document.getElementById('permSetores').checked,
                     admins:document.getElementById('permAdmins').checked 
                 }, 
                 ativo:true 
@@ -754,7 +801,8 @@
                 if (p.cardapio2) perms.push('🔥');
                 if (p.pedidos) perms.push('📋P'); 
                 if (p.pagamentos) perms.push('💳'); 
-                if (p.financeiro) perms.push('💰'); 
+                if (p.financeiro) perms.push('💰');
+                if (p.setores) perms.push('📍');
                 if (p.admins) perms.push('👥');
                 return '<div class="card-item"><div class="card-item-info"><strong>👤 '+a.nome+'</strong><br><small style="color:var(--text-secondary);">Usuário: '+a.usuario+' | Permissões: '+perms.join(' ')+'</small></div><button class="btn btn-danger btn-small" onclick="excluirAdmin(\''+a.id+'\')">🗑️</button></div>';
             }).join('');
@@ -1017,7 +1065,6 @@
                     stPed = '<span class="badge badge-novo">🆕 Novo</span>';
                 }
                 
-                // BOTÃO ENTREGUE - SÓ APARECE SE NÃO ESTIVER ENTREGUE OU CANCELADO
                 var btnEntregue = '';
                 if (statusPedido !== 'entregue' && statusPedido !== 'cancelado') {
                     btnEntregue = '<button class="btn btn-deliver btn-small" onclick="marcarEntregue('+x.id+')">✅ Entregue</button>';
@@ -1046,7 +1093,6 @@
             }).join('');
         }
 
-        // ========== MARCAR ENTREGUE ==========
         async function marcarEntregue(id) {
             var pedido = cachePedidos.find(function(p) { return p.id === id; });
             if (!pedido) { alert('❌ Pedido não encontrado!'); return; }
@@ -1067,7 +1113,6 @@
             }
         }
 
-        // ========== FILTRO PEDIDOS ==========
         function aplicarFiltroPedidos() {
             var status = document.getElementById('filtroPedidosStatus').value;
             var cliente = document.getElementById('filtroPedidosCliente').value.toLowerCase().trim();
@@ -1136,11 +1181,10 @@
                 var st = x.pagamentostatus === 'pago' ? '<span class="badge badge-pago">✅ PAGO</span>' : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
                 var btn = x.pagamentostatus !== 'pago' ? '<button class="btn btn-success btn-small" onclick="confirmarPag('+x.pedido_id+')">✅ Confirmar</button>' : '';
                 var lem = x.pagamentostatus !== 'pago' && x.telefone ? '<button class="btn btn-whatsapp btn-small" onclick="lembrar(\''+x.telefone+'\',\''+x.cliente+'\','+(x.total||0)+')">📱 Lembrar</button>' : '';
-                return '<div class="card-item"><div class="card-item-info"><strong style="color:var(--douardo);">👤 '+x.cliente+'</strong> '+st+'<br><small style="color:var(--text-secondary);">📱 '+(x.telefone||'')+' | R$ '+(x.total||0).toFixed(2)+'</small></div><div class="card-item-actions">'+btn+' '+lem+'</div></div>';
+                return '<div class="card-item"><div class="card-item-info"><strong style="color:var(--dourado);">👤 '+x.cliente+'</strong> '+st+'<br><small style="color:var(--text-secondary);">📱 '+(x.telefone||'')+' | R$ '+(x.total||0).toFixed(2)+'</small></div><div class="card-item-actions">'+btn+' '+lem+'</div></div>';
             }).join('');
         }
 
-        // ========== FILTRO PAGAMENTOS ==========
         function aplicarFiltroPagamentos() {
             var status = document.getElementById('filtroPagamentosStatus').value;
             var cliente = document.getElementById('filtroPagamentosCliente').value.toLowerCase().trim();
@@ -1271,7 +1315,6 @@
                 }).join('');
         }
 
-        // ========== FILTRO FINANCEIRO ==========
         function aplicarFiltroFinanceiro() {
             var cliente = document.getElementById('filtroFinanceiroCliente').value.toLowerCase().trim();
             var dataInicio = document.getElementById('filtroFinanceiroInicio').value;
@@ -1330,7 +1373,6 @@
             }).join('');
         }
 
-        // ========== FILTRO RANKING ==========
         function aplicarFiltroRanking() {
             var dataInicio = document.getElementById('filtroRankingInicio').value;
             var dataFim = document.getElementById('filtroRankingFim').value;
@@ -1381,7 +1423,6 @@
             l.innerHTML = html;
         }
 
-        // ========== FILTRO HISTÓRICO ==========
         function aplicarFiltroHistorico() {
             var tipo = document.getElementById('filtroHistoricoTipo').value;
             var item = document.getElementById('filtroHistoricoItem').value.toLowerCase().trim();
@@ -1404,6 +1445,111 @@
             document.getElementById('filtroHistoricoItem').value = '';
             renderizarHistorico(cacheHistorico);
             mostrarToast('🧹 Filtros limpos!');
+        }
+
+        // ============ SETORES ============
+        async function carregarSetores() {
+            var { data } = await supabase.from('setores').select('*').order('nome');
+            cacheSetores = data || [];
+            renderizarSetores(cacheSetores);
+        }
+
+        function renderizarSetores(s) {
+            var l = document.getElementById('listaSetores');
+            if (s.length === 0) { 
+                l.innerHTML = '<p style="color:var(--text-secondary);">Nenhum setor cadastrado.</p>'; 
+                return; 
+            }
+            l.innerHTML = s.map(function(setor) {
+                var statusBadge = setor.ativo ? '<span class="badge badge-ativo">✅ Ativo</span>' : '<span class="badge badge-inativo">⛔ Inativo</span>';
+                return '<div class="setor-card">' +
+                    '<div><span class="setor-nome">📍 ' + setor.nome + '</span> <span class="setor-taxa">💰 R$ ' + (setor.taxa_entrega || 0).toFixed(2) + '</span> ' + statusBadge + '</div>' +
+                    '<div style="display:flex;gap:6px;">' +
+                        '<button class="btn btn-warning btn-small" onclick="editarSetor(' + setor.id + ')">✏️</button>' +
+                        '<button class="btn btn-danger btn-small" onclick="excluirSetor(' + setor.id + ')">🗑️</button>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+
+        async function cadastrarSetor() {
+            var nome = document.getElementById('setorNome').value.trim();
+            var taxa = parseFloat(document.getElementById('setorTaxa').value) || 0;
+            
+            if (!nome) { alert('❌ Digite o nome do bairro!'); return; }
+            
+            // Verificar se já existe
+            var { data: existente } = await supabase
+                .from('setores')
+                .select('*')
+                .eq('nome', nome)
+                .maybeSingle();
+            
+            if (existente) { 
+                alert('❌ Este setor já existe!'); 
+                return; 
+            }
+            
+            var { error } = await supabase
+                .from('setores')
+                .insert([{ nome: nome, taxa_entrega: taxa, ativo: true }]);
+            
+            if (error) {
+                alert('❌ Erro ao cadastrar: ' + error.message);
+                return;
+            }
+            
+            document.getElementById('setorNome').value = '';
+            document.getElementById('setorTaxa').value = '5.00';
+            carregarSetores();
+            mostrarToast('✅ Setor cadastrado com sucesso!');
+        }
+
+        async function editarSetor(id) {
+            var setor = cacheSetores.find(function(s) { return s.id === id; });
+            if (!setor) return;
+            
+            var novoNome = prompt('Nome do bairro:', setor.nome);
+            if (!novoNome) return;
+            
+            var novaTaxa = parseFloat(prompt('Taxa de entrega R$:', setor.taxa_entrega || 0));
+            if (isNaN(novaTaxa)) return;
+            
+            var novoStatus = confirm('Ativo? (OK = Ativo, Cancelar = Inativo)');
+            
+            var { error } = await supabase
+                .from('setores')
+                .update({ 
+                    nome: novoNome, 
+                    taxa_entrega: novaTaxa, 
+                    ativo: novoStatus 
+                })
+                .eq('id', id);
+            
+            if (error) {
+                alert('❌ Erro ao atualizar: ' + error.message);
+                return;
+            }
+            
+            carregarSetores();
+            mostrarToast('✅ Setor atualizado!');
+        }
+
+        async function excluirSetor(id) {
+            if (!confirm('Excluir este setor permanentemente?')) return;
+            
+            var { error } = await supabase
+                .from('setores')
+                .delete()
+                .eq('id', id);
+            
+            if (error) {
+                alert('❌ Erro ao excluir: ' + error.message);
+                return;
+            }
+            
+            carregarSetores();
+            mostrarToast('✅ Setor excluído!');
         }
 
         // ============ CONFIG ============
@@ -1432,6 +1578,7 @@
             carregarEstoque(); 
             carregarC1(); 
             carregarC2(); 
+            carregarSetores();
         }
 
         verificarConexao();
