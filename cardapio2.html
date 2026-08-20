@@ -6,39 +6,40 @@
     <title>Cardápio - Dindins Gourmet FX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #3E1F0D, #5C3317, #8B4513); min-height: 100vh; padding: 15px; font-size: 18px; }
-        .container { max-width: 850px; margin: 0 auto; background: #FFF8DC; border-radius: 16px; overflow: hidden; border: 2px solid #DAA520; }
-        .header { background: linear-gradient(135deg, #5C3317, #8B4513); color: #FFD700; padding: 25px; text-align: center; }
-        .header h1 { font-size: 2em; }
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; padding: 20px; }
-        .menu-item { background: #FFF8DC; border: 2px solid #DAA520; border-radius: 14px; padding: 18px; text-align: center; }
-        .menu-item .foto-item { width: 100%; height: 150px; border-radius: 10px; object-fit: cover; margin-bottom: 10px; display: block; }
-        .menu-item .emoji-item { font-size: 5em; margin-bottom: 10px; display: block; }
-        .menu-item h3 { color: #CC5500; font-size: 1.3em; margin-bottom: 5px; }
-        .preco { font-size: 1.6em; color: #CC5500; font-weight: bold; margin-bottom: 8px; }
-        .disponivel { font-size: 1em; color: #DAA520; margin-bottom: 10px; }
-        .qtd-controle { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 8px; }
-        .btn-qtd { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #CC5500; background: #FFF8DC; color: #CC5500; font-size: 1.4em; cursor: pointer; font-weight: bold; }
-        .btn-qtd:active { background: #CC5500; color: #FFD700; }
-        .quantidade { font-size: 1.3em; font-weight: bold; color: #8B4513; min-width: 30px; text-align: center; }
-        .carrinho-section { background: #D2691E; padding: 25px; border-top: 3px solid #DAA520; }
-        .carrinho-title { color: #FFD700; text-align: center; font-size: 1.5em; margin-bottom: 15px; }
-        .form-section { background: #FFF8DC; padding: 20px; border-radius: 12px; margin-bottom: 15px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-weight: bold; color: #8B4513; margin-bottom: 5px; font-size: 1.1em; }
-        .form-group input, .form-group select { width: 100%; padding: 14px; border: 2px solid #DAA520; border-radius: 10px; font-size: 18px; background: #FFF8DC; }
-        .total-section { background: #FFF8DC; padding: 18px; border-radius: 12px; margin-bottom: 15px; }
-        .total-final { font-size: 1.6em; font-weight: bold; color: #CC5500; display: flex; justify-content: space-between; }
-        .btn-finalizar { width: 100%; padding: 16px; background: #25D366; color: white; border: none; border-radius: 12px; font-size: 1.3em; font-weight: bold; cursor: pointer; }
-        .btn-finalizar:disabled { opacity: 0.5; background: #ccc; }
-        .pix-info { display: none; background: #FFF8DC; padding: 18px; border-radius: 12px; border: 2px solid #DAA520; margin-bottom: 15px; }
-        .pix-chave { background: white; padding: 14px; border-radius: 10px; font-size: 1.2em; text-align: center; word-break: break-all; }
-        .btn-copiar-pix { width: 100%; padding: 12px; background: #CC5500; color: #FFD700; border: none; border-radius: 10px; font-size: 1.1em; cursor: pointer; font-weight: bold; margin-top: 8px; }
-        .sucesso-msg { display: none; background: #d4edda; color: #155724; padding: 20px; border-radius: 12px; text-align: center; margin-top: 15px; font-size: 1.2em; }
-        .item-carrinho { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #FFF8DC; border-radius: 8px; margin-bottom: 8px; font-size: 1.1em; }
-        .btn-remover { background: #8B0000; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        @media (max-width: 480px) { .menu-grid { grid-template-columns: 1fr; } .header h1 { font-size: 1.6em; } }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,sans-serif; background:linear-gradient(135deg,#3E1F0D,#5C3317,#8B4513); min-height:100vh; padding:15px; font-size:18px; }
+        .container { max-width:850px; margin:0 auto; background:#FFF8DC; border-radius:20px; overflow:hidden; border:2px solid #DAA520; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
+        .header { background:linear-gradient(135deg,#5C3317,#8B4513); color:#FFD700; padding:25px; text-align:center; }
+        .header h1 { font-size:2em; }
+        .menu-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:15px; padding:20px; }
+        .menu-item { background:#FFF8DC; border:2px solid #DAA520; border-radius:16px; padding:18px; text-align:center; transition:all 0.3s; }
+        .menu-item:hover { transform:translateY(-5px); box-shadow:0 10px 30px rgba(0,0,0,0.2); }
+        .menu-item .foto-item { width:100%; height:140px; border-radius:12px; object-fit:cover; margin-bottom:10px; }
+        .menu-item .emoji-item { font-size:4.5em; margin-bottom:10px; }
+        .menu-item h3 { color:#CC5500; font-size:1.2em; }
+        .preco { font-size:1.5em; color:#CC5500; font-weight:800; }
+        .disponivel { font-size:0.95em; color:#DAA520; }
+        .qtd-controle { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:10px; }
+        .btn-qtd { width:44px; height:44px; border-radius:50%; border:2px solid #CC5500; background:#FFF8DC; color:#CC5500; font-size:1.3em; cursor:pointer; font-weight:bold; }
+        .btn-qtd:active { background:#CC5500; color:#FFD700; }
+        .quantidade { font-size:1.2em; font-weight:bold; color:#8B4513; }
+        .carrinho-section { background:#D2691E; padding:25px; border-top:3px solid #DAA520; }
+        .carrinho-title { color:#FFD700; text-align:center; font-size:1.5em; margin-bottom:15px; }
+        .form-section { background:#FFF8DC; padding:20px; border-radius:14px; margin-bottom:15px; }
+        .form-group { margin-bottom:14px; }
+        .form-group label { display:block; font-weight:bold; color:#8B4513; margin-bottom:5px; font-size:1.05em; }
+        .form-group input, .form-group select { width:100%; padding:14px; border:2px solid #DAA520; border-radius:12px; font-size:17px; background:#FFFDF5; }
+        .total-section { background:#FFF8DC; padding:18px; border-radius:14px; margin-bottom:15px; }
+        .total-final { font-size:1.5em; font-weight:800; color:#CC5500; display:flex; justify-content:space-between; }
+        .btn-finalizar { width:100%; padding:16px; background:linear-gradient(135deg,#25D366,#16a34a); color:white; border:none; border-radius:14px; font-size:1.2em; font-weight:bold; cursor:pointer; }
+        .btn-finalizar:disabled { opacity:0.5; background:#ccc; }
+        .pix-info { display:none; background:#FFF8DC; padding:18px; border-radius:14px; border:2px solid #DAA520; margin-bottom:15px; }
+        .pix-chave { background:white; padding:14px; border-radius:12px; font-size:1.15em; text-align:center; word-break:break-all; }
+        .btn-copiar-pix { width:100%; padding:12px; background:#CC5500; color:#FFD700; border:none; border-radius:12px; font-size:1.05em; cursor:pointer; font-weight:bold; margin-top:8px; }
+        .sucesso-msg { display:none; background:#dcfce7; color:#166534; padding:20px; border-radius:14px; text-align:center; margin-top:15px; font-size:1.15em; }
+        .item-carrinho { display:flex; justify-content:space-between; align-items:center; padding:12px; background:#FFF8DC; border-radius:10px; margin-bottom:8px; font-size:1.05em; }
+        .btn-remover { background:#ef4444; color:white; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:bold; }
+        @media (max-width:480px) { .menu-grid { grid-template-columns:1fr; } .header h1 { font-size:1.6em; } }
     </style>
 </head>
 <body>
@@ -55,7 +56,7 @@
                 <div class="form-group"><label>👤 Nome Completo *</label><input type="text" id="nome-cliente"></div>
                 <div class="form-group"><label>📱 WhatsApp *</label><input type="tel" id="telefone-cliente" placeholder="(00) 00000-0000"></div>
                 <div class="form-group"><label>💳 Pagamento *</label><select id="pagamento-select"><option value="">Selecione</option><option value="PIX">PIX</option><option value="Dinheiro">Dinheiro</option><option value="Cartão">Cartão</option></select></div>
-                <div class="pix-info" id="pix-info"><h4 style="font-size:1.2em;">📱 Chave PIX</h4><div class="pix-chave" id="pix-chave-display"></div><button class="btn-copiar-pix" onclick="copiarPix()">📋 Copiar PIX</button></div>
+                <div class="pix-info" id="pix-info"><h4>📱 Chave PIX</h4><div class="pix-chave" id="pix-chave-display"></div><button class="btn-copiar-pix" onclick="copiarPix()">📋 Copiar PIX</button></div>
             </div>
             <button class="btn-finalizar" id="btn-finalizar" onclick="finalizarPedido()" disabled>📱 Finalizar Pedido</button>
             <div class="sucesso-msg" id="sucesso-msg"><h3>✅ Pedido Realizado!</h3><p>📦 Nº <strong id="pedido-id"></strong></p></div>
@@ -64,8 +65,19 @@
 
     <script>
         var supabase = window.supabase.createClient('https://khgkneegpxcgufslupby.supabase.co', 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G');
-        let carrinho = [], cardapioDados = [];
+        let carrinho = [], cardapioDados = [], configDados = {};
+
+        async function carregarConfig() {
+            var { data } = await supabase.from('config').select('*').eq('chave','admin').maybeSingle();
+            configDados = data ? (data.dados || {}) : {};
+            document.getElementById('pix-chave-display').textContent = configDados.pix || 'pix@dindingourmet.com.br';
+        }
 
         async function carregarCardapio() {
             var { data } = await supabase.from('cardapio2').select('*');
-           
+            cardapioDados = data || [];
+            var m = document.getElementById('menu-grid');
+            if (cardapioDados.length === 0) { m.innerHTML = '<p style="color:#8B4513;">Indisponível.</p>'; return; }
+            m.innerHTML = cardapioDados.map(function(i) {
+                var fotoHtml = i.foto ? '<img src="' + i.foto + '" class="foto-item" alt="' + i.nome + '">' : '<span class="emoji-item">' + (i.emoji||'🍦') + '</span>';
+                return '<div class="menu-item">' + fotoHtml + '<h3>' + i.nome + '</h3><div class="preco">R$ ' + (i.preco||0).toFixed(2) + '</div><p class="disponivel">📦 <strong>' + (i.quantidade||0) + '</strong> unid.</p><div class="qtd-controle"><button class="btn-qtd" onclick="add(\'' + i.id + '\',-1)">−</button><span class="quantidade" id="q-' + i.id + '">0</span><button class="btn-qtd"
