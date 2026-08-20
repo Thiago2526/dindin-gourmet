@@ -6,60 +6,233 @@
     <title>Admin - Dindins Gourmet FX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --marrom:#5C3317; --laranja:#CC5500; --dourado:#DAA520; --amarelo:#FFD700; --creme:#FFF8DC; }
+        :root {
+            --marrom: #5C3317;
+            --laranja: #CC5500;
+            --dourado: #DAA520;
+            --amarelo: #FFD700;
+            --creme: #FFF8DC;
+            --verde: #22c55e;
+            --vermelho: #ef4444;
+            --azul: #3b82f6;
+            --roxo: #8b5cf6;
+            --shadow: 0 4px 20px rgba(0,0,0,0.15);
+            --radius: 16px;
+        }
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Segoe UI',Tahoma,sans-serif; background:linear-gradient(135deg,#5C3317,#8B4513,#A0522D); min-height:100vh; font-size:18px; }
-        .login-box { max-width:420px; margin:80px auto; background:#FFF8DC; padding:30px; border-radius:15px; border:2px solid #DAA520; text-align:center; }
-        .logo { width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,#CC5500,#DAA520); color:white; font-size:40px; font-weight:bold; display:flex; align-items:center; justify-content:center; margin:0 auto 15px; }
-        h2 { color:#CC5500; font-size:1.8em; }
-        p { color:#8B4513; margin-bottom:15px; }
-        input, select { width:100%; padding:14px; margin-bottom:10px; border:2px solid #DAA520; border-radius:8px; font-size:18px; background:#FFF8DC; box-sizing:border-box; }
-        button { width:100%; padding:14px; background:#CC5500; color:white; border:none; border-radius:8px; font-size:18px; font-weight:bold; cursor:pointer; margin-bottom:5px; }
+        body { 
+            font-family:'Inter','Segoe UI',Tahoma,sans-serif; 
+            background: linear-gradient(135deg, #1a0f0a 0%, #3E1F0D 30%, #5C3317 60%, #8B4513 100%);
+            min-height:100vh; 
+            font-size:16px;
+        }
+        body.dark { background: #0f0f0f; }
+        
+        /* LOGIN MODERNO */
+        .login-box { 
+            max-width:400px; margin:60px auto; 
+            background: rgba(255,255,255,0.98); 
+            padding:40px 30px; 
+            border-radius:24px; 
+            text-align:center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+        }
+        .logo { 
+            width:90px; height:90px; 
+            border-radius:50%; 
+            background: linear-gradient(135deg, #CC5500, #FFD700);
+            color:white; font-size:45px; 
+            display:flex; align-items:center; justify-content:center; 
+            margin:0 auto 20px;
+            box-shadow: 0 10px 30px rgba(204,85,0,0.4);
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        h2 { color:#CC5500; font-size:1.6em; margin-bottom:5px; font-weight:800; }
+        p { color:#8B4513; margin-bottom:20px; }
+        input, select { 
+            width:100%; padding:14px 18px; margin-bottom:12px; 
+            border:2px solid #f0e0c0; border-radius:14px; 
+            font-size:16px; background:#FFFDF5;
+            transition:all 0.3s;
+        }
+        input:focus, select:focus { border-color:#CC5500; box-shadow:0 0 0 4px rgba(204,85,0,0.15); outline:none; }
+        button { 
+            width:100%; padding:14px; 
+            background: linear-gradient(135deg, #CC5500, #E0551F);
+            color:white; border:none; border-radius:14px; 
+            font-size:17px; font-weight:700; cursor:pointer;
+            transition:all 0.3s;
+            box-shadow: 0 5px 15px rgba(204,85,0,0.3);
+        }
+        button:hover { transform:translateY(-2px); box-shadow:0 10px 25px rgba(204,85,0,0.4); }
         .erro { color:red; margin-top:10px; display:none; }
-        .status-conexao { font-size:14px; margin-top:15px; font-weight:bold; }
-        .status-online { color:green; }
-        .status-offline { color:red; }
+        .status-conexao { font-size:13px; margin-top:15px; font-weight:600; }
+        .status-online { color:var(--verde); }
+        .status-offline { color:var(--vermelho); }
         .status-checking { color:orange; }
-        .painel { display:none; max-width:1300px; margin:20px auto; background:#FFF8DC; padding:20px; border-radius:15px; border:2px solid #DAA520; }
-        .tabs { display:flex; gap:5px; flex-wrap:wrap; margin:15px 0; }
-        .tab-btn { padding:14px 20px; background:#D2691E; color:#FFD700; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px; }
-        .tab-btn.active { background:#FFD700; color:#8B4513; }
-        .conteudo { display:none; background:#FFF8DC; padding:20px; border-radius:10px; border:1px solid #DAA520; }
+
+        /* PAINEL MODERNO */
+        .painel { 
+            display:none; max-width:1350px; margin:20px auto; 
+            padding:25px;
+        }
+        .header-painel {
+            display:flex; justify-content:space-between; align-items:center;
+            background: rgba(255,255,255,0.95);
+            padding:20px 25px; border-radius:20px;
+            box-shadow:var(--shadow); margin-bottom:20px;
+            flex-wrap:wrap; gap:10px;
+        }
+        .header-painel h2 { color:#CC5500; font-size:1.4em; }
+        
+        /* TABS MODERNAS */
+        .tabs { 
+            display:flex; gap:6px; flex-wrap:wrap; 
+            margin-bottom:20px;
+        }
+        .tab-btn { 
+            padding:12px 18px; 
+            background: rgba(255,255,255,0.15);
+            color:white; border:none; border-radius:14px; 
+            cursor:pointer; font-weight:600; font-size:14px;
+            transition:all 0.3s; backdrop-filter:blur(10px);
+        }
+        .tab-btn:hover { background: rgba(255,255,255,0.25); }
+        .tab-btn.active { 
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color:#5C3317; font-weight:700;
+            box-shadow: 0 5px 20px rgba(255,215,0,0.4);
+        }
+        
+        /* CONTEÚDO */
+        .conteudo { 
+            display:none; background: rgba(255,255,255,0.97);
+            padding:25px; border-radius:20px;
+            box-shadow:var(--shadow);
+        }
         .conteudo.active { display:block; }
-        .form-group { margin-bottom:12px; }
-        .form-group label { display:block; font-weight:bold; color:#8B4513; margin-bottom:4px; font-size:1.1em; }
-        .btn { padding:12px 20px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin:2px; font-size:16px; }
-        .btn-primary { background:#CC5500; color:white; }
-        .btn-success { background:#228B22; color:white; }
-        .btn-danger { background:#8B0000; color:white; }
-        .btn-whatsapp { background:#25D366; color:white; }
-        .btn-small { padding:8px 14px; font-size:14px; width:auto; }
-        .card-item { background:#FFF8DC; padding:18px; border-radius:8px; border:1px solid #DAA520; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
-        .card-item-info { flex:1; min-width:200px; display:flex; align-items:center; gap:10px; }
-        .card-item-info strong { font-size:1.2em; }
-        .card-item-info small { font-size:0.95em; }
-        .card-item-actions { display:flex; gap:5px; flex-wrap:wrap; }
-        .item-foto { width:70px; height:70px; border-radius:10px; object-fit:cover; border:2px solid #DAA520; }
-        .item-foto-placeholder { width:70px; height:70px; border-radius:10px; border:2px dashed #DAA520; display:flex; align-items:center; justify-content:center; font-size:35px; background:#FFF8DC; }
-        .badge { padding:5px 12px; border-radius:12px; font-size:14px; font-weight:bold; }
-        .badge-pago { background:#90EE90; color:#006400; }
-        .badge-pendente { background:#FFD700; color:#8B4513; }
-        .badge-entrada { background:#90EE90; color:#006400; }
-        .badge-saida { background:#FFB6C1; color:#8B0000; }
-        .badge-alocacao { background:#87CEEB; color:#00008B; }
-        .preview-foto { max-width:100%; max-height:180px; border-radius:10px; margin-top:10px; border:2px solid #DAA520; }
-        .hidden { display:none !important; }
-        table { width:100%; border-collapse:collapse; margin-top:10px; }
-        th { background:#D2691E; color:#FFD700; padding:14px; text-align:left; font-size:16px; }
-        td { padding:14px; border-bottom:1px solid #DAA520; font-size:16px; }
-        .filtro-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px; align-items:center; background:#FFF8DC; padding:15px; border-radius:10px; border:1px solid #DAA520; }
-        .filtro-bar input, .filtro-bar select { width:auto; flex:1; min-width:140px; padding:12px; border:2px solid #DAA520; border-radius:8px; font-size:16px; background:#FFF8DC; }
-        .filtro-bar label { font-weight:bold; color:#8B4513; font-size:14px; }
+        
+        /* CARDS */
+        .card-item { 
+            background:#FFFDF5; padding:18px; 
+            border-radius:16px; 
+            border:1px solid #f0e0c0;
+            margin-bottom:12px; 
+            display:flex; justify-content:space-between; 
+            align-items:center; flex-wrap:wrap; gap:12px;
+            transition:all 0.3s;
+            box-shadow:0 2px 10px rgba(0,0,0,0.05);
+        }
+        .card-item:hover { transform:translateX(5px); box-shadow:0 5px 20px rgba(0,0,0,0.1); }
+        .card-item-info { flex:1; min-width:180px; display:flex; align-items:center; gap:12px; }
+        .card-item-info strong { font-size:1.1em; color:#333; }
+        .card-item-info small { font-size:0.85em; color:#666; }
+        .card-item-actions { display:flex; gap:6px; flex-wrap:wrap; }
+        
+        .item-foto { width:60px; height:60px; border-radius:14px; object-fit:cover; border:2px solid #f0e0c0; }
+        .item-foto-placeholder { 
+            width:60px; height:60px; border-radius:14px; 
+            border:2px dashed #f0e0c0; 
+            display:flex; align-items:center; justify-content:center; 
+            font-size:30px; background:#FFFDF5;
+        }
+        
+        /* BADGES */
+        .badge { padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700; }
+        .badge-pago { background:#dcfce7; color:#166534; }
+        .badge-pendente { background:#fef9c3; color:#854d0e; }
+        .badge-entrada { background:#dcfce7; color:#166534; }
+        .badge-saida { background:#fee2e2; color:#991b1b; }
+        .badge-alocacao { background:#dbeafe; color:#1e40af; }
+        .badge-baixo { background:#fee2e2; color:#991b1b; }
+        .badge-normal { background:#dcfce7; color:#166534; }
+        .badge-novo { background:#fef9c3; color:#854d0e; }
+        .badge-preparo { background:#dbeafe; color:#1e40af; }
+        .badge-entrega { background:#f3e8ff; color:#6b21a8; }
+        .badge-entregue { background:#dcfce7; color:#166534; }
+        .badge-cancelado { background:#fee2e2; color:#991b1b; }
+        
+        /* BOTÕES */
+        .btn { padding:10px 16px; border:none; border-radius:12px; font-weight:600; cursor:pointer; font-size:14px; transition:all 0.3s; }
+        .btn:hover { transform:translateY(-2px); }
+        .btn-primary { background:linear-gradient(135deg,#CC5500,#E0551F); color:white; }
+        .btn-success { background:linear-gradient(135deg,#22c55e,#16a34a); color:white; }
+        .btn-danger { background:linear-gradient(135deg,#ef4444,#dc2626); color:white; }
+        .btn-warning { background:linear-gradient(135deg,#FFD700,#FFA500); color:#5C3317; }
+        .btn-info { background:linear-gradient(135deg,#3b82f6,#2563eb); color:white; }
+        .btn-whatsapp { background:linear-gradient(135deg,#25D366,#16a34a); color:white; }
+        .btn-small { padding:6px 10px; font-size:12px; width:auto; }
+        
+        /* FILTROS */
+        .filtro-bar { 
+            display:flex; gap:10px; flex-wrap:wrap; 
+            margin-bottom:15px; padding:15px;
+            background:#FFFDF5; border-radius:14px; 
+            border:1px solid #f0e0c0;
+        }
         .filtro-item { display:flex; flex-direction:column; gap:4px; }
-        @media (max-width:600px) { .tabs { flex-direction:column; } .filtro-bar { flex-direction:column; } .filtro-bar input, .filtro-bar select { width:100%; } }
+        .filtro-item label { font-size:12px; font-weight:700; color:#8B4513; }
+        .filtro-bar input, .filtro-bar select {
+            width:auto; flex:1; min-width:130px; padding:10px;
+            border:2px solid #f0e0c0; border-radius:10px; font-size:14px;
+        }
+        
+        /* DASHBOARD */
+        .dashboard-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:15px; margin-bottom:20px; }
+        .dash-card { 
+            background:#FFFDF5; padding:25px; border-radius:18px; 
+            border:1px solid #f0e0c0; text-align:center;
+            box-shadow:0 2px 10px rgba(0,0,0,0.05);
+            transition:all 0.3s;
+        }
+        .dash-card:hover { transform:translateY(-5px); box-shadow:0 10px 30px rgba(0,0,0,0.15); }
+        .dash-card .icon { font-size:2.5em; margin-bottom:10px; }
+        .dash-card .valor { font-size:1.8em; font-weight:800; color:#CC5500; }
+        .dash-card .label { font-size:0.85em; color:#666; margin-top:5px; }
+        
+        /* TABELA */
+        table { width:100%; border-collapse:collapse; margin-top:10px; }
+        th { background:linear-gradient(135deg,#CC5500,#E0551F); color:white; padding:14px; text-align:left; font-size:14px; font-weight:700; }
+        td { padding:14px; border-bottom:1px solid #f0e0c0; font-size:14px; }
+        tr:hover td { background:#FFFDF5; }
+        
+        /* TOAST */
+        .toast { 
+            position:fixed; top:20px; right:20px; 
+            background:linear-gradient(135deg,#22c55e,#16a34a);
+            color:white; padding:15px 25px; border-radius:14px; 
+            font-weight:700; z-index:9999; display:none;
+            box-shadow:0 10px 30px rgba(0,0,0,0.3);
+            animation:slideIn 0.4s;
+        }
+        @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+        
+        .ranking-item { 
+            display:flex; justify-content:space-between; align-items:center; 
+            padding:14px; background:#FFFDF5; border-radius:12px; 
+            border:1px solid #f0e0c0; margin-bottom:8px;
+        }
+        .ranking-posicao { font-size:1.5em; font-weight:800; width:50px; text-align:center; }
+        .ranking-nome { flex:1; font-size:1.05em; font-weight:600; }
+        .ranking-qtd { font-size:1.1em; font-weight:800; color:#CC5500; }
+        
+        .hidden { display:none !important; }
+        .form-group { margin-bottom:14px; }
+        .form-group label { display:block; font-weight:700; color:#8B4513; margin-bottom:5px; font-size:14px; }
+        
+        @media (max-width:600px) { 
+            .tabs { flex-direction:column; } 
+            .filtro-bar { flex-direction:column; } 
+            .filtro-bar input, .filtro-bar select { width:100%; } 
+            .header-painel { flex-direction:column; text-align:center; }
+        }
     </style>
 </head>
 <body>
+
+    <div class="toast" id="toastNotificacao"></div>
 
     <!-- LOGIN -->
     <div id="telaLogin">
@@ -71,73 +244,88 @@
             <input type="password" id="campoSenha" placeholder="Senha">
             <button onclick="fazerLogin()">🚀 Entrar</button>
             <p class="erro" id="erroLogin">❌ Usuário ou senha incorretos!</p>
-            <p style="margin-top:15px;font-size:14px;">master / admin123</p>
-            <p class="status-conexao" id="statusConexao">🟡 <span class="status-checking">Verificando conexão...</span></p>
+            <p style="margin-top:15px;font-size:13px;color:#999;">master / admin123</p>
+            <p class="status-conexao" id="statusConexao">🟡 <span class="status-checking">Conectando...</span></p>
         </div>
     </div>
 
     <!-- PAINEL -->
     <div class="painel hidden" id="painelAdmin">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-            <h2 style="font-size:1.6em;">🍦 Dindins Gourmet FX</h2>
-            <button class="btn btn-danger" onclick="sair()" style="width:auto;">🚪 Sair</button>
+        <div class="header-painel">
+            <h2>🍦 Dindins Gourmet FX</h2>
+            <div style="display:flex;gap:8px;">
+                <button class="btn btn-info" onclick="alternarTema()" style="width:auto;">🌓</button>
+                <button class="btn btn-danger" onclick="sair()" style="width:auto;">🚪 Sair</button>
+            </div>
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="mudarTab('estoque')">📦 Estoque</button>
+            <button class="tab-btn active" onclick="mudarTab('dashboard')">📊 Dashboard</button>
+            <button class="tab-btn" onclick="mudarTab('estoque')">📦 Estoque</button>
             <button class="tab-btn" onclick="mudarTab('c1')">📋 Cardápio 1</button>
             <button class="tab-btn" onclick="mudarTab('c2')">🔥 Cardápio 2</button>
             <button class="tab-btn" onclick="mudarTab('pedidos')">📋 Pedidos</button>
             <button class="tab-btn" onclick="mudarTab('pagamentos')">💳 Pagamentos</button>
             <button class="tab-btn" onclick="mudarTab('financeiro')">💰 Financeiro</button>
+            <button class="tab-btn" onclick="mudarTab('ranking')">🏆 Ranking</button>
             <button class="tab-btn" onclick="mudarTab('historico')">📜 Histórico</button>
             <button class="tab-btn" onclick="mudarTab('config')">⚙️ Config</button>
         </div>
 
+        <!-- DASHBOARD -->
+        <div class="conteudo active" id="conteudo-dashboard">
+            <h3 style="color:#CC5500;margin-bottom:20px;">📊 Dashboard</h3>
+            <div class="dashboard-cards" id="dashboardCards"></div>
+        </div>
+
         <!-- ESTOQUE -->
-        <div class="conteudo active" id="conteudo-estoque">
-            <h3 style="font-size:1.4em;">📦 Estoque Geral</h3>
+        <div class="conteudo" id="conteudo-estoque">
+            <h3 style="color:#CC5500;margin-bottom:20px;">📦 Estoque Geral</h3>
             <div class="form-group"><label>Nome</label><input type="text" id="estoqueNome"></div>
             <div class="form-group"><label>Emoji</label><input type="text" id="estoqueEmoji" maxlength="2" value="🍦"></div>
             <div class="form-group"><label>Preço R$</label><input type="number" id="estoquePreco" step="0.01"></div>
             <div class="form-group"><label>Quantidade</label><input type="number" id="estoqueQtd" value="50"></div>
             <div class="form-group"><label>📸 Foto (opcional)</label><input type="file" id="estoqueFoto" accept="image/*" onchange="previewFotoAdmin(this)"></div>
-            <div id="previewFotoContainer" style="display:none;"><img id="previewFotoAdmin" class="preview-foto" src=""></div>
+            <div id="previewFotoContainer" style="display:none;"><img id="previewFotoAdmin" style="max-width:100%;max-height:180px;border-radius:12px;margin-top:10px;" src=""></div>
             <button class="btn btn-primary" onclick="cadastrarItem()">💾 Cadastrar</button>
             <button class="btn btn-success" onclick="carregarEstoque()">🔄 Atualizar</button>
             <div class="filtro-bar" style="margin-top:15px;">
-                <div class="filtro-item"><label>🔍 Filtrar por nome</label><input type="text" id="filtroEstoqueNome" placeholder="Digite o nome..." oninput="aplicarFiltroEstoque()"></div>
+                <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroEstoqueNome" placeholder="Filtrar..." oninput="aplicarFiltroEstoque()"></div>
+                <div class="filtro-item"><label>📊 Ordenar</label><select id="ordemEstoque" onchange="aplicarFiltroEstoque()"><option value="nome">Nome A-Z</option><option value="qtd">Quantidade</option><option value="preco">Preço</option></select></div>
             </div>
+            <div id="alertasEstoque"></div>
             <div id="listaEstoque" style="margin-top:15px;"></div>
         </div>
 
         <!-- CARDÁPIO 1 -->
         <div class="conteudo" id="conteudo-c1">
-            <h3 style="font-size:1.4em;">📋 Cardápio 1 (Principal)</h3>
+            <h3 style="color:#CC5500;margin-bottom:20px;">📋 Cardápio 1</h3>
             <div class="filtro-bar">
-                <div class="filtro-item"><label>🔍 Filtrar por nome</label><input type="text" id="filtroC1Nome" placeholder="Digite o nome..." oninput="aplicarFiltroC1()"></div>
+                <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroC1Nome" placeholder="Filtrar..." oninput="aplicarFiltroC1()"></div>
             </div>
             <div id="listaC1"></div>
         </div>
 
         <!-- CARDÁPIO 2 -->
         <div class="conteudo" id="conteudo-c2">
-            <h3 style="font-size:1.4em;">🔥 Cardápio 2</h3>
+            <h3 style="color:#CC5500;margin-bottom:20px;">🔥 Cardápio 2</h3>
             <div class="form-group"><label>Sabor</label><select id="alocarSabor"></select></div>
             <div class="form-group"><label>Quantidade</label><input type="number" id="alocarQtd" value="10"></div>
             <button class="btn btn-success" onclick="alocarC2()">📤 Alocar</button>
             <div class="filtro-bar" style="margin-top:15px;">
-                <div class="filtro-item"><label>🔍 Filtrar por nome</label><input type="text" id="filtroC2Nome" placeholder="Digite o nome..." oninput="aplicarFiltroC2()"></div>
+                <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroC2Nome" placeholder="Filtrar..." oninput="aplicarFiltroC2()"></div>
             </div>
             <div id="listaC2" style="margin-top:15px;"></div>
         </div>
 
         <!-- PEDIDOS -->
         <div class="conteudo" id="conteudo-pedidos">
-            <h3 style="font-size:1.4em;">📋 Pedidos</h3>
+            <h3 style="color:#CC5500;margin-bottom:20px;">📋 Pedidos</h3>
             <div class="filtro-bar">
                 <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroPedidosNome" placeholder="Nome..." oninput="aplicarFiltroPedidos()"></div>
                 <div class="filtro-item"><label>📱 Telefone</label><input type="text" id="filtroPedidosTel" placeholder="Telefone..." oninput="aplicarFiltroPedidos()"></div>
+                <div class="filtro-item"><label>📋 Status</label><select id="filtroPedidoStatus" onchange="aplicarFiltroPedidos()"><option value="todos">Todos</option><option value="novo">Novo</option><option value="preparo">Em Preparo</option><option value="entrega">Saiu p/ Entrega</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select></div>
+                <div class="filtro-item"><label>📊 Ordenar</label><select id="ordemPedidos" onchange="aplicarFiltroPedidos()"><option value="recente">Mais Recente</option><option value="antigo">Mais Antigo</option><option value="maior">Maior Valor</option><option value="menor">Menor Valor</option></select></div>
                 <div class="filtro-item"><label>📅 Início</label><input type="date" id="filtroPedidosDataIni" onchange="aplicarFiltroPedidos()"></div>
                 <div class="filtro-item"><label>📅 Fim</label><input type="date" id="filtroPedidosDataFim" onchange="aplicarFiltroPedidos()"></div>
             </div>
@@ -146,7 +334,7 @@
 
         <!-- PAGAMENTOS -->
         <div class="conteudo" id="conteudo-pagamentos">
-            <h3 style="font-size:1.4em;">💳 Pagamentos</h3>
+            <h3 style="color:#CC5500;margin-bottom:20px;">💳 Pagamentos</h3>
             <div class="filtro-bar">
                 <div class="filtro-item"><label>🔍 Nome</label><input type="text" id="filtroPagNome" placeholder="Nome..." oninput="aplicarFiltroPagamentos()"></div>
                 <div class="filtro-item"><label>📱 Telefone</label><input type="text" id="filtroPagTel" placeholder="Telefone..." oninput="aplicarFiltroPagamentos()"></div>
@@ -159,19 +347,27 @@
 
         <!-- FINANCEIRO -->
         <div class="conteudo" id="conteudo-financeiro">
-            <h3 style="font-size:1.4em;">💰 Financeiro</h3>
+            <h3 style="color:#CC5500;margin-bottom:20px;">💰 Financeiro</h3>
             <div class="filtro-bar">
                 <div class="filtro-item"><label>📅 Início</label><input type="date" id="filtroFinDataIni" onchange="carregarFinanceiro()"></div>
                 <div class="filtro-item"><label>📅 Fim</label><input type="date" id="filtroFinDataFim" onchange="carregarFinanceiro()"></div>
+                <button class="btn btn-info" onclick="exportarCSV()" style="width:auto;">📥 CSV</button>
+                <button class="btn btn-warning" onclick="backupCompleto()" style="width:auto;">💾 Backup</button>
             </div>
             <div id="listaFinanceiro"></div>
         </div>
 
+        <!-- RANKING -->
+        <div class="conteudo" id="conteudo-ranking">
+            <h3 style="color:#CC5500;margin-bottom:20px;">🏆 Mais Vendidos</h3>
+            <div id="listaRanking"></div>
+        </div>
+
         <!-- HISTÓRICO -->
         <div class="conteudo" id="conteudo-historico">
-            <h3 style="font-size:1.4em;">📜 Histórico de Entrada e Saída</h3>
+            <h3 style="color:#CC5500;margin-bottom:20px;">📜 Histórico</h3>
             <div class="filtro-bar">
-                <div class="filtro-item"><label>🔍 Item</label><input type="text" id="filtroHistItem" placeholder="Filtrar por item..." oninput="aplicarFiltroHistorico()"></div>
+                <div class="filtro-item"><label>🔍 Item</label><input type="text" id="filtroHistItem" placeholder="Item..." oninput="aplicarFiltroHistorico()"></div>
                 <div class="filtro-item"><label>💳 Tipo</label><select id="filtroHistTipo" onchange="aplicarFiltroHistorico()"><option value="todos">Todos</option><option value="entrada">🟢 Entrada</option><option value="saida">🔴 Saída</option><option value="alocacao">📤 Alocação</option></select></div>
                 <div class="filtro-item"><label>📅 Início</label><input type="date" id="filtroHistDataIni" onchange="aplicarFiltroHistorico()"></div>
                 <div class="filtro-item"><label>📅 Fim</label><input type="date" id="filtroHistDataFim" onchange="aplicarFiltroHistorico()"></div>
@@ -181,7 +377,7 @@
 
         <!-- CONFIG -->
         <div class="conteudo" id="conteudo-config">
-            <h3 style="font-size:1.4em;">⚙️ Configurações</h3>
+            <h3 style="color:#CC5500;margin-bottom:20px;">⚙️ Configurações</h3>
             <div class="form-group"><label>WhatsApp (com DDD)</label><input type="text" id="configWhatsapp"></div>
             <div class="form-group"><label>Chave PIX</label><input type="text" id="configPix"></div>
             <div class="form-group"><label>Endereço Retirada</label><input type="text" id="configEndereco"></div>
@@ -195,75 +391,63 @@
         var fotoEmBase64 = null;
         var cacheEstoque = [], cacheC1 = [], cacheC2 = [], cachePedidos = [], cachePagamentos = [], cacheHistorico = [];
 
-        // ============ VERIFICAR CONEXÃO ============
+        function mostrarToast(msg) { var t = document.getElementById('toastNotificacao'); t.textContent = msg; t.style.display = 'block'; setTimeout(function(){ t.style.display = 'none'; }, 4000); }
+        function alternarTema() { document.body.classList.toggle('dark'); }
+
         async function verificarConexao() {
-            var statusEl = document.getElementById('statusConexao');
-            try {
-                var { error } = await supabase.from('estoqueCentral').select('*').limit(1);
-                if (error) {
-                    if (error.message.includes('does not exist') || error.message.includes('not found')) {
-                        statusEl.innerHTML = '🟡 <span class="status-checking">Tabela não encontrada. Execute o SQL no Supabase!</span>';
-                    } else {
-                        statusEl.innerHTML = '🔴 <span class="status-offline">Erro: ' + error.message + '</span>';
-                    }
-                } else {
-                    statusEl.innerHTML = '🟢 <span class="status-online">Banco de dados conectado!</span>';
-                }
-            } catch(e) {
-                statusEl.innerHTML = '🔴 <span class="status-offline">Sem conexão</span>';
-            }
+            var s = document.getElementById('statusConexao');
+            try { var { error } = await supabase.from('estoqueCentral').select('*').limit(1);
+                if (error) { s.innerHTML = '🔴 <span class="status-offline">Erro: ' + error.message + '</span>'; }
+                else { s.innerHTML = '🟢 <span class="status-online">Banco conectado!</span>'; }
+            } catch(e) { s.innerHTML = '🔴 <span class="status-offline">Sem conexão</span>'; }
         }
 
         function previewFotoAdmin(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    fotoEmBase64 = e.target.result;
-                    document.getElementById('previewFotoContainer').style.display = 'block';
-                    document.getElementById('previewFotoAdmin').src = fotoEmBase64;
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
+            if (input.files && input.files[0]) { var r = new FileReader(); r.onload = function(e) { fotoEmBase64 = e.target.result; document.getElementById('previewFotoContainer').style.display = 'block'; document.getElementById('previewFotoAdmin').src = fotoEmBase64; }; r.readAsDataURL(input.files[0]); }
         }
 
         function fazerLogin() {
-            var u = document.getElementById('campoUsuario').value.trim();
-            var s = document.getElementById('campoSenha').value;
-            if (u === 'master' && s === 'admin123') {
-                document.getElementById('telaLogin').classList.add('hidden');
-                document.getElementById('painelAdmin').classList.remove('hidden');
-                document.getElementById('painelAdmin').style.display = 'block';
-                carregarTudo();
-            } else { document.getElementById('erroLogin').style.display = 'block'; }
+            var u = document.getElementById('campoUsuario').value.trim(); var s = document.getElementById('campoSenha').value;
+            if (u === 'master' && s === 'admin123') { document.getElementById('telaLogin').classList.add('hidden'); document.getElementById('painelAdmin').classList.remove('hidden'); document.getElementById('painelAdmin').style.display = 'block'; carregarTudo(); }
+            else { document.getElementById('erroLogin').style.display = 'block'; }
         }
-
-        function sair() {
-            document.getElementById('telaLogin').classList.remove('hidden');
-            document.getElementById('painelAdmin').classList.add('hidden');
-            document.getElementById('painelAdmin').style.display = 'none';
-        }
+        function sair() { document.getElementById('telaLogin').classList.remove('hidden'); document.getElementById('painelAdmin').classList.add('hidden'); document.getElementById('painelAdmin').style.display = 'none'; }
         document.getElementById('campoSenha').addEventListener('keypress', function(e) { if (e.key === 'Enter') fazerLogin(); });
 
         function mudarTab(tab) {
-            var conteudos = ['estoque','c1','c2','pedidos','pagamentos','financeiro','historico','config'];
-            conteudos.forEach(function(c) { document.getElementById('conteudo-' + c).classList.remove('active'); });
+            var cs = ['dashboard','estoque','c1','c2','pedidos','pagamentos','financeiro','ranking','historico','config'];
+            cs.forEach(function(c) { document.getElementById('conteudo-' + c).classList.remove('active'); });
             document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-            document.getElementById('conteudo-' + tab).classList.add('active');
-            event.target.classList.add('active');
+            document.getElementById('conteudo-' + tab).classList.add('active'); event.target.classList.add('active');
+            if (tab === 'dashboard') carregarDashboard();
             if (tab === 'estoque') carregarEstoque();
             if (tab === 'c1') carregarC1();
             if (tab === 'c2') carregarC2();
             if (tab === 'pedidos') carregarPedidos();
             if (tab === 'pagamentos') carregarPagamentos();
             if (tab === 'financeiro') carregarFinanceiro();
+            if (tab === 'ranking') carregarRanking();
             if (tab === 'historico') carregarHistorico();
             if (tab === 'config') carregarConfig();
         }
 
-        function formatarData(data) {
-            if (!data) return '';
-            var d = new Date(data);
-            return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR');
+        function formatarData(d) { if (!d) return ''; var dt = new Date(d); return dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR'); }
+
+        async function carregarDashboard() {
+            var { data: e } = await supabase.from('estoqueCentral').select('*');
+            var { data: p } = await supabase.from('todosPedidos').select('*');
+            var estoque = e || []; var pedidos = p || [];
+            var totalEstoque = estoque.reduce(function(s,i){return s+(i.quantidadeTotal||0);},0);
+            var baixo = estoque.filter(function(i){return (i.quantidadeTotal||0)-(i.alocadoCardapio2||0)<=5;}).length;
+            var hoje = pedidos.filter(function(x){var d=new Date(x.data);var h=new Date();return d.toDateString()===h.toDateString();}).length;
+            var fat = pedidos.filter(function(x){return x.pagamentoStatus==='pago';}).reduce(function(s,x){return s+(x.total||0);},0);
+            var pend = pedidos.filter(function(x){return x.pagamentoStatus!=='pago'&&x.status!=='cancelado';}).length;
+            document.getElementById('dashboardCards').innerHTML =
+                '<div class="dash-card"><div class="icon">📦</div><div class="valor">'+totalEstoque+'</div><div class="label">Estoque</div></div>'+
+                '<div class="dash-card"><div class="icon">📋</div><div class="valor">'+hoje+'</div><div class="label">Pedidos Hoje</div></div>'+
+                '<div class="dash-card"><div class="icon">💰</div><div class="valor">R$ '+fat.toFixed(2)+'</div><div class="label">Faturamento</div></div>'+
+                '<div class="dash-card"><div class="icon">⏳</div><div class="valor">'+pend+'</div><div class="label">Pendentes</div></div>'+
+                '<div class="dash-card"><div class="icon">⚠️</div><div class="valor">'+baixo+'</div><div class="label">Estoque Baixo</div></div>';
         }
 
         // ============ ESTOQUE ============
@@ -271,26 +455,42 @@
             var { data } = await supabase.from('estoqueCentral').select('*');
             cacheEstoque = data || [];
             renderizarEstoque(cacheEstoque);
-            var select = document.getElementById('alocarSabor');
-            if (select) {
-                select.innerHTML = '<option value="">Selecione...</option>';
-                cacheEstoque.forEach(function(i) { var d = (i.quantidadeTotal||0)-(i.alocadoCardapio2||0); select.innerHTML += '<option value="'+i.id+'">'+i.nome+' - Disp: '+d+'</option>'; });
-            }
+            var sel = document.getElementById('alocarSabor');
+            if (sel) { sel.innerHTML = '<option value="">Selecione...</option>'; cacheEstoque.forEach(function(i){var d=(i.quantidadeTotal||0)-(i.alocadoCardapio2||0);sel.innerHTML+='<option value="'+i.id+'">'+i.nome+' - Disp: '+d+'</option>';}); }
+            var baixo = cacheEstoque.filter(function(i){return (i.quantidadeTotal||0)-(i.alocadoCardapio2||0)<=5;});
+            document.getElementById('alertasEstoque').innerHTML = baixo.length > 0 ? '<div style="background:#fef9c3;padding:12px;border-radius:12px;font-weight:700;color:#854d0e;">⚠️ '+baixo.length+' item(ns) com estoque baixo!</div>' : '';
         }
 
-        function renderizarEstoque(estoque) {
-            var lista = document.getElementById('listaEstoque');
-            if (estoque.length === 0) { lista.innerHTML = '<p>Nenhum item.</p>'; return; }
-            lista.innerHTML = estoque.map(function(i) {
+        function renderizarEstoque(e) {
+            var ordem = document.getElementById('ordemEstoque').value;
+            var lista = e.slice();
+            if (ordem === 'nome') lista.sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');});
+            if (ordem === 'qtd') lista.sort(function(a,b){return (b.quantidadeTotal||0)-(a.quantidadeTotal||0);});
+            if (ordem === 'preco') lista.sort(function(a,b){return (b.preco||0)-(a.preco||0);});
+            var l = document.getElementById('listaEstoque');
+            if (lista.length === 0) { l.innerHTML = '<p style="color:#999;">Nenhum item.</p>'; return; }
+            l.innerHTML = lista.map(function(i) {
                 var d = (i.quantidadeTotal||0)-(i.alocadoCardapio2||0);
-                var fotoHtml = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+(i.emoji||'🍦')+'</div>';
-                return '<div class="card-item"><div class="card-item-info">'+fotoHtml+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+'<br><small>Total: '+(i.quantidadeTotal||0)+' | C2: '+(i.alocadoCardapio2||0)+' | Disp: '+d+'</small></div></div><div class="card-item-actions"><button class="btn btn-danger btn-small" onclick="excluirItem('+i.id+')">🗑️</button></div></div>';
+                var b = d <= 5 ? 'badge-baixo' : 'badge-normal';
+                var f = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+(i.emoji||'🍦')+'</div>';
+                return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+'<br><small>Total: '+(i.quantidadeTotal||0)+' | C2: '+(i.alocadoCardapio2||0)+' | <span class="badge '+b+'">Disp: '+d+'</span></small></div></div><div class="card-item-actions"><button class="btn btn-warning btn-small" onclick="editarItem('+i.id+')">✏️</button><button class="btn btn-danger btn-small" onclick="excluirItem('+i.id+')">🗑️</button></div></div>';
             }).join('');
         }
 
         function aplicarFiltroEstoque() {
             var f = document.getElementById('filtroEstoqueNome').value.toLowerCase();
-            renderizarEstoque(cacheEstoque.filter(function(x) { return (x.nome||'').toLowerCase().includes(f); }));
+            renderizarEstoque(cacheEstoque.filter(function(x){return (x.nome||'').toLowerCase().includes(f);}));
+        }
+
+        async function editarItem(id) {
+            var i = cacheEstoque.find(function(x){return x.id==id;}); if (!i) return;
+            var nome = prompt('Nome:', i.nome); if (!nome) return;
+            var preco = parseFloat(prompt('Preço R$:', i.preco)); if (!preco) return;
+            var qtd = parseInt(prompt('Adicionar quantidade:', 0));
+            await supabase.from('estoqueCentral').update({ nome: nome, preco: preco, quantidadeTotal: (i.quantidadeTotal||0)+(qtd||0) }).eq('id', id);
+            await registrarHistorico('entrada', nome, qtd||0, 'Edição');
+            carregarEstoque(); carregarC1(); carregarDashboard();
+            mostrarToast('✅ Atualizado!');
         }
 
         async function cadastrarItem() {
@@ -299,180 +499,143 @@
             var preco = parseFloat(document.getElementById('estoquePreco').value);
             var qtd = parseInt(document.getElementById('estoqueQtd').value) || 0;
             if (!nome || !preco) { alert('Preencha!'); return; }
-            var { data: existente } = await supabase.from('estoqueCentral').select('*').eq('nome', nome).maybeSingle();
-            if (existente) {
-                await supabase.from('estoqueCentral').update({ quantidadeTotal: (existente.quantidadeTotal||0)+qtd, preco: preco, emoji: emoji, foto: fotoEmBase64 || existente.foto || null }).eq('id', existente.id);
-                await registrarHistorico('entrada', nome, qtd, 'Adição');
-            } else {
-                await supabase.from('estoqueCentral').insert([{ nome: nome, emoji: emoji, preco: preco, quantidadeTotal: qtd||50, alocadoCardapio2: 0, foto: fotoEmBase64 }]);
-                await registrarHistorico('entrada', nome, qtd||50, 'Cadastro');
-            }
-            fotoEmBase64 = null;
-            document.getElementById('previewFotoContainer').style.display = 'none';
-            document.getElementById('estoqueFoto').value = '';
-            await carregarEstoque();
-            alert('✅ Salvo!');
-            document.getElementById('estoqueNome').value = '';
-            document.getElementById('estoquePreco').value = '';
+            var { data: ex } = await supabase.from('estoqueCentral').select('*').eq('nome', nome).maybeSingle();
+            if (ex) { await supabase.from('estoqueCentral').update({ quantidadeTotal:(ex.quantidadeTotal||0)+qtd, preco:preco, emoji:emoji, foto:fotoEmBase64||ex.foto||null }).eq('id',ex.id); await registrarHistorico('entrada',nome,qtd,'Adição'); }
+            else { await supabase.from('estoqueCentral').insert([{ nome:nome, emoji:emoji, preco:preco, quantidadeTotal:qtd||50, alocadoCardapio2:0, foto:fotoEmBase64 }]); await registrarHistorico('entrada',nome,qtd||50,'Cadastro'); }
+            fotoEmBase64 = null; document.getElementById('previewFotoContainer').style.display='none'; document.getElementById('estoqueFoto').value='';
+            carregarEstoque(); mostrarToast('✅ Salvo!'); document.getElementById('estoqueNome').value=''; document.getElementById('estoquePreco').value='';
         }
 
         async function excluirItem(id) {
             if (!id) { alert('ID inválido!'); return; }
-            if (!confirm('Excluir?')) return;
-            var { data: item } = await supabase.from('estoqueCentral').select('*').eq('id', id).maybeSingle();
-            if (item) { await registrarHistorico('saida', item.nome, item.quantidadeTotal, 'Excluído'); }
+            if (!confirm('🗑️ Excluir?')) return;
+            var { data: i } = await supabase.from('estoqueCentral').select('*').eq('id', id).maybeSingle();
+            if (i) { await registrarHistorico('saida', i.nome, i.quantidadeTotal, 'Excluído'); }
             await supabase.from('estoqueCentral').delete().eq('id', id);
-            carregarEstoque(); carregarC1();
-            alert('✅ Excluído!');
+            carregarEstoque(); carregarC1(); carregarDashboard(); mostrarToast('✅ Excluído!');
         }
 
         // ============ CARDÁPIO 1 ============
         async function carregarC1() {
             var { data } = await supabase.from('estoqueCentral').select('*');
-            cacheC1 = (data||[]).map(function(i) {
-                return { nome: i.nome, emoji: i.emoji||'🍦', foto: i.foto, preco: i.preco, quantidade: Math.max(0, (i.quantidadeTotal||0)-(i.alocadoCardapio2||0)) };
-            }).filter(function(i) { return i.quantidade > 0; });
+            cacheC1 = (data||[]).map(function(i){ return { id:i.id, nome:i.nome, emoji:i.emoji||'🍦', foto:i.foto, preco:i.preco, quantidade:Math.max(0,(i.quantidadeTotal||0)-(i.alocadoCardapio2||0)) }; }).filter(function(i){return i.quantidade>0;});
             renderizarC1(cacheC1);
         }
-
-        function renderizarC1(c1) {
-            var lista = document.getElementById('listaC1');
-            if (c1.length === 0) { lista.innerHTML = '<p>Nenhum item.</p>'; return; }
-            lista.innerHTML = c1.map(function(i) {
-                var fotoHtml = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+i.emoji+'</div>';
-                return '<div class="card-item"><div class="card-item-info">'+fotoHtml+'<div><strong>'+i.emoji+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+' | <strong>Disp: '+i.quantidade+'</strong></div></div></div>';
+        function renderizarC1(c) {
+            var l = document.getElementById('listaC1');
+            if (c.length === 0) { l.innerHTML = '<p style="color:#999;">Nenhum item.</p>'; return; }
+            l.innerHTML = c.map(function(i) {
+                var f = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+i.emoji+'</div>';
+                return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+i.emoji+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+' | <strong>Disp: '+i.quantidade+'</strong></div></div></div>';
             }).join('');
         }
-
-        function aplicarFiltroC1() {
-            var f = document.getElementById('filtroC1Nome').value.toLowerCase();
-            renderizarC1(cacheC1.filter(function(x) { return (x.nome||'').toLowerCase().includes(f); }));
-        }
+        function aplicarFiltroC1() { var f = document.getElementById('filtroC1Nome').value.toLowerCase(); renderizarC1(cacheC1.filter(function(x){return (x.nome||'').toLowerCase().includes(f);})); }
 
         // ============ CARDÁPIO 2 ============
         async function alocarC2() {
             var id = document.getElementById('alocarSabor').value;
             var q = parseInt(document.getElementById('alocarQtd').value);
             if (!id || !q || q < 1) { alert('Selecione!'); return; }
-            var { data: item } = await supabase.from('estoqueCentral').select('*').eq('id', id).maybeSingle();
-            if (!item) return;
-            var d = (item.quantidadeTotal||0)-(item.alocadoCardapio2||0);
+            var { data: i } = await supabase.from('estoqueCentral').select('*').eq('id', id).maybeSingle();
+            if (!i) return;
+            var d = (i.quantidadeTotal||0)-(i.alocadoCardapio2||0);
             if (q > d) { alert('Máx: '+d); return; }
-            await supabase.from('estoqueCentral').update({ alocadoCardapio2: (item.alocadoCardapio2||0)+q }).eq('id', id);
-            var { data: existente } = await supabase.from('cardapio2').select('*').eq('nome', item.nome).maybeSingle();
-            if (existente) {
-                await supabase.from('cardapio2').update({ quantidade: (existente.quantidade||0)+q, foto: item.foto }).eq('id', existente.id);
-            } else {
-                await supabase.from('cardapio2').insert([{ nome: item.nome, emoji: item.emoji, preco: item.preco, quantidade: q, foto: item.foto }]);
-            }
-            await registrarHistorico('alocacao', item.nome, q, 'Alocado C2');
-            carregarEstoque(); carregarC1(); carregarC2();
-            alert('✅ Alocado!');
+            await supabase.from('estoqueCentral').update({ alocadoCardapio2:(i.alocadoCardapio2||0)+q }).eq('id', id);
+            var { data: ex } = await supabase.from('cardapio2').select('*').eq('nome', i.nome).maybeSingle();
+            if (ex) { await supabase.from('cardapio2').update({ quantidade:(ex.quantidade||0)+q, foto:i.foto }).eq('id', ex.id); }
+            else { await supabase.from('cardapio2').insert([{ nome:i.nome, emoji:i.emoji, preco:i.preco, quantidade:q, foto:i.foto }]); }
+            await registrarHistorico('alocacao', i.nome, q, 'Alocado C2');
+            carregarEstoque(); carregarC1(); carregarC2(); carregarDashboard(); mostrarToast('✅ Alocado!');
         }
 
         async function carregarC2() {
             var { data } = await supabase.from('cardapio2').select('*');
-            cacheC2 = data || [];
-            renderizarC2(cacheC2);
+            cacheC2 = data || []; renderizarC2(cacheC2);
         }
-
-        function renderizarC2(c2) {
-            var lista = document.getElementById('listaC2');
-            if (c2.length === 0) { lista.innerHTML = '<p>Nenhum item.</p>'; return; }
-            lista.innerHTML = c2.map(function(i) {
-                var fotoHtml = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+(i.emoji||'🍦')+'</div>';
-                return '<div class="card-item"><div class="card-item-info">'+fotoHtml+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+' | Qtd: '+(i.quantidade||0)+'</div></div><div class="card-item-actions"><button class="btn btn-danger btn-small" onclick="excluirC2('+i.id+')">🗑️</button></div></div>';
+        function renderizarC2(c) {
+            var l = document.getElementById('listaC2');
+            if (c.length === 0) { l.innerHTML = '<p style="color:#999;">Nenhum item.</p>'; return; }
+            l.innerHTML = c.map(function(i) {
+                var f = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+(i.emoji||'🍦')+'</div>';
+                return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+' | Qtd: '+(i.quantidade||0)+'</div></div><div class="card-item-actions"><button class="btn btn-danger btn-small" onclick="excluirC2('+i.id+')">🗑️</button></div></div>';
             }).join('');
         }
-
-        function aplicarFiltroC2() {
-            var f = document.getElementById('filtroC2Nome').value.toLowerCase();
-            renderizarC2(cacheC2.filter(function(x) { return (x.nome||'').toLowerCase().includes(f); }));
-        }
-
-        async function excluirC2(id) {
-            if (!id) { alert('ID inválido!'); return; }
-            if (!confirm('Excluir?')) return;
-            await supabase.from('cardapio2').delete().eq('id', id);
-            carregarC2();
-            alert('✅ Excluído!');
-        }
+        function aplicarFiltroC2() { var f = document.getElementById('filtroC2Nome').value.toLowerCase(); renderizarC2(cacheC2.filter(function(x){return (x.nome||'').toLowerCase().includes(f);})); }
+        async function excluirC2(id) { if (!id) return; if (!confirm('Excluir?')) return; await supabase.from('cardapio2').delete().eq('id', id); carregarC2(); carregarDashboard(); mostrarToast('✅ Excluído!'); }
 
         // ============ PEDIDOS ============
         async function carregarPedidos() {
             var { data } = await supabase.from('todosPedidos').select('*').order('id', { ascending: false });
-            cachePedidos = data || [];
-            renderizarPedidos(cachePedidos);
+            cachePedidos = data || []; renderizarPedidos(cachePedidos);
         }
-
         function renderizarPedidos(p) {
-            var lista = document.getElementById('listaPedidos');
-            if (p.length === 0) { lista.innerHTML = '<p>Nenhum pedido.</p>'; return; }
-            lista.innerHTML = p.map(function(x) {
-                return '<div class="card-item"><div class="card-item-info"><strong>👤 '+x.cliente+'</strong> - R$ '+(x.total||0).toFixed(2)+'<br><small>📱 '+(x.telefone||'')+' | 📅 '+formatarData(x.data)+' | '+(x.cardapio==='cardapio1'?'C1':'C2')+' | '+(x.pagamento||'')+'</small></div></div>';
-            }).join('');
-        }
-
-        function aplicarFiltroPedidos() {
+            var status = document.getElementById('filtroPedidoStatus').value;
             var nome = document.getElementById('filtroPedidosNome').value.toLowerCase();
             var tel = document.getElementById('filtroPedidosTel').value;
             var ini = document.getElementById('filtroPedidosDataIni').value;
             var fim = document.getElementById('filtroPedidosDataFim').value;
-            var filtrado = cachePedidos.filter(function(x) {
-                var okNome = !nome || (x.cliente||'').toLowerCase().includes(nome);
-                var okTel = !tel || (x.telefone||'').includes(tel);
+            var ordem = document.getElementById('ordemPedidos').value;
+            var f = p.filter(function(x) {
+                var okS = status==='todos'||x.status===status||(status==='novo'&&!x.status);
+                var okN = !nome||(x.cliente||'').toLowerCase().includes(nome);
+                var okT = !tel||(x.telefone||'').includes(tel);
                 var d = new Date(x.data);
-                var okIni = !ini || d >= new Date(ini);
-                var okFim = !fim || d <= new Date(fim + 'T23:59:59');
-                return okNome && okTel && okIni && okFim;
+                var okI = !ini||d>=new Date(ini);
+                var okF = !fim||d<=new Date(fim+'T23:59:59');
+                return okS&&okN&&okT&&okI&&okF;
             });
-            renderizarPedidos(filtrado);
+            if (ordem === 'antigo') f.reverse();
+            if (ordem === 'maior') f.sort(function(a,b){return (b.total||0)-(a.total||0);});
+            if (ordem === 'menor') f.sort(function(a,b){return (a.total||0)-(b.total||0);});
+            var l = document.getElementById('listaPedidos');
+            if (f.length === 0) { l.innerHTML = '<p style="color:#999;">Nenhum pedido.</p>'; return; }
+            l.innerHTML = f.map(function(x) {
+                var st = x.status==='entregue'?'badge-entregue':x.status==='entrega'?'badge-entrega':x.status==='preparo'?'badge-preparo':x.status==='cancelado'?'badge-cancelado':'badge-novo';
+                var txt = x.status==='entregue'?'✅ Entregue':x.status==='entrega'?'🛵 Entrega':x.status==='preparo'?'👨‍🍳 Preparo':x.status==='cancelado'?'❌ Cancelado':'🆕 Novo';
+                var btns = '';
+                if (!x.status || x.status==='novo') { btns += '<button class="btn btn-info btn-small" onclick="mudarStatus('+x.id+',\'preparo\')">👨‍🍳</button>'; }
+                if (x.status==='preparo') { btns += '<button class="btn btn-warning btn-small" onclick="mudarStatus('+x.id+',\'entrega\')">🛵</button>'; }
+                if (x.status==='entrega') { btns += '<button class="btn btn-success btn-small" onclick="mudarStatus('+x.id+',\'entregue\')">✅</button>'; }
+                btns += '<button class="btn btn-danger btn-small" onclick="excluirPedido('+x.id+')">🗑️</button>';
+                return '<div class="card-item"><div class="card-item-info"><strong>👤 '+x.cliente+'</strong> <span class="badge '+st+'">'+txt+'</span><br><small>📱 '+(x.telefone||'')+' | 📅 '+formatarData(x.data)+' | '+(x.cardapio==='cardapio1'?'C1':'C2')+' | '+(x.pagamento||'')+' | R$ '+(x.total||0).toFixed(2)+'</small></div><div class="card-item-actions">'+btns+'</div></div>';
+            }).join('');
         }
+        function aplicarFiltroPedidos() { renderizarPedidos(cachePedidos); }
+        async function mudarStatus(id, status) { await supabase.from('todosPedidos').update({ status: status }).eq('id', id); carregarPedidos(); carregarDashboard(); mostrarToast('✅ Status atualizado!'); }
+        async function excluirPedido(id) { if (!confirm('🗑️ Excluir pedido?')) return; await supabase.from('todosPedidos').delete().eq('id', id); carregarPedidos(); carregarDashboard(); mostrarToast('✅ Excluído!'); }
 
         // ============ PAGAMENTOS ============
         async function carregarPagamentos() {
             var { data } = await supabase.from('todosPedidos').select('*').order('id', { ascending: false });
-            cachePagamentos = data || [];
-            renderizarPagamentos(cachePagamentos);
+            cachePagamentos = data || []; renderizarPagamentos(cachePagamentos);
         }
-
         function renderizarPagamentos(p) {
             var status = document.getElementById('filtroPagStatus').value;
             var nome = document.getElementById('filtroPagNome').value.toLowerCase();
             var tel = document.getElementById('filtroPagTel').value;
             var ini = document.getElementById('filtroPagDataIni').value;
             var fim = document.getElementById('filtroPagDataFim').value;
-            var filtrado = p.filter(function(x) {
-                var okStatus = status === 'todos' || (status === 'pago' && x.pagamentoStatus === 'pago') || (status === 'pendente' && x.pagamentoStatus !== 'pago');
-                var okNome = !nome || (x.cliente||'').toLowerCase().includes(nome);
-                var okTel = !tel || (x.telefone||'').includes(tel);
+            var f = p.filter(function(x) {
+                var okS = status==='todos'||(status==='pago'&&x.pagamentoStatus==='pago')||(status==='pendente'&&x.pagamentoStatus!=='pago');
+                var okN = !nome||(x.cliente||'').toLowerCase().includes(nome);
+                var okT = !tel||(x.telefone||'').includes(tel);
                 var d = new Date(x.data);
-                var okIni = !ini || d >= new Date(ini);
-                var okFim = !fim || d <= new Date(fim + 'T23:59:59');
-                return okStatus && okNome && okTel && okIni && okFim;
+                var okI = !ini||d>=new Date(ini);
+                var okF = !fim||d<=new Date(fim+'T23:59:59');
+                return okS&&okN&&okT&&okI&&okF;
             });
-            var lista = document.getElementById('listaPagamentos');
-            if (filtrado.length === 0) { lista.innerHTML = '<p>Nenhum.</p>'; return; }
-            lista.innerHTML = filtrado.map(function(x) {
-                var st = x.pagamentoStatus === 'pago' ? '<span class="badge badge-pago">✅ PAGO</span>' : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
-                var btn = x.pagamentoStatus !== 'pago' ? '<button class="btn btn-success btn-small" onclick="confirmarPag('+x.pedido_id+')">✅ Confirmar</button>' : '';
-                var btnLembrar = x.pagamentoStatus !== 'pago' && x.telefone ? '<button class="btn btn-whatsapp btn-small" onclick="lembrar(\''+x.telefone+'\',\''+x.cliente+'\','+(x.total||0)+')">📱 Lembrar</button>' : '';
-                return '<div class="card-item"><div class="card-item-info"><strong>👤 '+x.cliente+'</strong> '+st+'<br><small>📱 '+(x.telefone||'')+' | 📅 '+formatarData(x.data)+' | R$ '+(x.total||0).toFixed(2)+'</small></div><div class="card-item-actions">'+btn+' '+btnLembrar+'</div></div>';
+            var l = document.getElementById('listaPagamentos');
+            if (f.length === 0) { l.innerHTML = '<p style="color:#999;">Nenhum.</p>'; return; }
+            l.innerHTML = f.map(function(x) {
+                var st = x.pagamentoStatus==='pago'?'<span class="badge badge-pago">✅ PAGO</span>':'<span class="badge badge-pendente">⏳ PENDENTE</span>';
+                var btn = x.pagamentoStatus!=='pago'?'<button class="btn btn-success btn-small" onclick="confirmarPag('+x.pedido_id+')">✅ Confirmar</button>':'';
+                var lem = x.pagamentoStatus!=='pago'&&x.telefone?'<button class="btn btn-whatsapp btn-small" onclick="lembrar(\''+x.telefone+'\',\''+x.cliente+'\','+(x.total||0)+')">📱 Lembrar</button>':'';
+                return '<div class="card-item"><div class="card-item-info"><strong>👤 '+x.cliente+'</strong> '+st+'<br><small>📱 '+(x.telefone||'')+' | R$ '+(x.total||0).toFixed(2)+'</small></div><div class="card-item-actions">'+btn+' '+lem+'</div></div>';
             }).join('');
         }
-
         function aplicarFiltroPagamentos() { renderizarPagamentos(cachePagamentos); }
-
-        async function confirmarPag(pedidoId) {
-            await supabase.from('todosPedidos').update({ pagamentoStatus: 'pago' }).eq('pedido_id', pedidoId);
-            carregarPagamentos();
-            alert('✅ Confirmado!');
-        }
-
-        function lembrar(telefone, nome, total) {
-            var msg = '🍦 *LEMBRETE*\n\nOlá '+nome+'!\nSeu pedido aguarda pagamento.\nValor: R$ '+total.toFixed(2);
-            window.open('https://wa.me/55'+telefone+'?text='+encodeURIComponent(msg), '_blank');
-        }
+        async function confirmarPag(id) { await supabase.from('todosPedidos').update({ pagamentoStatus:'pago' }).eq('pedido_id', id); carregarPagamentos(); carregarDashboard(); mostrarToast('✅ Confirmado!'); }
+        function lembrar(tel, nome, total) { var m='🍦 *LEMBRETE*\n\nOlá '+nome+'!\nSeu pedido aguarda pagamento.\nValor: R$ '+total.toFixed(2); window.open('https://wa.me/55'+tel+'?text='+encodeURIComponent(m), '_blank'); }
 
         // ============ FINANCEIRO ============
         async function carregarFinanceiro() {
@@ -480,86 +643,105 @@
             var p = data || [];
             var ini = document.getElementById('filtroFinDataIni').value;
             var fim = document.getElementById('filtroFinDataFim').value;
-            if (ini || fim) {
-                p = p.filter(function(x) {
-                    var d = new Date(x.data);
-                    var okIni = !ini || d >= new Date(ini);
-                    var okFim = !fim || d <= new Date(fim + 'T23:59:59');
-                    return okIni && okFim;
+            if (ini || fim) { p = p.filter(function(x){var d=new Date(x.data);var oI=!ini||d>=new Date(ini);var oF=!fim||d<=new Date(fim+'T23:59:59');return oI&&oF;}); }
+            var total = p.filter(function(x){return x.pagamentoStatus==='pago';}).reduce(function(s,x){return s+(x.total||0);},0);
+            var c1 = p.filter(function(x){return x.cardapio==='cardapio1'&&x.pagamentoStatus==='pago';}).reduce(function(s,x){return s+(x.total||0);},0);
+            var c2 = p.filter(function(x){return x.cardapio==='cardapio2'&&x.pagamentoStatus==='pago';}).reduce(function(s,x){return s+(x.total||0);},0);
+            document.getElementById('listaFinanceiro').innerHTML =
+                '<div class="card-item"><strong>💰 Total Recebido: R$ '+total.toFixed(2)+'</strong></div>'+
+                '<div class="card-item"><strong>📋 Cardápio 1: R$ '+c1.toFixed(2)+'</strong></div>'+
+                '<div class="card-item"><strong>🔥 Cardápio 2: R$ '+c2.toFixed(2)+'</strong></div>'+
+                '<div class="card-item"><strong>📦 Total Pedidos: '+p.length+'</strong></div>'+
+                '<div class="card-item"><strong>✅ Pagos: '+p.filter(function(x){return x.pagamentoStatus==='pago';}).length+'</strong></div>'+
+                '<div class="card-item"><strong>⏳ Pendentes: '+p.filter(function(x){return x.pagamentoStatus!=='pago';}).length+'</strong></div>';
+        }
+        function exportarCSV() {
+            if (cachePedidos.length===0) { alert('Sem dados!'); return; }
+            var csv='Data,Cliente,Telefone,Cardápio,Pagamento,Total,Status\n';
+            cachePedidos.forEach(function(x){ csv+='"'+formatarData(x.data)+'","'+x.cliente+'","'+(x.telefone||'')+'","'+(x.cardapio||'')+'","'+(x.pagamento||'')+'","'+(x.total||0).toFixed(2)+'","'+(x.pagamentoStatus||'pendente')+'"\n'; });
+            var b=new Blob([csv],{type:'text/csv'}); var a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='pedidos.csv'; a.click(); mostrarToast('✅ CSV exportado!');
+        }
+        function backupCompleto() {
+            var dados = { estoque: cacheEstoque, c2: cacheC2, pedidos: cachePedidos, historico: cacheHistorico };
+            var b = new Blob([JSON.stringify(dados)], { type: 'application/json' });
+            var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'backup-completo.json'; a.click();
+            mostrarToast('✅ Backup baixado!');
+        }
+
+        // ============ RANKING ============
+        async function carregarRanking() {
+            var { data } = await supabase.from('todosPedidos').select('*');
+            var p = data || [];
+            var contagem = {};
+            p.forEach(function(x) {
+                (x.itens||[]).forEach(function(i) {
+                    contagem[i.nome] = (contagem[i.nome]||0) + (i.quantidade||0);
                 });
-            }
-            var total = p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).reduce(function(s,x) { return s + (x.total||0); }, 0);
-            var lista = document.getElementById('listaFinanceiro');
-            lista.innerHTML = '<div class="card-item"><strong>💰 Total Recebido: R$ '+total.toFixed(2)+'</strong></div>' +
-                '<div class="card-item"><strong>📦 Total Pedidos: '+p.length+'</strong></div>' +
-                '<div class="card-item"><strong>✅ Pagos: '+p.filter(function(x) { return x.pagamentoStatus === 'pago'; }).length+'</strong></div>' +
-                '<div class="card-item"><strong>⏳ Pendentes: '+p.filter(function(x) { return x.pagamentoStatus !== 'pago'; }).length+'</strong></div>';
+            });
+            var ranking = Object.entries(contagem).sort(function(a,b){return b[1]-a[1];});
+            var l = document.getElementById('listaRanking');
+            if (ranking.length === 0) { l.innerHTML = '<p style="color:#999;">Nenhuma venda ainda.</p>'; return; }
+            l.innerHTML = ranking.map(function(r, i) {
+                var medalha = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'º';
+                return '<div class="ranking-item"><span class="ranking-posicao">'+medalha+'</span><span class="ranking-nome">'+r[0]+'</span><span class="ranking-qtd">'+r[1]+' unid.</span></div>';
+            }).join('');
         }
 
         // ============ HISTÓRICO ============
-        async function registrarHistorico(tipo, item, quantidade, obs) {
-            try { await supabase.from('historicoestoque').insert([{data: new Date().toLocaleString('pt-BR'), tipo: tipo, item: item, quantidade: quantidade, obs: obs || ''}]); } catch(e) {}
-        }
-
+        async function registrarHistorico(tipo, item, qtd, obs) { try { await supabase.from('historicoestoque').insert([{data:new Date().toLocaleString('pt-BR'),tipo:tipo,item:item,quantidade:qtd,obs:obs||''}]); } catch(e) {} }
         async function carregarHistorico() {
-            var { data } = await supabase.from('historicoestoque').select('*').order('id', { ascending: false }).limit(200);
-            cacheHistorico = data || [];
-            renderizarHistorico(cacheHistorico);
+            var { data } = await supabase.from('historicoestoque').select('*').order('id',{ascending:false}).limit(200);
+            cacheHistorico = data || []; renderizarHistorico(cacheHistorico);
         }
-
         function renderizarHistorico(h) {
-            var lista = document.getElementById('listaHistorico');
-            if (h.length === 0) { lista.innerHTML = '<p>Nenhum registro.</p>'; return; }
+            var l = document.getElementById('listaHistorico');
+            if (h.length === 0) { l.innerHTML = '<p style="color:#999;">Nenhum registro.</p>'; return; }
             var html = '<table><thead><tr><th>Data</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Obs</th></tr></thead><tbody>';
             h.forEach(function(x) {
-                var badge = x.tipo === 'entrada' ? 'badge-entrada' : x.tipo === 'saida' ? 'badge-saida' : 'badge-alocacao';
-                var txt = x.tipo === 'entrada' ? '🟢 Entrada' : x.tipo === 'saida' ? '🔴 Saída' : '📤 Alocação';
-                html += '<tr><td>'+(x.data||'')+'</td><td><span class="badge '+badge+'">'+txt+'</span></td><td>'+(x.item||'')+'</td><td>'+(x.quantidade||0)+'</td><td>'+(x.obs||'')+'</td></tr>';
+                var b = x.tipo==='entrada'?'badge-entrada':x.tipo==='saida'?'badge-saida':'badge-alocacao';
+                var t = x.tipo==='entrada'?'🟢 Entrada':x.tipo==='saida'?'🔴 Saída':'📤 Alocação';
+                html += '<tr><td>'+(x.data||'')+'</td><td><span class="badge '+b+'">'+t+'</span></td><td>'+(x.item||'')+'</td><td>'+(x.quantidade||0)+'</td><td>'+(x.obs||'')+'</td></tr>';
             });
-            html += '</tbody></table>';
-            lista.innerHTML = html;
+            html += '</tbody></table>'; l.innerHTML = html;
         }
-
         function aplicarFiltroHistorico() {
             var item = document.getElementById('filtroHistItem').value.toLowerCase();
             var tipo = document.getElementById('filtroHistTipo').value;
             var ini = document.getElementById('filtroHistDataIni').value;
             var fim = document.getElementById('filtroHistDataFim').value;
-            var filtrado = cacheHistorico.filter(function(x) {
-                var okItem = !item || (x.item||'').toLowerCase().includes(item);
-                var okTipo = tipo === 'todos' || x.tipo === tipo;
-                var dataPartes = (x.data||'').split(' ');
-                var dataDia = dataPartes[0] ? dataPartes[0].split('/').reverse().join('-') : '';
-                var okIni = !ini || !dataDia || dataDia >= ini;
-                var okFim = !fim || !dataDia || dataDia <= fim;
-                return okItem && okTipo && okIni && okFim;
-            });
-            renderizarHistorico(filtrado);
+            renderizarHistorico(cacheHistorico.filter(function(x) {
+                var oI = !item||(x.item||'').toLowerCase().includes(item);
+                var oT = tipo==='todos'||x.tipo===tipo;
+                var dp = (x.data||'').split(' '); var dd = dp[0]?dp[0].split('/').reverse().join('-'):'';
+                var oI2 = !ini||!dd||dd>=ini; var oF = !fim||!dd||dd<=fim;
+                return oI&&oT&&oI2&&oF;
+            }));
         }
 
         // ============ CONFIG ============
         async function carregarConfig() {
-            var { data: c } = await supabase.from('config').select('*').eq('chave', 'admin').maybeSingle();
-            var dados = c ? (c.dados || {}) : {};
-            document.getElementById('configWhatsapp').value = dados.whatsapp || '';
-            document.getElementById('configPix').value = dados.pix || '';
-            document.getElementById('configEndereco').value = dados.endereco || '';
+            var { data: c } = await supabase.from('config').select('*').eq('chave','admin').maybeSingle();
+            var d = c?(c.dados||{}):{};
+            document.getElementById('configWhatsapp').value = d.whatsapp||'';
+            document.getElementById('configPix').value = d.pix||'';
+            document.getElementById('configEndereco').value = d.endereco||'';
         }
-
         async function salvarConfig() {
-            var dados = { whatsapp: document.getElementById('configWhatsapp').value, pix: document.getElementById('configPix').value, endereco: document.getElementById('configEndereco').value };
-            await supabase.from('config').upsert({ chave: 'admin', dados: dados });
-            alert('✅ Salvo!');
+            var d = { whatsapp:document.getElementById('configWhatsapp').value, pix:document.getElementById('configPix').value, endereco:document.getElementById('configEndereco').value };
+            await supabase.from('config').upsert({ chave:'admin', dados:d }); mostrarToast('✅ Salvo!');
         }
 
-        function carregarTudo() { carregarEstoque(); carregarC1(); carregarC2(); }
+        function carregarTudo() { carregarDashboard(); carregarEstoque(); carregarC1(); carregarC2(); }
 
-        // ============ EVENTOS ============
+        // Eventos
         document.getElementById('filtroEstoqueNome').addEventListener('input', aplicarFiltroEstoque);
+        document.getElementById('ordemEstoque').addEventListener('change', aplicarFiltroEstoque);
         document.getElementById('filtroC1Nome').addEventListener('input', aplicarFiltroC1);
         document.getElementById('filtroC2Nome').addEventListener('input', aplicarFiltroC2);
         document.getElementById('filtroPedidosNome').addEventListener('input', aplicarFiltroPedidos);
         document.getElementById('filtroPedidosTel').addEventListener('input', aplicarFiltroPedidos);
+        document.getElementById('filtroPedidoStatus').addEventListener('change', aplicarFiltroPedidos);
+        document.getElementById('ordemPedidos').addEventListener('change', aplicarFiltroPedidos);
         document.getElementById('filtroPedidosDataIni').addEventListener('change', aplicarFiltroPedidos);
         document.getElementById('filtroPedidosDataFim').addEventListener('change', aplicarFiltroPedidos);
         document.getElementById('filtroPagNome').addEventListener('input', aplicarFiltroPagamentos);
@@ -572,7 +754,6 @@
         document.getElementById('filtroHistDataIni').addEventListener('change', aplicarFiltroHistorico);
         document.getElementById('filtroHistDataFim').addEventListener('change', aplicarFiltroHistorico);
 
-        // Iniciar
         verificarConexao();
     </script>
 </body>
