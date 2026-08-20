@@ -6,31 +6,177 @@
     <title>Admin - Dindins Gourmet FX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --marrom:#5C3317; --laranja:#CC5500; --dourado:#DAA520; --amarelo:#FFD700; --creme:#FFF8DC; }
+        :root { 
+            --marrom: #5C3317; 
+            --laranja: #CC5500; 
+            --dourado: #DAA520; 
+            --amarelo: #FFD700; 
+            --creme: #FFF8DC;
+            --bg-primary: #1a0f0a;
+            --bg-secondary: #2d1a0e;
+            --bg-card: #3d2618;
+            --bg-card-hover: #4d3020;
+            --text-primary: #f5e6d3;
+            --text-secondary: #d4c4b0;
+            --border-color: #5a3d2b;
+            --shadow-color: rgba(0,0,0,0.5);
+            --input-bg: #2d1a0e;
+            --input-border: #5a3d2b;
+            --badge-bg: #3d2618;
+        }
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Segoe UI',Tahoma,sans-serif; background:linear-gradient(135deg,#1a0f0a,#3E1F0D,#5C3317,#8B4513); min-height:100vh; font-size:16px; }
-        .login-box { max-width:400px; margin:60px auto; background:rgba(255,255,255,0.98); padding:40px 30px; border-radius:24px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.4); }
-        .logo { width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg,#CC5500,#FFD700); color:white; font-size:45px; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; box-shadow:0 10px 30px rgba(204,85,0,0.4); animation:float 3s ease-in-out infinite; }
+        body { 
+            font-family:'Segoe UI',Tahoma,sans-serif; 
+            background: linear-gradient(135deg, #0d0805, #1a0f0a, #2d1a0e, #1a0f0a);
+            min-height: 100vh; 
+            font-size: 16px; 
+            color: var(--text-primary);
+        }
+        
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--laranja); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--dourado); }
+
+        .login-box { 
+            max-width:400px; 
+            margin:60px auto; 
+            background: rgba(45, 26, 14, 0.98); 
+            padding:40px 30px; 
+            border-radius:24px; 
+            text-align:center; 
+            box-shadow:0 20px 60px rgba(0,0,0,0.8);
+            border: 1px solid var(--border-color);
+        }
+        .logo { 
+            width:90px; 
+            height:90px; 
+            border-radius:50%; 
+            background:linear-gradient(135deg,#CC5500,#FFD700); 
+            color:white; 
+            font-size:45px; 
+            display:flex; 
+            align-items:center; 
+            justify-content:center; 
+            margin:0 auto 20px; 
+            box-shadow:0 10px 30px rgba(204,85,0,0.4); 
+            animation:float 3s ease-in-out infinite; 
+        }
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-        h2 { color:#CC5500; font-size:1.6em; margin-bottom:5px; font-weight:800; }
-        h3 { color:#CC5500; font-size:1.3em; margin-bottom:15px; }
-        h4 { color:#DAA520; font-size:1.1em; margin-bottom:10px; }
-        p { color:#8B4513; margin-bottom:20px; }
-        input, select { width:100%; padding:14px 18px; margin-bottom:12px; border:2px solid #f0e0c0; border-radius:14px; font-size:16px; background:#FFFDF5; transition:all 0.3s; }
-        input:focus, select:focus { border-color:#CC5500; box-shadow:0 0 0 4px rgba(204,85,0,0.15); outline:none; }
-        button { width:100%; padding:14px; background:linear-gradient(135deg,#CC5500,#E0551F); color:white; border:none; border-radius:14px; font-size:17px; font-weight:700; cursor:pointer; transition:all 0.3s; }
-        .erro { color:red; margin-top:10px; display:none; }
-        .status-conexao { font-size:13px; margin-top:15px; font-weight:600; }
+        h2 { color: var(--dourado); font-size:1.6em; margin-bottom:5px; font-weight:800; }
+        h3 { color: var(--dourado); font-size:1.3em; margin-bottom:15px; }
+        h4 { color: var(--amarelo); font-size:1.1em; margin-bottom:10px; }
+        p { color: var(--text-secondary); margin-bottom:20px; }
+        
+        input, select { 
+            width:100%; 
+            padding:14px 18px; 
+            margin-bottom:12px; 
+            border:2px solid var(--input-border); 
+            border-radius:14px; 
+            font-size:16px; 
+            background: var(--input-bg); 
+            color: var(--text-primary);
+            transition:all 0.3s; 
+        }
+        input::placeholder { color: var(--text-secondary); opacity: 0.6; }
+        input:focus, select:focus { 
+            border-color: var(--laranja); 
+            box-shadow:0 0 0 4px rgba(204,85,0,0.2); 
+            outline:none; 
+        }
+        select option { background: var(--bg-secondary); color: var(--text-primary); }
+        
+        button { 
+            width:100%; 
+            padding:14px; 
+            background:linear-gradient(135deg,#CC5500,#E0551F); 
+            color:white; 
+            border:none; 
+            border-radius:14px; 
+            font-size:17px; 
+            font-weight:700; 
+            cursor:pointer; 
+            transition:all 0.3s; 
+        }
+        button:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(204,85,0,0.3); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        .erro { color: #ef4444; margin-top:10px; display:none; }
+        .status-conexao { font-size:13px; margin-top:15px; font-weight:600; color: var(--text-secondary); }
+        
         .painel { display:none; max-width:1350px; margin:20px auto; padding:25px; }
-        .header-painel { display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.95); padding:20px 25px; border-radius:20px; box-shadow:0 4px 20px rgba(0,0,0,0.15); margin-bottom:20px; flex-wrap:wrap; gap:10px; }
-        .tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
-        .tab-btn { padding:12px 18px; background:rgba(255,255,255,0.15); color:white; border:none; border-radius:14px; cursor:pointer; font-weight:600; font-size:14px; transition:all 0.3s; }
-        .tab-btn.active { background:linear-gradient(135deg,#FFD700,#FFA500); color:#5C3317; font-weight:700; }
-        .conteudo { display:none; background:rgba(255,255,255,0.97); padding:25px; border-radius:20px; box-shadow:0 4px 20px rgba(0,0,0,0.15); }
+        
+        .header-painel { 
+            display:flex; 
+            justify-content:space-between; 
+            align-items:center; 
+            background: rgba(45, 26, 14, 0.95); 
+            padding:20px 25px; 
+            border-radius:20px; 
+            box-shadow:0 4px 20px rgba(0,0,0,0.5); 
+            margin-bottom:20px; 
+            flex-wrap:wrap; 
+            gap:10px;
+            border: 1px solid var(--border-color);
+        }
+        .header-painel h2 { margin: 0; }
+        
+        .tabs { 
+            display:flex; 
+            gap:6px; 
+            flex-wrap:wrap; 
+            margin-bottom:20px; 
+        }
+        .tab-btn { 
+            padding:12px 18px; 
+            background: rgba(255,255,255,0.08); 
+            color: var(--text-secondary); 
+            border: 1px solid transparent;
+            border-radius:14px; 
+            cursor:pointer; 
+            font-weight:600; 
+            font-size:14px; 
+            transition:all 0.3s; 
+            width: auto;
+        }
+        .tab-btn:hover { 
+            background: rgba(255,255,255,0.15); 
+            color: white;
+        }
+        .tab-btn.active { 
+            background:linear-gradient(135deg,#FFD700,#FFA500); 
+            color:#5C3317; 
+            font-weight:700;
+            border-color: var(--dourado);
+        }
+        
+        .conteudo { 
+            display:none; 
+            background: rgba(45, 26, 14, 0.95); 
+            padding:25px; 
+            border-radius:20px; 
+            box-shadow:0 4px 20px rgba(0,0,0,0.4); 
+            border: 1px solid var(--border-color);
+        }
         .conteudo.active { display:block; }
+        
         .form-group { margin-bottom:14px; }
-        .form-group label { display:block; font-weight:700; color:#8B4513; margin-bottom:5px; font-size:14px; }
-        .btn { padding:10px 16px; border:none; border-radius:12px; font-weight:600; cursor:pointer; font-size:14px; margin:2px; }
+        .form-group label { display:block; font-weight:700; color: var(--dourado); margin-bottom:5px; font-size:14px; }
+        
+        .btn { 
+            padding:10px 16px; 
+            border:none; 
+            border-radius:12px; 
+            font-weight:600; 
+            cursor:pointer; 
+            font-size:14px; 
+            margin:2px; 
+            width: auto;
+            transition: all 0.3s;
+        }
+        .btn:hover { transform: scale(1.05); }
         .btn-primary { background:linear-gradient(135deg,#CC5500,#E0551F); color:white; }
         .btn-success { background:linear-gradient(135deg,#22c55e,#16a34a); color:white; }
         .btn-danger { background:linear-gradient(135deg,#ef4444,#dc2626); color:white; }
@@ -39,103 +185,163 @@
         .btn-whatsapp { background:linear-gradient(135deg,#25D366,#16a34a); color:white; }
         .btn-deliver { background:linear-gradient(135deg,#10b981,#059669); color:white; }
         .btn-small { padding:6px 10px; font-size:12px; width:auto; }
-        .card-item { background:#FFFDF5; padding:16px; border-radius:16px; border:1px solid #f0e0c0; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
-        .card-item-info { flex:1; min-width:180px; display:flex; align-items:center; gap:12px; }
-        .item-foto { width:60px; height:60px; border-radius:14px; object-fit:cover; border:2px solid #f0e0c0; }
-        .item-foto-placeholder { width:60px; height:60px; border-radius:14px; border:2px dashed #f0e0c0; display:flex; align-items:center; justify-content:center; font-size:30px; background:#FFFDF5; }
-        .badge { padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700; }
-        .badge-pago { background:#dcfce7; color:#166534; }
-        .badge-pendente { background:#fef9c3; color:#854d0e; }
-        .badge-baixo { background:#fee2e2; color:#991b1b; }
-        .badge-normal { background:#dcfce7; color:#166534; }
-        .badge-novo { background:#fef9c3; color:#854d0e; }
-        .badge-preparo { background:#dbeafe; color:#1e40af; }
-        .badge-entrega { background:#f3e8ff; color:#6b21a8; }
-        .badge-entregue { background:#dcfce7; color:#166534; }
-        .badge-cancelado { background:#fee2e2; color:#991b1b; }
+        .btn-limpar { background:#6b7280; color:white; }
+        .btn-limpar:hover { background:#4b5563; }
+        
+        .card-item { 
+            background: var(--bg-card); 
+            padding:16px; 
+            border-radius:16px; 
+            border:1px solid var(--border-color); 
+            margin-bottom:12px; 
+            display:flex; 
+            justify-content:space-between; 
+            align-items:center; 
+            flex-wrap:wrap; 
+            gap:12px;
+            transition: all 0.3s;
+        }
+        .card-item:hover { background: var(--bg-card-hover); border-color: var(--dourado); }
+        .card-item-info { flex:1; min-width:180px; display:flex; align-items:center; gap:12px; color: var(--text-primary); }
+        .card-item-info strong { color: var(--dourado); }
+        .card-item-info small { color: var(--text-secondary); }
+        
+        .item-foto { width:60px; height:60px; border-radius:14px; object-fit:cover; border:2px solid var(--border-color); }
+        .item-foto-placeholder { width:60px; height:60px; border-radius:14px; border:2px dashed var(--border-color); display:flex; align-items:center; justify-content:center; font-size:30px; background: var(--bg-secondary); }
+        
+        .badge { 
+            padding:5px 12px; 
+            border-radius:20px; 
+            font-size:12px; 
+            font-weight:700; 
+            display: inline-block;
+        }
+        .badge-pago { background:#064e3b; color:#6ee7b7; }
+        .badge-pendente { background:#713f12; color:#fcd34d; }
+        .badge-baixo { background:#7f1d1d; color:#fca5a5; }
+        .badge-normal { background:#064e3b; color:#6ee7b7; }
+        .badge-novo { background:#713f12; color:#fcd34d; }
+        .badge-preparo { background:#1e3a5f; color:#93c5fd; }
+        .badge-entrega { background:#4c1d95; color:#c4b5fd; }
+        .badge-entregue { background:#064e3b; color:#6ee7b7; }
+        .badge-cancelado { background:#7f1d1d; color:#fca5a5; }
+        
         .dashboard-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:15px; margin-bottom:20px; }
-        .dash-card { background:#FFFDF5; padding:25px; border-radius:18px; border:1px solid #f0e0c0; text-align:center; }
+        .dash-card { 
+            background: var(--bg-card); 
+            padding:25px; 
+            border-radius:18px; 
+            border:1px solid var(--border-color); 
+            text-align:center;
+            transition: all 0.3s;
+        }
+        .dash-card:hover { border-color: var(--dourado); transform: translateY(-3px); }
         .dash-card .icon { font-size:2.5em; margin-bottom:10px; }
-        .dash-card .valor { font-size:1.8em; font-weight:800; color:#CC5500; }
-        .dash-card .label { font-size:0.85em; color:#666; }
-        .toast { position:fixed; top:20px; right:20px; background:#22c55e; color:white; padding:15px 25px; border-radius:14px; font-weight:700; z-index:9999; display:none; }
-        .ranking-item { display:flex; justify-content:space-between; align-items:center; padding:14px; background:#FFFDF5; border-radius:12px; border:1px solid #f0e0c0; margin-bottom:8px; }
+        .dash-card .valor { font-size:1.8em; font-weight:800; color: var(--dourado); }
+        .dash-card .label { font-size:0.85em; color: var(--text-secondary); }
+        
+        .toast { 
+            position:fixed; 
+            top:20px; 
+            right:20px; 
+            background:#22c55e; 
+            color:white; 
+            padding:15px 25px; 
+            border-radius:14px; 
+            font-weight:700; 
+            z-index:9999; 
+            display:none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        
+        .ranking-item { 
+            display:flex; 
+            justify-content:space-between; 
+            align-items:center; 
+            padding:14px; 
+            background: var(--bg-card); 
+            border-radius:12px; 
+            border:1px solid var(--border-color); 
+            margin-bottom:8px;
+        }
         .ranking-posicao { font-size:1.5em; font-weight:800; width:50px; text-align:center; }
-        .ranking-nome { flex:1; font-size:1.05em; font-weight:600; }
-        .ranking-qtd { font-size:1.1em; font-weight:800; color:#CC5500; }
-        table { width:100%; border-collapse:collapse; margin-top:10px; }
-        th { background:linear-gradient(135deg,#CC5500,#E0551F); color:white; padding:14px; text-align:left; font-size:14px; }
-        td { padding:14px; border-bottom:1px solid #f0e0c0; font-size:14px; }
+        .ranking-nome { flex:1; font-size:1.05em; font-weight:600; color: var(--text-primary); }
+        .ranking-qtd { font-size:1.1em; font-weight:800; color: var(--dourado); }
+        
+        table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; }
+        th { 
+            background: linear-gradient(135deg, var(--marrom), var(--laranja)); 
+            color: white; 
+            padding:14px; 
+            text-align:left; 
+        }
+        td { 
+            padding:12px 14px; 
+            border-bottom:1px solid var(--border-color); 
+            color: var(--text-primary);
+        }
+        tr:hover td { background: var(--bg-card-hover); }
+        
         .hidden { display:none !important; }
+        
         .perm-item { display:flex; align-items:center; gap:8px; margin:8px 0; }
-        .perm-item input { width:20px; height:20px; margin:0; }
-        .perm-item label { margin:0; font-weight:600; color:#854d0e; }
-        .pedido-itens { margin-top:10px; padding:12px; background:#FFF8DC; border-radius:10px; border:1px solid #f0e0c0; }
-        .pedido-item-linha { padding:3px 0; font-size:0.9em; color:#333; }
+        .perm-item input { width:20px; height:20px; margin:0; accent-color: var(--laranja); }
+        .perm-item label { margin:0; font-weight:600; color: var(--dourado); }
         
-        /* FILTROS ESTILO */
+        .pedido-itens { 
+            margin-top:10px; 
+            padding:12px; 
+            background: rgba(255, 248, 220, 0.08); 
+            border-radius:10px; 
+            border:1px solid var(--border-color); 
+        }
+        .pedido-itens strong { color: var(--dourado); }
+        .pedido-item-linha { padding:3px 0; font-size:0.9em; color: var(--text-secondary); }
+        
         .filtros-container {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            padding: 18px;
-            background: #f5f0e8;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            align-items: flex-end;
+            display:flex; 
+            gap:12px; 
+            flex-wrap:wrap; 
+            padding:18px;
+            background: var(--bg-secondary); 
+            border-radius:16px; 
+            margin-bottom:20px; 
+            align-items:flex-end;
+            border: 1px solid var(--border-color);
         }
-        .filtros-container .form-group {
-            margin-bottom: 0;
-            flex: 1;
-            min-width: 150px;
-        }
-        .filtros-container .form-group label {
-            font-size: 12px;
-            margin-bottom: 3px;
-        }
-        .filtros-container input,
-        .filtros-container select {
-            padding: 10px 14px;
-            margin-bottom: 0;
-            font-size: 14px;
-        }
-        .filtros-container .btn {
-            padding: 10px 20px;
-            height: 46px;
-            width: auto;
-            align-self: flex-end;
-        }
-        .btn-limpar {
-            background: #6b7280;
-            color: white;
-        }
-        .btn-limpar:hover {
-            background: #4b5563;
-        }
-        .btn-deliver {
-            background: linear-gradient(135deg,#10b981,#059669);
-            color: white;
-        }
-        .btn-deliver:hover {
-            transform: scale(1.02);
-        }
-        .btn-deliver:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .badge-entregue {
-            background: #dcfce7;
-            color: #166534;
-        }
-        .entregue-badge {
-            color: #065f46;
-            font-weight: bold;
-            background: #d1fae5;
-            padding: 4px 12px;
-            border-radius: 20px;
+        .filtros-container .form-group { margin-bottom:0; flex:1; min-width:150px; }
+        .filtros-container .form-group label { font-size:12px; margin-bottom:3px; color: var(--text-secondary); }
+        .filtros-container input, .filtros-container select { padding:10px 14px; margin-bottom:0; font-size:14px; }
+        .filtros-container .btn { padding:10px 20px; height:46px; width:auto; align-self:flex-end; }
+        
+        .entregue-badge { 
+            color: #6ee7b7; 
+            font-weight:bold; 
+            background: #064e3b; 
+            padding:4px 12px; 
+            border-radius:20px;
+            display: inline-block;
         }
         
-        @media (max-width:600px) { .tabs { flex-direction:column; } }
+        .resumo-financeiro { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:15px; margin-bottom:20px; }
+        .resumo-card { 
+            background: var(--bg-card); 
+            padding:20px; 
+            border-radius:14px; 
+            border:1px solid var(--border-color); 
+            text-align:center;
+        }
+        .resumo-card .valor { font-size:1.6em; font-weight:800; color: var(--dourado); }
+        .resumo-card .label { font-size:0.85em; color: var(--text-secondary); }
+        .resumo-card .destaque { font-size:2em; font-weight:900; color: var(--dourado); }
+        
+        @media (max-width:600px) { 
+            .tabs { flex-direction:column; } 
+            .filtros-container { flex-direction:column; } 
+            .filtros-container .btn { width:100%; }
+            .header-painel { flex-direction:column; align-items:stretch; }
+            .header-painel > div { justify-content:center; }
+        }
     </style>
 </head>
 <body>
@@ -159,7 +365,7 @@
         <div class="header-painel">
             <h2>🍦 Dindins Gourmet FX</h2>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <span id="userLogado" style="font-weight:700;color:#8B4513;align-self:center;"></span>
+                <span id="userLogado" style="font-weight:700;color:var(--dourado);align-self:center;"></span>
                 <button class="btn btn-info" onclick="mostrarTrocaSenha()" style="width:auto;">🔒 Trocar Senha</button>
                 <button class="btn btn-danger" onclick="sair()" style="width:auto;">🚪 Sair</button>
             </div>
@@ -186,9 +392,9 @@
 
         <div class="conteudo" id="conteudo-estoque">
             <h3>📦 Estoque Geral</h3>
-            <div class="form-group"><label>Nome</label><input type="text" id="estoqueNome"></div>
+            <div class="form-group"><label>Nome</label><input type="text" id="estoqueNome" placeholder="Ex: Chocolate"></div>
             <div class="form-group"><label>Emoji</label><input type="text" id="estoqueEmoji" maxlength="2" value="🍦"></div>
-            <div class="form-group"><label>Preço R$</label><input type="number" id="estoquePreco" step="0.01"></div>
+            <div class="form-group"><label>Preço R$</label><input type="number" id="estoquePreco" step="0.01" placeholder="0.00"></div>
             <div class="form-group"><label>Quantidade</label><input type="number" id="estoqueQtd" value="50"></div>
             <div class="form-group"><label>📸 Foto</label><input type="file" id="estoqueFoto" accept="image/*" onchange="previewFotoAdmin(this)"></div>
             <div id="previewFotoContainer" style="display:none;"><img id="previewFotoAdmin" style="max-width:100%;max-height:180px;border-radius:12px;" src=""></div>
@@ -210,15 +416,13 @@
             <div id="listaC2" style="margin-top:15px;"></div>
         </div>
 
-        <!-- ========== ABA PEDIDOS MODIFICADA ========== -->
+        <!-- ========== ABA PEDIDOS ========== -->
         <div class="conteudo" id="conteudo-pedidos">
             <h3>📋 Pedidos</h3>
-            
-            <!-- FILTROS -->
-            <div class="filtros-container" id="filtrosPedidos">
+            <div class="filtros-container">
                 <div class="form-group">
                     <label>📌 Status</label>
-                    <select id="filtroStatus">
+                    <select id="filtroPedidosStatus">
                         <option value="todos">Todos</option>
                         <option value="novo">🆕 Novo</option>
                         <option value="preparo">👨‍🍳 Preparo</option>
@@ -229,41 +433,113 @@
                 </div>
                 <div class="form-group">
                     <label>👤 Cliente</label>
-                    <input type="text" id="filtroCliente" placeholder="Buscar cliente...">
+                    <input type="text" id="filtroPedidosCliente" placeholder="Buscar cliente...">
                 </div>
                 <div class="form-group">
                     <label>📅 Data Início</label>
-                    <input type="date" id="filtroDataInicio">
+                    <input type="date" id="filtroPedidosInicio">
                 </div>
                 <div class="form-group">
                     <label>📅 Data Fim</label>
-                    <input type="date" id="filtroDataFim">
+                    <input type="date" id="filtroPedidosFim">
                 </div>
-                <button class="btn btn-primary" onclick="aplicarFiltros()">🔍 Filtrar</button>
-                <button class="btn btn-limpar" onclick="limparFiltros()">🗑️ Limpar</button>
+                <button class="btn btn-primary" onclick="aplicarFiltroPedidos()">🔍 Filtrar</button>
+                <button class="btn btn-limpar" onclick="limparFiltroPedidos()">🗑️ Limpar</button>
             </div>
-
             <div id="listaPedidos"></div>
         </div>
 
+        <!-- ========== ABA PAGAMENTOS ========== -->
         <div class="conteudo" id="conteudo-pagamentos">
             <h3>💳 Pagamentos</h3>
+            <div class="filtros-container">
+                <div class="form-group">
+                    <label>📌 Status</label>
+                    <select id="filtroPagamentosStatus">
+                        <option value="todos">Todos</option>
+                        <option value="pago">✅ Pago</option>
+                        <option value="pendente">⏳ Pendente</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>👤 Cliente</label>
+                    <input type="text" id="filtroPagamentosCliente" placeholder="Buscar cliente...">
+                </div>
+                <div class="form-group">
+                    <label>📅 Data Início</label>
+                    <input type="date" id="filtroPagamentosInicio">
+                </div>
+                <div class="form-group">
+                    <label>📅 Data Fim</label>
+                    <input type="date" id="filtroPagamentosFim">
+                </div>
+                <button class="btn btn-primary" onclick="aplicarFiltroPagamentos()">🔍 Filtrar</button>
+                <button class="btn btn-limpar" onclick="limparFiltroPagamentos()">🗑️ Limpar</button>
+            </div>
             <button class="btn btn-whatsapp" onclick="lembrarTodosPendentes()" style="width:auto;margin-bottom:15px;">📱 Lembrar Todos Pendentes</button>
             <div id="listaPagamentos"></div>
         </div>
 
+        <!-- ========== ABA FINANCEIRO ========== -->
         <div class="conteudo" id="conteudo-financeiro">
             <h3>💰 Financeiro</h3>
+            <div class="filtros-container">
+                <div class="form-group">
+                    <label>📅 Data Início</label>
+                    <input type="date" id="filtroFinanceiroInicio">
+                </div>
+                <div class="form-group">
+                    <label>📅 Data Fim</label>
+                    <input type="date" id="filtroFinanceiroFim">
+                </div>
+                <div class="form-group">
+                    <label>👤 Cliente</label>
+                    <input type="text" id="filtroFinanceiroCliente" placeholder="Buscar cliente...">
+                </div>
+                <button class="btn btn-primary" onclick="aplicarFiltroFinanceiro()">🔍 Filtrar</button>
+                <button class="btn btn-limpar" onclick="limparFiltroFinanceiro()">🗑️ Limpar</button>
+            </div>
             <div id="listaFinanceiro"></div>
         </div>
 
+        <!-- ========== ABA RANKING ========== -->
         <div class="conteudo" id="conteudo-ranking">
             <h3>🏆 Mais Vendidos</h3>
+            <div class="filtros-container">
+                <div class="form-group">
+                    <label>📅 Data Início</label>
+                    <input type="date" id="filtroRankingInicio">
+                </div>
+                <div class="form-group">
+                    <label>📅 Data Fim</label>
+                    <input type="date" id="filtroRankingFim">
+                </div>
+                <button class="btn btn-primary" onclick="aplicarFiltroRanking()">🔍 Filtrar</button>
+                <button class="btn btn-limpar" onclick="limparFiltroRanking()">🗑️ Limpar</button>
+            </div>
             <div id="listaRanking"></div>
         </div>
 
+        <!-- ========== ABA HISTÓRICO ========== -->
         <div class="conteudo" id="conteudo-historico">
-            <h3>📜 Histórico</h3>
+            <h3>📜 Histórico de Estoque</h3>
+            <div class="filtros-container">
+                <div class="form-group">
+                    <label>📌 Tipo</label>
+                    <select id="filtroHistoricoTipo">
+                        <option value="todos">Todos</option>
+                        <option value="entrada">🟢 Entrada</option>
+                        <option value="saida">🔴 Saída</option>
+                        <option value="alocacao">📤 Alocação</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>📦 Item</label>
+                    <input type="text" id="filtroHistoricoItem" placeholder="Buscar item...">
+                </div>
+                <button class="btn btn-primary" onclick="aplicarFiltroHistorico()">🔍 Filtrar</button>
+                <button class="btn btn-limpar" onclick="limparFiltroHistorico()">🗑️ Limpar</button>
+            </div>
             <div id="listaHistorico"></div>
         </div>
 
@@ -271,11 +547,11 @@
             <h3>👥 Administradores</h3>
             <div class="card-item" style="flex-direction:column;align-items:stretch;">
                 <h4>➕ Cadastrar Novo Admin</h4>
-                <div class="form-group"><label>Nome Completo *</label><input type="text" id="adminNome"></div>
-                <div class="form-group"><label>Usuário *</label><input type="text" id="adminUsuario"></div>
-                <div class="form-group"><label>Senha *</label><input type="password" id="adminSenha"></div>
-                <div style="background:#fef9c3;padding:15px;border-radius:12px;margin:10px 0;">
-                    <label style="font-weight:700;color:#854d0e;">📋 Permissões:</label>
+                <div class="form-group"><label>Nome Completo *</label><input type="text" id="adminNome" placeholder="Nome do administrador"></div>
+                <div class="form-group"><label>Usuário *</label><input type="text" id="adminUsuario" placeholder="Usuário para login"></div>
+                <div class="form-group"><label>Senha *</label><input type="password" id="adminSenha" placeholder="Mínimo 6 caracteres"></div>
+                <div style="background:var(--bg-secondary);padding:15px;border-radius:12px;margin:10px 0;border:1px solid var(--border-color);">
+                    <label style="font-weight:700;color:var(--dourado);">📋 Permissões:</label>
                     <div class="perm-item"><input type="checkbox" id="permEstoque" checked><label>📦 Estoque</label></div>
                     <div class="perm-item"><input type="checkbox" id="permC1" checked><label>📋 Cardápio 1</label></div>
                     <div class="perm-item"><input type="checkbox" id="permC2"><label>🔥 Cardápio 2</label></div>
@@ -291,10 +567,10 @@
 
         <div class="conteudo" id="conteudo-config">
             <h3>⚙️ Configurações</h3>
-            <div class="form-group"><label>WhatsApp (com DDD)</label><input type="text" id="configWhatsapp"></div>
-            <div class="form-group"><label>Chave PIX</label><input type="text" id="configPix"></div>
-            <div class="form-group"><label>Endereço Retirada</label><input type="text" id="configEndereco"></div>
-            <div class="form-group"><label>👥 Link do Grupo WhatsApp</label><input type="text" id="configGrupoWhatsapp"></div>
+            <div class="form-group"><label>WhatsApp (com DDD)</label><input type="text" id="configWhatsapp" placeholder="Ex: 11999999999"></div>
+            <div class="form-group"><label>Chave PIX</label><input type="text" id="configPix" placeholder="pix@seudominio.com"></div>
+            <div class="form-group"><label>Endereço Retirada</label><input type="text" id="configEndereco" placeholder="Rua, número, bairro"></div>
+            <div class="form-group"><label>👥 Link do Grupo WhatsApp</label><input type="text" id="configGrupoWhatsapp" placeholder="https://chat.whatsapp.com/..."></div>
             <button class="btn btn-success" onclick="salvarConfig()">💾 Salvar</button>
         </div>
     </div>
@@ -305,19 +581,32 @@
         var fotoEmBase64 = null;
         var cacheEstoque = [], cacheC2 = [], cachePedidos = [], cacheHistorico = [], configDados = {};
         var adminAtual = null;
-        var pedidosFiltrados = [];
 
-        function mostrarToast(msg) { var t = document.getElementById('toastNotificacao'); t.textContent = msg; t.style.display = 'block'; setTimeout(function(){ t.style.display = 'none'; }, 4000); }
+        function mostrarToast(msg) { 
+            var t = document.getElementById('toastNotificacao'); 
+            t.textContent = msg; 
+            t.style.display = 'block'; 
+            setTimeout(function(){ t.style.display = 'none'; }, 4000); 
+        }
 
         async function verificarConexao() {
             var s = document.getElementById('statusConexao');
-            try { var { error } = await supabase.from('estoquecentral').select('*').limit(1);
+            try { 
+                var { error } = await supabase.from('estoquecentral').select('*').limit(1);
                 if (error) { s.innerHTML = '🔴 Erro'; } else { s.innerHTML = '🟢 Banco conectado!'; }
             } catch(e) { s.innerHTML = '🔴 Sem conexão'; }
         }
 
         function previewFotoAdmin(input) {
-            if (input.files && input.files[0]) { var r = new FileReader(); r.onload = function(e) { fotoEmBase64 = e.target.result; document.getElementById('previewFotoContainer').style.display = 'block'; document.getElementById('previewFotoAdmin').src = fotoEmBase64; }; r.readAsDataURL(input.files[0]); }
+            if (input.files && input.files[0]) { 
+                var r = new FileReader(); 
+                r.onload = function(e) { 
+                    fotoEmBase64 = e.target.result; 
+                    document.getElementById('previewFotoContainer').style.display = 'block'; 
+                    document.getElementById('previewFotoAdmin').src = fotoEmBase64; 
+                }; 
+                r.readAsDataURL(input.files[0]); 
+            }
         }
 
         function fazerLogin() {
@@ -339,11 +628,13 @@
             document.getElementById('painelAdmin').classList.remove('hidden');
             document.getElementById('painelAdmin').style.display = 'block';
             document.getElementById('userLogado').textContent = '👤 ' + adminAtual.nome;
-            aplicarPermissoes(); carregarTudo();
+            aplicarPermissoes(); 
+            carregarTudo();
         }
 
         function aplicarPermissoes() {
-            var p = adminAtual.permissoes || {}; var isMaster = adminAtual.tipo === 'master';
+            var p = adminAtual.permissoes || {}; 
+            var isMaster = adminAtual.tipo === 'master';
             document.querySelectorAll('.tab-btn').forEach(function(btn) {
                 var t = btn.textContent;
                 if (isMaster) { btn.style.display = 'flex'; return; }
@@ -361,24 +652,39 @@
         }
 
         function mostrarTrocaSenha() {
-            var atual = prompt('Senha ATUAL:'); if (!atual) return;
+            var atual = prompt('Senha ATUAL:'); 
+            if (!atual) return;
             var correta = adminAtual.tipo === 'master' ? (localStorage.getItem('senhaMaster') || 'Dindins@2026') : adminAtual.senha;
             if (atual !== correta) { alert('❌ Incorreta!'); return; }
-            var nova = prompt('NOVA senha (mín. 6):'); if (!nova || nova.length < 6) { alert('❌ Mínimo 6!'); return; }
-            var conf = prompt('Confirme:'); if (nova !== conf) { alert('❌ Não coincidem!'); return; }
+            var nova = prompt('NOVA senha (mín. 6):'); 
+            if (!nova || nova.length < 6) { alert('❌ Mínimo 6!'); return; }
+            var conf = prompt('Confirme:'); 
+            if (nova !== conf) { alert('❌ Não coincidem!'); return; }
             if (adminAtual.tipo === 'master') { localStorage.setItem('senhaMaster', nova); }
-            else { var admins = JSON.parse(localStorage.getItem('admins') || '[]'); var a = admins.find(function(x){return x.id===adminAtual.id;}); if (a) { a.senha = nova; localStorage.setItem('admins', JSON.stringify(admins)); } adminAtual.senha = nova; }
-            mostrarToast('✅ Senha alterada!'); alert('✅ Senha alterada!');
+            else { 
+                var admins = JSON.parse(localStorage.getItem('admins') || '[]'); 
+                var a = admins.find(function(x){return x.id===adminAtual.id;}); 
+                if (a) { a.senha = nova; localStorage.setItem('admins', JSON.stringify(admins)); } 
+                adminAtual.senha = nova; 
+            }
+            mostrarToast('✅ Senha alterada!'); 
+            alert('✅ Senha alterada!');
         }
 
-        function sair() { document.getElementById('telaLogin').classList.remove('hidden'); document.getElementById('painelAdmin').classList.add('hidden'); document.getElementById('painelAdmin').style.display = 'none'; adminAtual = null; }
+        function sair() { 
+            document.getElementById('telaLogin').classList.remove('hidden'); 
+            document.getElementById('painelAdmin').classList.add('hidden'); 
+            document.getElementById('painelAdmin').style.display = 'none'; 
+            adminAtual = null; 
+        }
         document.getElementById('campoSenha').addEventListener('keypress', function(e) { if (e.key === 'Enter') fazerLogin(); });
 
         function mudarTab(tab) {
             var cs = ['dashboard','estoque','c1','c2','pedidos','pagamentos','financeiro','ranking','historico','admins','config'];
             cs.forEach(function(c) { var el = document.getElementById('conteudo-' + c); if (el) el.classList.remove('active'); });
             document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-            document.getElementById('conteudo-' + tab).classList.add('active'); event.target.classList.add('active');
+            document.getElementById('conteudo-' + tab).classList.add('active'); 
+            event.target.classList.add('active');
             if (tab === 'dashboard') carregarDashboard();
             if (tab === 'estoque') carregarEstoque();
             if (tab === 'c1') carregarC1();
@@ -392,7 +698,6 @@
             if (tab === 'config') carregarConfig();
         }
 
-        // ============ DATA/HORA BRASÍLIA ============
         function formatarData(d) {
             if (!d) return '';
             var dt = new Date(d);
@@ -409,39 +714,67 @@
             var nome = document.getElementById('adminNome').value.trim();
             var usuario = document.getElementById('adminUsuario').value.trim().toLowerCase();
             var senha = document.getElementById('adminSenha').value;
-            if (!nome || !usuario || !senha) { alert('Preencha!'); return; }
-            if (senha.length < 6) { alert('Senha mínima: 6!'); return; }
+            if (!nome || !usuario || !senha) { alert('Preencha todos os campos!'); return; }
+            if (senha.length < 6) { alert('Senha mínima: 6 caracteres!'); return; }
             var admins = JSON.parse(localStorage.getItem('admins') || '[]');
             if (admins.find(function(a){return a.usuario===usuario;})) { alert('Usuário já existe!'); return; }
-            admins.push({ id:'admin_'+Date.now(), nome:nome, usuario:usuario, senha:senha, permissoes:{ estoque:document.getElementById('permEstoque').checked, cardapio1:document.getElementById('permC1').checked, cardapio2:document.getElementById('permC2').checked, pedidos:document.getElementById('permPedidos').checked, pagamentos:document.getElementById('permPagamentos').checked, financeiro:document.getElementById('permFinanceiro').checked, admins:document.getElementById('permAdmins').checked }, ativo:true });
+            admins.push({ 
+                id:'admin_'+Date.now(), 
+                nome:nome, 
+                usuario:usuario, 
+                senha:senha, 
+                permissoes:{ 
+                    estoque:document.getElementById('permEstoque').checked, 
+                    cardapio1:document.getElementById('permC1').checked, 
+                    cardapio2:document.getElementById('permC2').checked, 
+                    pedidos:document.getElementById('permPedidos').checked, 
+                    pagamentos:document.getElementById('permPagamentos').checked, 
+                    financeiro:document.getElementById('permFinanceiro').checked, 
+                    admins:document.getElementById('permAdmins').checked 
+                }, 
+                ativo:true 
+            });
             localStorage.setItem('admins', JSON.stringify(admins));
-            carregarListaAdmins(); document.getElementById('adminNome').value=''; document.getElementById('adminUsuario').value=''; document.getElementById('adminSenha').value='';
+            carregarListaAdmins(); 
+            document.getElementById('adminNome').value=''; 
+            document.getElementById('adminUsuario').value=''; 
+            document.getElementById('adminSenha').value='';
             mostrarToast('✅ Admin cadastrado!');
         }
+        
         function carregarListaAdmins() {
             var admins = JSON.parse(localStorage.getItem('admins') || '[]');
             var l = document.getElementById('listaAdmins');
-            if (admins.length === 0) { l.innerHTML = '<p>Nenhum admin.</p>'; return; }
+            if (admins.length === 0) { l.innerHTML = '<p style="color:var(--text-secondary);">Nenhum admin cadastrado.</p>'; return; }
             l.innerHTML = admins.map(function(a) {
-                var p = a.permissoes || {}; var perms = [];
-                if (p.estoque) perms.push('📦'); if (p.cardapio1) perms.push('📋'); if (p.cardapio2) perms.push('🔥');
-                if (p.pedidos) perms.push('📋P'); if (p.pagamentos) perms.push('💳'); if (p.financeiro) perms.push('💰'); if (p.admins) perms.push('👥');
-                return '<div class="card-item"><div class="card-item-info"><strong>👤 '+a.nome+'</strong><br><small>Usuário: '+a.usuario+' | Permissões: '+perms.join(' ')+'</small></div><button class="btn btn-danger btn-small" onclick="excluirAdmin(\''+a.id+'\')">🗑️</button></div>';
+                var p = a.permissoes || {}; 
+                var perms = [];
+                if (p.estoque) perms.push('📦'); 
+                if (p.cardapio1) perms.push('📋'); 
+                if (p.cardapio2) perms.push('🔥');
+                if (p.pedidos) perms.push('📋P'); 
+                if (p.pagamentos) perms.push('💳'); 
+                if (p.financeiro) perms.push('💰'); 
+                if (p.admins) perms.push('👥');
+                return '<div class="card-item"><div class="card-item-info"><strong>👤 '+a.nome+'</strong><br><small style="color:var(--text-secondary);">Usuário: '+a.usuario+' | Permissões: '+perms.join(' ')+'</small></div><button class="btn btn-danger btn-small" onclick="excluirAdmin(\''+a.id+'\')">🗑️</button></div>';
             }).join('');
         }
+        
         function excluirAdmin(id) {
-            if (!confirm('Excluir?')) return;
+            if (!confirm('Excluir este administrador?')) return;
             var admins = JSON.parse(localStorage.getItem('admins') || '[]');
             admins = admins.filter(function(a){return a.id!==id;});
             localStorage.setItem('admins', JSON.stringify(admins));
-            carregarListaAdmins(); mostrarToast('✅ Excluído!');
+            carregarListaAdmins(); 
+            mostrarToast('✅ Excluído!');
         }
 
         // ============ DASHBOARD ============
         async function carregarDashboard() {
             var { data: e } = await supabase.from('estoquecentral').select('*');
             var { data: p } = await supabase.from('todospedidos').select('*');
-            var estoque = e || []; var pedidos = p || [];
+            var estoque = e || []; 
+            var pedidos = p || [];
             
             var totalEstoque = estoque.reduce(function(s,i){ return s + ((i.quantidadetotal || 0) || 0); }, 0);
             
@@ -473,50 +806,112 @@
             cacheEstoque = data || [];
             renderizarEstoque(cacheEstoque);
             var sel = document.getElementById('alocarSabor');
-            if (sel) { sel.innerHTML = '<option value="">Selecione...</option>'; cacheEstoque.forEach(function(i){var d=(i.quantidadetotal||0)-(i.alocadocardapio2||0);sel.innerHTML+='<option value="'+i.id+'">'+i.nome+' - Disp: '+d+'</option>';}); }
+            if (sel) { 
+                sel.innerHTML = '<option value="">Selecione...</option>'; 
+                cacheEstoque.forEach(function(i){
+                    var d = (i.quantidadetotal||0) - (i.alocadocardapio2||0);
+                    sel.innerHTML += '<option value="'+i.id+'">'+i.nome+' - Disp: '+d+'</option>';
+                }); 
+            }
         }
+        
         function renderizarEstoque(e) {
             var l = document.getElementById('listaEstoque');
-            if (e.length === 0) { l.innerHTML = '<p>Nenhum item.</p>'; return; }
+            if (e.length === 0) { l.innerHTML = '<p style="color:var(--text-secondary);">Nenhum item no estoque.</p>'; return; }
             l.innerHTML = e.map(function(i) {
                 var d = (i.quantidadetotal||0)-(i.alocadocardapio2||0);
                 var b = d <= 5 ? 'badge-baixo' : 'badge-normal';
                 var f = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+(i.emoji||'🍦')+'</div>';
-                return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+'<br><small>Total: '+(i.quantidadetotal||0)+' | C2: '+(i.alocadocardapio2||0)+' | <span class="badge '+b+'">Disp: '+d+'</span></small></div></div><div class="card-item-actions"><button class="btn btn-warning btn-small" onclick="editarItem('+i.id+')">✏️</button><button class="btn btn-danger btn-small" onclick="excluirItem('+i.id+')">🗑️</button></div></div>';
+                return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+'<br><small style="color:var(--text-secondary);">Total: '+(i.quantidadetotal||0)+' | C2: '+(i.alocadocardapio2||0)+' | <span class="badge '+b+'">Disp: '+d+'</span></small></div></div><div class="card-item-actions"><button class="btn btn-warning btn-small" onclick="editarItem('+i.id+')">✏️</button><button class="btn btn-danger btn-small" onclick="excluirItem('+i.id+')">🗑️</button></div></div>';
             }).join('');
         }
+        
         async function cadastrarItem() {
             var nome = document.getElementById('estoqueNome').value.trim();
             var emoji = document.getElementById('estoqueEmoji').value.trim() || '🍦';
             var preco = parseFloat(document.getElementById('estoquePreco').value);
             var qtd = parseInt(document.getElementById('estoqueQtd').value) || 0;
-            if (!nome || !preco) { alert('Preencha!'); return; }
+            if (!nome || !preco) { alert('Preencha nome e preço!'); return; }
             var { data: ex } = await supabase.from('estoquecentral').select('*').eq('nome', nome).maybeSingle();
-            if (ex) { await supabase.from('estoquecentral').update({ quantidadetotal:(ex.quantidadetotal||0)+qtd, preco:preco, emoji:emoji, foto:fotoEmBase64||ex.foto||null }).eq('id',ex.id); }
-            else { await supabase.from('estoquecentral').insert([{ nome:nome, emoji:emoji, preco:preco, quantidadetotal:qtd||50, alocadocardapio2:0, foto:fotoEmBase64 }]); }
-            fotoEmBase64 = null; document.getElementById('previewFotoContainer').style.display='none'; document.getElementById('estoqueFoto').value='';
-            carregarEstoque(); carregarC1(); carregarDashboard(); mostrarToast('✅ Salvo!');
-            document.getElementById('estoqueNome').value=''; document.getElementById('estoquePreco').value='';
+            if (ex) { 
+                await supabase.from('estoquecentral').update({ 
+                    quantidadetotal: (ex.quantidadetotal||0) + qtd, 
+                    preco: preco, 
+                    emoji: emoji, 
+                    foto: fotoEmBase64 || ex.foto || null 
+                }).eq('id', ex.id); 
+            } else { 
+                await supabase.from('estoquecentral').insert([{ 
+                    nome: nome, 
+                    emoji: emoji, 
+                    preco: preco, 
+                    quantidadetotal: qtd || 50, 
+                    alocadocardapio2: 0, 
+                    foto: fotoEmBase64 
+                }]); 
+            }
+            fotoEmBase64 = null; 
+            document.getElementById('previewFotoContainer').style.display='none'; 
+            document.getElementById('estoqueFoto').value='';
+            carregarEstoque(); 
+            carregarC1(); 
+            carregarDashboard(); 
+            mostrarToast('✅ Salvo!');
+            document.getElementById('estoqueNome').value=''; 
+            document.getElementById('estoquePreco').value='';
         }
+        
         async function editarItem(id) {
-            var i = cacheEstoque.find(function(x){return x.id==id;}); if (!i) return;
-            var nome = prompt('Nome:', i.nome); if (!nome) return;
-            var preco = parseFloat(prompt('Preço R$:', i.preco)); if (!preco) return;
+            var i = cacheEstoque.find(function(x){return x.id==id;}); 
+            if (!i) return;
+            var nome = prompt('Nome:', i.nome); 
+            if (!nome) return;
+            var preco = parseFloat(prompt('Preço R$:', i.preco)); 
+            if (!preco) return;
             var qtdFinal = parseInt(prompt('Quantidade FINAL:\n(Atual: ' + i.quantidadetotal + ')', i.quantidadetotal));
             if (isNaN(qtdFinal) || qtdFinal < 0) { alert('❌ Inválida!'); return; }
-            await supabase.from('estoquecentral').update({ nome:nome, preco:preco, quantidadetotal:qtdFinal }).eq('id', id);
+            await supabase.from('estoquecentral').update({ nome: nome, preco: preco, quantidadetotal: qtdFinal }).eq('id', id);
             var dif = qtdFinal - (i.quantidadetotal||0);
-            if (dif !== 0) { try { await supabase.from('historicoestoque').insert([{data:new Date().toLocaleString('pt-BR'),tipo:dif>0?'entrada':'saida',item:nome,quantidade:Math.abs(dif),obs:'Ajuste'}]); } catch(e) {} }
-            carregarEstoque(); carregarC1(); carregarDashboard(); mostrarToast('✅ Atualizado!');
+            if (dif !== 0) { 
+                try { 
+                    await supabase.from('historicoestoque').insert([{
+                        data: new Date().toLocaleString('pt-BR'), 
+                        tipo: dif>0 ? 'entrada' : 'saida', 
+                        item: nome, 
+                        quantidade: Math.abs(dif), 
+                        obs: 'Ajuste manual'
+                    }]); 
+                } catch(e) {} 
+            }
+            carregarEstoque(); 
+            carregarC1(); 
+            carregarDashboard(); 
+            mostrarToast('✅ Atualizado!');
         }
-        async function excluirItem(id) { if (!confirm('Excluir?')) return; await supabase.from('estoquecentral').delete().eq('id', id); carregarEstoque(); carregarC1(); carregarDashboard(); mostrarToast('✅ Excluído!'); }
+        
+        async function excluirItem(id) { 
+            if (!confirm('Excluir este item permanentemente?')) return; 
+            await supabase.from('estoquecentral').delete().eq('id', id); 
+            carregarEstoque(); 
+            carregarC1(); 
+            carregarDashboard(); 
+            mostrarToast('✅ Excluído!'); 
+        }
 
         // ============ CARDÁPIO 1 ============
         async function carregarC1() {
             var { data } = await supabase.from('estoquecentral').select('*');
-            var c1 = (data||[]).map(function(i){ return { nome:i.nome, emoji:i.emoji||'🍦', foto:i.foto, preco:i.preco, quantidade:Math.max(0,(i.quantidadetotal||0)-(i.alocadocardapio2||0)) }; }).filter(function(i){return i.quantidade>0;});
+            var c1 = (data||[]).map(function(i){ 
+                return { 
+                    nome: i.nome, 
+                    emoji: i.emoji||'🍦', 
+                    foto: i.foto, 
+                    preco: i.preco, 
+                    quantidade: Math.max(0, (i.quantidadetotal||0) - (i.alocadocardapio2||0)) 
+                }; 
+            }).filter(function(i){return i.quantidade > 0;});
             var l = document.getElementById('listaC1');
-            if (c1.length === 0) { l.innerHTML = '<p>Nenhum item.</p>'; return; }
+            if (c1.length === 0) { l.innerHTML = '<p style="color:var(--text-secondary);">Nenhum item disponível.</p>'; return; }
             l.innerHTML = c1.map(function(i) {
                 var f = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+i.emoji+'</div>';
                 return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+i.emoji+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+' | Disp: '+i.quantidade+'</div></div></div>';
@@ -527,47 +922,76 @@
         async function alocarC2() {
             var id = document.getElementById('alocarSabor').value;
             var q = parseInt(document.getElementById('alocarQtd').value);
-            if (!id || !q || q < 1) { alert('Selecione!'); return; }
+            if (!id || !q || q < 1) { alert('Selecione um item e uma quantidade!'); return; }
             var { data: i } = await supabase.from('estoquecentral').select('*').eq('id', id).maybeSingle();
             if (!i) return;
-            var d = (i.quantidadetotal||0)-(i.alocadocardapio2||0);
-            if (q > d) { alert('Máx: '+d); return; }
-            await supabase.from('estoquecentral').update({ alocadocardapio2:(i.alocadocardapio2||0)+q }).eq('id', id);
+            var d = (i.quantidadetotal||0) - (i.alocadocardapio2||0);
+            if (q > d) { alert('Máximo disponível: '+d); return; }
+            await supabase.from('estoquecentral').update({ alocadocardapio2: (i.alocadocardapio2||0) + q }).eq('id', id);
             var { data: ex } = await supabase.from('cardapio2').select('*').eq('nome', i.nome).maybeSingle();
-            if (ex) { await supabase.from('cardapio2').update({ quantidade:(ex.quantidade||0)+q, foto:i.foto }).eq('id', ex.id); }
-            else { await supabase.from('cardapio2').insert([{ nome:i.nome, emoji:i.emoji, preco:i.preco, quantidade:q, foto:i.foto }]); }
-            try { await supabase.from('historicoestoque').insert([{data:new Date().toLocaleString('pt-BR'),tipo:'alocacao',item:i.nome,quantidade:q,obs:'Alocado C2'}]); } catch(e) {}
-            carregarEstoque(); carregarC1(); carregarC2(); carregarDashboard(); mostrarToast('✅ Alocado!');
+            if (ex) { 
+                await supabase.from('cardapio2').update({ 
+                    quantidade: (ex.quantidade||0) + q, 
+                    foto: i.foto 
+                }).eq('id', ex.id); 
+            } else { 
+                await supabase.from('cardapio2').insert([{ 
+                    nome: i.nome, 
+                    emoji: i.emoji, 
+                    preco: i.preco, 
+                    quantidade: q, 
+                    foto: i.foto 
+                }]); 
+            }
+            try { 
+                await supabase.from('historicoestoque').insert([{
+                    data: new Date().toLocaleString('pt-BR'), 
+                    tipo: 'alocacao', 
+                    item: i.nome, 
+                    quantidade: q, 
+                    obs: 'Alocado para Cardápio 2'
+                }]); 
+            } catch(e) {}
+            carregarEstoque(); 
+            carregarC1(); 
+            carregarC2(); 
+            carregarDashboard(); 
+            mostrarToast('✅ Alocado!');
         }
+        
         async function carregarC2() {
             var { data } = await supabase.from('cardapio2').select('*');
             cacheC2 = data || [];
             var l = document.getElementById('listaC2');
-            if (cacheC2.length === 0) { l.innerHTML = '<p>Nenhum item.</p>'; return; }
+            if (cacheC2.length === 0) { l.innerHTML = '<p style="color:var(--text-secondary);">Nenhum item alocado.</p>'; return; }
             l.innerHTML = cacheC2.map(function(i) {
                 var f = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+(i.emoji||'🍦')+'</div>';
                 return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+' | Qtd: '+(i.quantidade||0)+'</div></div><button class="btn btn-danger btn-small" onclick="excluirC2('+i.id+')">🗑️</button></div>';
             }).join('');
         }
-        async function excluirC2(id) { if (!confirm('Excluir?')) return; await supabase.from('cardapio2').delete().eq('id', id); carregarC2(); mostrarToast('✅ Excluído!'); }
+        
+        async function excluirC2(id) { 
+            if (!confirm('Excluir do Cardápio 2?')) return; 
+            await supabase.from('cardapio2').delete().eq('id', id); 
+            carregarC2(); 
+            mostrarToast('✅ Excluído!'); 
+        }
 
-        // ============ PEDIDOS COM FILTROS E BOTÃO ENTREGUE ============
+        // ============ PEDIDOS ============
         async function carregarPedidos() {
             var { data } = await supabase.from('todospedidos').select('*').order('id', { ascending: false });
             cachePedidos = data || [];
-            pedidosFiltrados = cachePedidos;
-            renderizarPedidos(pedidosFiltrados);
+            renderizarPedidos(cachePedidos);
         }
 
         function renderizarPedidos(p) {
             var l = document.getElementById('listaPedidos');
             if (p.length === 0) { 
-                l.innerHTML = '<p style="text-align:center;padding:40px;color:#999;">📭 Nenhum pedido encontrado.</p>'; 
+                l.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-secondary);">📭 Nenhum pedido encontrado.</p>'; 
                 return; 
             }
             
             l.innerHTML = p.map(function(x) {
-                // Itens do pedido
                 var itensHtml = '';
                 if (x.itens && x.itens.length > 0) {
                     itensHtml = '<div class="pedido-itens"><strong>📋 ITENS:</strong><br>';
@@ -577,35 +1001,31 @@
                     itensHtml += '</div>';
                 }
                 
-                // Status do pagamento
-                var stPag = x.pagamentostatus==='pago'?'<span class="badge badge-pago">✅ PAGO</span>':'<span class="badge badge-pendente">⏳ PENDENTE</span>';
+                var stPag = x.pagamentostatus === 'pago' ? '<span class="badge badge-pago">✅ PAGO</span>' : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
                 
-                // Status do pedido
+                var statusPedido = (x.status || 'novo').toLowerCase();
                 var stPed = '';
-                if (x.status === 'entregue') {
+                if (statusPedido === 'entregue') {
                     stPed = '<span class="badge badge-entregue">✅ Entregue</span>';
-                } else if (x.status === 'entrega') {
+                } else if (statusPedido === 'entrega') {
                     stPed = '<span class="badge badge-entrega">🛵 Entrega</span>';
-                } else if (x.status === 'preparo') {
+                } else if (statusPedido === 'preparo') {
                     stPed = '<span class="badge badge-preparo">👨‍🍳 Preparo</span>';
-                } else if (x.status === 'cancelado') {
+                } else if (statusPedido === 'cancelado') {
                     stPed = '<span class="badge badge-cancelado">❌ Cancelado</span>';
                 } else {
                     stPed = '<span class="badge badge-novo">🆕 Novo</span>';
                 }
                 
-                // Botão "Pedido Entregue" - só aparece se NÃO estiver entregue
+                // BOTÃO ENTREGUE - SÓ APARECE SE NÃO ESTIVER ENTREGUE OU CANCELADO
                 var btnEntregue = '';
-                if (x.status !== 'entregue' && x.status !== 'cancelado') {
-                    btnEntregue = '<button class="btn btn-deliver btn-small" onclick="marcarEntregue('+x.id+')" title="Marcar como entregue">✅ Entregue</button>';
-                } else if (x.status === 'entregue') {
+                if (statusPedido !== 'entregue' && statusPedido !== 'cancelado') {
+                    btnEntregue = '<button class="btn btn-deliver btn-small" onclick="marcarEntregue('+x.id+')">✅ Entregue</button>';
+                } else if (statusPedido === 'entregue') {
                     btnEntregue = '<span class="entregue-badge">✔ Entregue</span>';
                 }
                 
-                // Botão excluir
                 var btnExcluir = '<button class="btn btn-danger btn-small" onclick="excluirPedido('+x.id+')">🗑️</button>';
-                
-                // Link do WhatsApp (se tiver telefone)
                 var btnWhats = '';
                 if (x.telefone) {
                     btnWhats = '<button class="btn btn-whatsapp btn-small" onclick="abrirWhatsapp(\''+x.telefone+'\',\''+x.cliente+'\','+(x.total||0)+')">📱</button>';
@@ -613,8 +1033,8 @@
                 
                 return '<div class="card-item" style="flex-direction:column;align-items:stretch;">'+
                     '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">'+
-                        '<div><strong>👤 '+x.cliente+'</strong><br><small>📱 '+(x.telefone||'N/A')+' | 📅 '+formatarData(x.data)+'</small></div>'+
-                        '<div style="text-align:right;"><strong style="font-size:1.2em;color:#CC5500;">R$ '+(x.total||0).toFixed(2)+'</strong><br>'+stPag+' '+stPed+'</div>'+
+                        '<div><strong style="color:var(--dourado);">👤 '+x.cliente+'</strong><br><small style="color:var(--text-secondary);">📱 '+(x.telefone||'N/A')+' | 📅 '+formatarData(x.data)+'</small></div>'+
+                        '<div style="text-align:right;"><strong style="font-size:1.2em;color:var(--dourado);">R$ '+(x.total||0).toFixed(2)+'</strong><br>'+stPag+' '+stPed+'</div>'+
                     '</div>'+
                     itensHtml+
                     '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">'+
@@ -626,98 +1046,74 @@
             }).join('');
         }
 
-        // ========== FUNÇÃO MARCAR ENTREGUE ==========
+        // ========== MARCAR ENTREGUE ==========
         async function marcarEntregue(id) {
+            var pedido = cachePedidos.find(function(p) { return p.id === id; });
+            if (!pedido) { alert('❌ Pedido não encontrado!'); return; }
+            if (pedido.status === 'entregue') { mostrarToast('⚠️ Este pedido já foi entregue!'); return; }
             if (!confirm('✅ Confirmar que este pedido foi ENTREGUE?')) return;
             
             try {
-                // Atualiza o status do pedido para 'entregue'
                 const { error } = await supabase
                     .from('todospedidos')
                     .update({ status: 'entregue' })
                     .eq('id', id);
-                
                 if (error) throw error;
-                
                 mostrarToast('✅ Pedido #' + id + ' marcado como ENTREGUE!');
-                
-                // Recarrega a lista com os filtros atuais
-                aplicarFiltros();
-                
+                aplicarFiltroPedidos();
             } catch (e) {
                 console.error('Erro ao marcar entregue:', e);
-                alert('❌ Erro ao marcar pedido como entregue. Tente novamente.');
+                alert('❌ Erro ao marcar pedido como entregue.');
             }
         }
 
-        // ========== FUNÇÕES DE FILTRO ==========
-        function aplicarFiltros() {
-            var status = document.getElementById('filtroStatus').value;
-            var cliente = document.getElementById('filtroCliente').value.toLowerCase().trim();
-            var dataInicio = document.getElementById('filtroDataInicio').value;
-            var dataFim = document.getElementById('filtroDataFim').value;
+        // ========== FILTRO PEDIDOS ==========
+        function aplicarFiltroPedidos() {
+            var status = document.getElementById('filtroPedidosStatus').value;
+            var cliente = document.getElementById('filtroPedidosCliente').value.toLowerCase().trim();
+            var dataInicio = document.getElementById('filtroPedidosInicio').value;
+            var dataFim = document.getElementById('filtroPedidosFim').value;
             
             var filtrados = cachePedidos.filter(function(pedido) {
-                // Filtro por status
                 if (status !== 'todos') {
-                    var statusMap = {
-                        'novo': 'novo',
-                        'preparo': 'preparo',
-                        'entrega': 'entrega',
-                        'entregue': 'entregue',
-                        'cancelado': 'cancelado'
-                    };
-                    if ((pedido.status || 'novo') !== statusMap[status]) return false;
+                    var statusPedido = (pedido.status || 'novo').toLowerCase();
+                    if (statusPedido !== status) return false;
                 }
-                
-                // Filtro por cliente
                 if (cliente !== '') {
                     if (!pedido.cliente.toLowerCase().includes(cliente)) return false;
                 }
-                
-                // Filtro por data
                 if (dataInicio !== '') {
                     var dataPedido = new Date(pedido.data);
                     var dataIni = new Date(dataInicio);
                     dataIni.setHours(0, 0, 0, 0);
                     if (dataPedido < dataIni) return false;
                 }
-                
                 if (dataFim !== '') {
                     var dataPedido2 = new Date(pedido.data);
                     var dataFim2 = new Date(dataFim);
                     dataFim2.setHours(23, 59, 59, 999);
                     if (dataPedido2 > dataFim2) return false;
                 }
-                
                 return true;
             });
-            
-            pedidosFiltrados = filtrados;
             renderizarPedidos(filtrados);
-            
-            if (filtrados.length === 0) {
-                mostrarToast('📭 Nenhum pedido encontrado com esses filtros.');
-            }
+            if (filtrados.length === 0) mostrarToast('📭 Nenhum pedido encontrado.');
         }
 
-        function limparFiltros() {
-            document.getElementById('filtroStatus').value = 'todos';
-            document.getElementById('filtroCliente').value = '';
-            document.getElementById('filtroDataInicio').value = '';
-            document.getElementById('filtroDataFim').value = '';
-            pedidosFiltrados = cachePedidos;
+        function limparFiltroPedidos() {
+            document.getElementById('filtroPedidosStatus').value = 'todos';
+            document.getElementById('filtroPedidosCliente').value = '';
+            document.getElementById('filtroPedidosInicio').value = '';
+            document.getElementById('filtroPedidosFim').value = '';
             renderizarPedidos(cachePedidos);
             mostrarToast('🧹 Filtros limpos!');
         }
 
-        // ========== ABRIR WHATSAPP ==========
         function abrirWhatsapp(tel, nome, total) {
             var msg = '🍦 *Olá ' + nome + '!*\n\nSeu pedido está sendo preparado. Em breve estará pronto!\n\nValor: R$ ' + total.toFixed(2);
             window.open('https://wa.me/55' + tel + '?text=' + encodeURIComponent(msg), '_blank');
         }
 
-        // ========== EXCLUIR PEDIDO ==========
         async function excluirPedido(id) { 
             if (!confirm('Excluir este pedido permanentemente?')) return; 
             await supabase.from('todospedidos').delete().eq('id', id); 
@@ -732,18 +1128,71 @@
             cachePedidos = data || [];
             renderizarPagamentos(cachePedidos);
         }
+
         function renderizarPagamentos(p) {
             var l = document.getElementById('listaPagamentos');
-            if (p.length === 0) { l.innerHTML = '<p>Nenhum.</p>'; return; }
+            if (p.length === 0) { l.innerHTML = '<p style="color:var(--text-secondary);">Nenhum pagamento registrado.</p>'; return; }
             l.innerHTML = p.map(function(x) {
-                var st = x.pagamentostatus==='pago'?'<span class="badge badge-pago">✅ PAGO</span>':'<span class="badge badge-pendente">⏳ PENDENTE</span>';
-                var btn = x.pagamentostatus!=='pago'?'<button class="btn btn-success btn-small" onclick="confirmarPag('+x.pedido_id+')">✅ Confirmar</button>':'';
-                var lem = x.pagamentostatus!=='pago'&&x.telefone?'<button class="btn btn-whatsapp btn-small" onclick="lembrar(\''+x.telefone+'\',\''+x.cliente+'\','+(x.total||0)+')">📱 Lembrar</button>':'';
-                return '<div class="card-item"><div class="card-item-info"><strong>👤 '+x.cliente+'</strong> '+st+'<br><small>📱 '+(x.telefone||'')+' | R$ '+(x.total||0).toFixed(2)+'</small></div><div class="card-item-actions">'+btn+' '+lem+'</div></div>';
+                var st = x.pagamentostatus === 'pago' ? '<span class="badge badge-pago">✅ PAGO</span>' : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
+                var btn = x.pagamentostatus !== 'pago' ? '<button class="btn btn-success btn-small" onclick="confirmarPag('+x.pedido_id+')">✅ Confirmar</button>' : '';
+                var lem = x.pagamentostatus !== 'pago' && x.telefone ? '<button class="btn btn-whatsapp btn-small" onclick="lembrar(\''+x.telefone+'\',\''+x.cliente+'\','+(x.total||0)+')">📱 Lembrar</button>' : '';
+                return '<div class="card-item"><div class="card-item-info"><strong style="color:var(--douardo);">👤 '+x.cliente+'</strong> '+st+'<br><small style="color:var(--text-secondary);">📱 '+(x.telefone||'')+' | R$ '+(x.total||0).toFixed(2)+'</small></div><div class="card-item-actions">'+btn+' '+lem+'</div></div>';
             }).join('');
         }
-        async function confirmarPag(id) { await supabase.from('todospedidos').update({ pagamentostatus:'pago' }).eq('pedido_id', id); carregarPagamentos(); carregarDashboard(); mostrarToast('✅ Confirmado!'); }
-        function lembrar(tel, nome, total) { var m='🍦 *LEMBRETE*\n\nOlá '+nome+'!\nSeu pedido aguarda pagamento.\nValor: R$ '+total.toFixed(2); window.open('https://wa.me/55'+tel+'?text='+encodeURIComponent(m), '_blank'); }
+
+        // ========== FILTRO PAGAMENTOS ==========
+        function aplicarFiltroPagamentos() {
+            var status = document.getElementById('filtroPagamentosStatus').value;
+            var cliente = document.getElementById('filtroPagamentosCliente').value.toLowerCase().trim();
+            var dataInicio = document.getElementById('filtroPagamentosInicio').value;
+            var dataFim = document.getElementById('filtroPagamentosFim').value;
+            
+            var filtrados = cachePedidos.filter(function(pedido) {
+                if (status !== 'todos') {
+                    if ((pedido.pagamentostatus || 'pendente') !== status) return false;
+                }
+                if (cliente !== '') {
+                    if (!pedido.cliente.toLowerCase().includes(cliente)) return false;
+                }
+                if (dataInicio !== '') {
+                    var dataPedido = new Date(pedido.data);
+                    var dataIni = new Date(dataInicio);
+                    dataIni.setHours(0, 0, 0, 0);
+                    if (dataPedido < dataIni) return false;
+                }
+                if (dataFim !== '') {
+                    var dataPedido2 = new Date(pedido.data);
+                    var dataFim2 = new Date(dataFim);
+                    dataFim2.setHours(23, 59, 59, 999);
+                    if (dataPedido2 > dataFim2) return false;
+                }
+                return true;
+            });
+            renderizarPagamentos(filtrados);
+            if (filtrados.length === 0) mostrarToast('📭 Nenhum pagamento encontrado.');
+        }
+
+        function limparFiltroPagamentos() {
+            document.getElementById('filtroPagamentosStatus').value = 'todos';
+            document.getElementById('filtroPagamentosCliente').value = '';
+            document.getElementById('filtroPagamentosInicio').value = '';
+            document.getElementById('filtroPagamentosFim').value = '';
+            renderizarPagamentos(cachePedidos);
+            mostrarToast('🧹 Filtros limpos!');
+        }
+
+        async function confirmarPag(id) { 
+            await supabase.from('todospedidos').update({ pagamentostatus: 'pago' }).eq('pedido_id', id); 
+            carregarPagamentos(); 
+            carregarDashboard(); 
+            mostrarToast('✅ Confirmado!'); 
+        }
+        
+        function lembrar(tel, nome, total) { 
+            var m = '🍦 *LEMBRETE*\n\nOlá '+nome+'!\nSeu pedido aguarda pagamento.\nValor: R$ '+total.toFixed(2); 
+            window.open('https://wa.me/55'+tel+'?text='+encodeURIComponent(m), '_blank'); 
+        }
+
         async function lembrarTodosPendentes() {
             var { data: pendentes } = await supabase.from('todospedidos').select('*').eq('pagamentostatus', 'pendente');
             pendentes = pendentes || [];
@@ -751,18 +1200,48 @@
             var clientes = {};
             pendentes.forEach(function(pedido) {
                 if (pedido.telefone) {
-                    if (!clientes[pedido.telefone]) { clientes[pedido.telefone] = { nome: pedido.cliente, telefone: pedido.telefone, pedidos: [], total: 0 }; }
-                    clientes[pedido.telefone].pedidos.push(pedido); clientes[pedido.telefone].total += (pedido.total||0);
+                    if (!clientes[pedido.telefone]) { 
+                        clientes[pedido.telefone] = { 
+                            nome: pedido.cliente, 
+                            telefone: pedido.telefone, 
+                            pedidos: [], 
+                            total: 0 
+                        }; 
+                    }
+                    clientes[pedido.telefone].pedidos.push(pedido); 
+                    clientes[pedido.telefone].total += (pedido.total||0);
                 }
             });
             var tels = Object.keys(clientes);
             if (tels.length === 0) { alert('❌ Nenhum cliente com telefone.'); return; }
-            if (tels.length === 1) { enviarLembreteCliente(clientes[tels[0]]); }
-            else { var msg = '📋 *Clientes pendentes:*\n\n'; tels.forEach(function(tel,i){var c=clientes[tel];msg+=(i+1)+'. '+c.nome+' - '+c.pedidos.length+' pedido(s) - R$ '+c.total.toFixed(2)+'\n';}); msg+='\nDigite o número:'; var esc=prompt(msg); if(!esc)return; var idx=parseInt(esc)-1; if(idx>=0&&idx<tels.length){enviarLembreteCliente(clientes[tels[idx]]);} }
+            if (tels.length === 1) { 
+                enviarLembreteCliente(clientes[tels[0]]); 
+            } else { 
+                var msg = '📋 *Clientes pendentes:*\n\n'; 
+                tels.forEach(function(tel,i){
+                    var c = clientes[tel];
+                    msg += (i+1)+'. '+c.nome+' - '+c.pedidos.length+' pedido(s) - R$ '+c.total.toFixed(2)+'\n';
+                }); 
+                msg += '\nDigite o número:'; 
+                var esc = prompt(msg); 
+                if (!esc) return; 
+                var idx = parseInt(esc)-1; 
+                if (idx >= 0 && idx < tels.length) {
+                    enviarLembreteCliente(clientes[tels[idx]]);
+                }
+            }
         }
+
         function enviarLembreteCliente(cliente) {
             var msg = '🍦 *LEMBRETE*\n\nOlá *'+cliente.nome+'*!\n\n📋 Você tem *'+cliente.pedidos.length+' pedido(s)* pendente(s):\n\n';
-            cliente.pedidos.forEach(function(pedido) { msg += '━━━━━━━━━━\n📦 #'+pedido.pedido_id+'\n💰 R$ '+(pedido.total||0).toFixed(2)+'\n'; if(pedido.itens){pedido.itens.forEach(function(i){msg+='• '+(i.quantidade||0)+'x '+(i.nome||'')+'\n';});} });
+            cliente.pedidos.forEach(function(pedido) { 
+                msg += '━━━━━━━━━━\n📦 #'+pedido.pedido_id+'\n💰 R$ '+(pedido.total||0).toFixed(2)+'\n'; 
+                if(pedido.itens){
+                    pedido.itens.forEach(function(i){
+                        msg += '• '+(i.quantidade||0)+'x '+(i.nome||'')+'\n';
+                    });
+                }
+            });
             msg += '━━━━━━━━━━\n💵 *TOTAL: R$ '+cliente.total.toFixed(2)+'*\n\n📱 PIX: `'+(configDados.pix||'pix@dindingourmet.com.br')+'`\n\n⚠️ Envie o comprovante!';
             window.open('https://wa.me/55'+cliente.telefone+'?text='+encodeURIComponent(msg), '_blank');
         }
@@ -770,63 +1249,190 @@
         // ============ FINANCEIRO ============
         async function carregarFinanceiro() {
             var { data } = await supabase.from('todospedidos').select('*');
-            var p = data || [];
-            var total = p.filter(function(x){return x.pagamentostatus==='pago';}).reduce(function(s,x){return s+(x.total||0);},0);
+            cachePedidos = data || [];
+            renderizarFinanceiro(cachePedidos);
+        }
+
+        function renderizarFinanceiro(p) {
+            var total = p.filter(function(x){ return x.pagamentostatus === 'pago'; }).reduce(function(s,x){ return s + (x.total||0); }, 0);
+            var pendentes = p.filter(function(x){ return x.pagamentostatus !== 'pago'; });
+            var totalPendente = pendentes.reduce(function(s,x){ return s + (x.total||0); }, 0);
+            
             document.getElementById('listaFinanceiro').innerHTML =
-                '<div class="card-item"><strong>💰 Total Recebido: R$ '+total.toFixed(2)+'</strong></div>'+
-                '<div class="card-item"><strong>📦 Total Pedidos: '+p.length+'</strong></div>'+
-                '<div class="card-item"><strong>✅ Pagos: '+p.filter(function(x){return x.pagamentostatus==='pago';}).length+'</strong></div>'+
-                '<div class="card-item"><strong>⏳ Pendentes: '+p.filter(function(x){return x.pagamentostatus!=='pago';}).length+'</strong></div>';
+                '<div class="resumo-financeiro">' +
+                    '<div class="resumo-card"><div class="destaque">R$ '+total.toFixed(2)+'</div><div class="label">💰 Total Recebido</div></div>' +
+                    '<div class="resumo-card"><div class="destaque" style="color:#fcd34d;">R$ '+totalPendente.toFixed(2)+'</div><div class="label">⏳ Pendente</div></div>' +
+                    '<div class="resumo-card"><div class="valor">'+p.length+'</div><div class="label">📦 Total Pedidos</div></div>' +
+                    '<div class="resumo-card"><div class="valor">'+p.filter(function(x){return x.pagamentostatus==='pago';}).length+'</div><div class="label">✅ Pagos</div></div>' +
+                '</div>' +
+                '<div style="margin-top:20px;"><strong style="color:var(--dourado);">📋 Últimos Pedidos</strong></div>' +
+                p.slice(0, 10).map(function(x) {
+                    return '<div class="card-item"><div class="card-item-info"><strong style="color:var(--dourado);">👤 '+x.cliente+'</strong><small style="color:var(--text-secondary);">'+formatarData(x.data)+'</small></div><div style="text-align:right;"><strong>R$ '+(x.total||0).toFixed(2)+'</strong> '+(x.pagamentostatus==='pago'?'<span class="badge badge-pago">✅</span>':'<span class="badge badge-pendente">⏳</span>')+'</div></div>';
+                }).join('');
+        }
+
+        // ========== FILTRO FINANCEIRO ==========
+        function aplicarFiltroFinanceiro() {
+            var cliente = document.getElementById('filtroFinanceiroCliente').value.toLowerCase().trim();
+            var dataInicio = document.getElementById('filtroFinanceiroInicio').value;
+            var dataFim = document.getElementById('filtroFinanceiroFim').value;
+            
+            var filtrados = cachePedidos.filter(function(pedido) {
+                if (cliente !== '') {
+                    if (!pedido.cliente.toLowerCase().includes(cliente)) return false;
+                }
+                if (dataInicio !== '') {
+                    var dataPedido = new Date(pedido.data);
+                    var dataIni = new Date(dataInicio);
+                    dataIni.setHours(0, 0, 0, 0);
+                    if (dataPedido < dataIni) return false;
+                }
+                if (dataFim !== '') {
+                    var dataPedido2 = new Date(pedido.data);
+                    var dataFim2 = new Date(dataFim);
+                    dataFim2.setHours(23, 59, 59, 999);
+                    if (dataPedido2 > dataFim2) return false;
+                }
+                return true;
+            });
+            renderizarFinanceiro(filtrados);
+            if (filtrados.length === 0) mostrarToast('📭 Nenhum dado encontrado.');
+        }
+
+        function limparFiltroFinanceiro() {
+            document.getElementById('filtroFinanceiroCliente').value = '';
+            document.getElementById('filtroFinanceiroInicio').value = '';
+            document.getElementById('filtroFinanceiroFim').value = '';
+            renderizarFinanceiro(cachePedidos);
+            mostrarToast('🧹 Filtros limpos!');
         }
 
         // ============ RANKING ============
         async function carregarRanking() {
             var { data } = await supabase.from('todospedidos').select('*');
-            var p = data || [];
+            cachePedidos = data || [];
+            renderizarRanking(cachePedidos);
+        }
+
+        function renderizarRanking(p) {
             var contagem = {};
-            p.forEach(function(x) { (x.itens||[]).forEach(function(i) { contagem[i.nome] = (contagem[i.nome]||0) + (i.quantidade||0); }); });
-            var ranking = Object.entries(contagem).sort(function(a,b){return b[1]-a[1];});
+            p.forEach(function(x) { 
+                (x.itens||[]).forEach(function(i) { 
+                    contagem[i.nome] = (contagem[i.nome]||0) + (i.quantidade||0); 
+                }); 
+            });
+            var ranking = Object.entries(contagem).sort(function(a,b){ return b[1] - a[1]; });
             var l = document.getElementById('listaRanking');
-            if (ranking.length === 0) { l.innerHTML = '<p>Nenhuma venda.</p>'; return; }
+            if (ranking.length === 0) { l.innerHTML = '<p style="color:var(--text-secondary);">Nenhuma venda registrada.</p>'; return; }
             l.innerHTML = ranking.map(function(r, i) {
-                var medalha = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'º';
+                var medalha = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1)+'º';
                 return '<div class="ranking-item"><span class="ranking-posicao">'+medalha+'</span><span class="ranking-nome">'+r[0]+'</span><span class="ranking-qtd">'+r[1]+' unid.</span></div>';
             }).join('');
         }
 
+        // ========== FILTRO RANKING ==========
+        function aplicarFiltroRanking() {
+            var dataInicio = document.getElementById('filtroRankingInicio').value;
+            var dataFim = document.getElementById('filtroRankingFim').value;
+            
+            var filtrados = cachePedidos.filter(function(pedido) {
+                if (dataInicio !== '') {
+                    var dataPedido = new Date(pedido.data);
+                    var dataIni = new Date(dataInicio);
+                    dataIni.setHours(0, 0, 0, 0);
+                    if (dataPedido < dataIni) return false;
+                }
+                if (dataFim !== '') {
+                    var dataPedido2 = new Date(pedido.data);
+                    var dataFim2 = new Date(dataFim);
+                    dataFim2.setHours(23, 59, 59, 999);
+                    if (dataPedido2 > dataFim2) return false;
+                }
+                return true;
+            });
+            renderizarRanking(filtrados);
+            if (filtrados.length === 0) mostrarToast('📭 Nenhum dado encontrado.');
+        }
+
+        function limparFiltroRanking() {
+            document.getElementById('filtroRankingInicio').value = '';
+            document.getElementById('filtroRankingFim').value = '';
+            renderizarRanking(cachePedidos);
+            mostrarToast('🧹 Filtros limpos!');
+        }
+
         // ============ HISTÓRICO ============
         async function carregarHistorico() {
-            var { data } = await supabase.from('historicoestoque').select('*').order('id',{ascending:false}).limit(100);
+            var { data } = await supabase.from('historicoestoque').select('*').order('id',{ascending:false}).limit(200);
             cacheHistorico = data || [];
             renderizarHistorico(cacheHistorico);
         }
+
         function renderizarHistorico(h) {
             var l = document.getElementById('listaHistorico');
-            if (h.length === 0) { l.innerHTML = '<p>Nenhum registro.</p>'; return; }
+            if (h.length === 0) { l.innerHTML = '<p style="color:var(--text-secondary);">Nenhum registro no histórico.</p>'; return; }
             var html = '<table><thead><tr><th>Data</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Obs</th></tr></thead><tbody>';
             h.forEach(function(x) {
-                var b = x.tipo==='entrada'?'badge-pago':x.tipo==='saida'?'badge-baixo':'badge-pendente';
-                var t = x.tipo==='entrada'?'🟢 Entrada':x.tipo==='saida'?'🔴 Saída':'📤 Alocação';
+                var b = x.tipo === 'entrada' ? 'badge-pago' : x.tipo === 'saida' ? 'badge-baixo' : 'badge-pendente';
+                var t = x.tipo === 'entrada' ? '🟢 Entrada' : x.tipo === 'saida' ? '🔴 Saída' : '📤 Alocação';
                 html += '<tr><td>'+(x.data||'')+'</td><td><span class="badge '+b+'">'+t+'</span></td><td>'+(x.item||'')+'</td><td>'+(x.quantidade||0)+'</td><td>'+(x.obs||'')+'</td></tr>';
             });
-            html += '</tbody></table>'; l.innerHTML = html;
+            html += '</tbody></table>'; 
+            l.innerHTML = html;
+        }
+
+        // ========== FILTRO HISTÓRICO ==========
+        function aplicarFiltroHistorico() {
+            var tipo = document.getElementById('filtroHistoricoTipo').value;
+            var item = document.getElementById('filtroHistoricoItem').value.toLowerCase().trim();
+            
+            var filtrados = cacheHistorico.filter(function(reg) {
+                if (tipo !== 'todos') {
+                    if (reg.tipo !== tipo) return false;
+                }
+                if (item !== '') {
+                    if (!reg.item.toLowerCase().includes(item)) return false;
+                }
+                return true;
+            });
+            renderizarHistorico(filtrados);
+            if (filtrados.length === 0) mostrarToast('📭 Nenhum registro encontrado.');
+        }
+
+        function limparFiltroHistorico() {
+            document.getElementById('filtroHistoricoTipo').value = 'todos';
+            document.getElementById('filtroHistoricoItem').value = '';
+            renderizarHistorico(cacheHistorico);
+            mostrarToast('🧹 Filtros limpos!');
         }
 
         // ============ CONFIG ============
         async function carregarConfig() {
             var { data: c } = await supabase.from('config').select('*').eq('chave','admin').maybeSingle();
-            configDados = c?(c.dados||{}):{};
+            configDados = c ? (c.dados||{}) : {};
             document.getElementById('configWhatsapp').value = configDados.whatsapp||'';
             document.getElementById('configPix').value = configDados.pix||'';
             document.getElementById('configEndereco').value = configDados.endereco||'';
             document.getElementById('configGrupoWhatsapp').value = configDados.grupoWhatsapp||'';
         }
+        
         async function salvarConfig() {
-            var d = { whatsapp:document.getElementById('configWhatsapp').value, pix:document.getElementById('configPix').value, endereco:document.getElementById('configEndereco').value, grupoWhatsapp:document.getElementById('configGrupoWhatsapp').value };
-            await supabase.from('config').upsert({ chave:'admin', dados:d }); mostrarToast('✅ Salvo!');
+            var d = { 
+                whatsapp: document.getElementById('configWhatsapp').value, 
+                pix: document.getElementById('configPix').value, 
+                endereco: document.getElementById('configEndereco').value, 
+                grupoWhatsapp: document.getElementById('configGrupoWhatsapp').value 
+            };
+            await supabase.from('config').upsert({ chave:'admin', dados:d }); 
+            mostrarToast('✅ Configurações salvas!');
         }
 
-        function carregarTudo() { carregarDashboard(); carregarEstoque(); carregarC1(); carregarC2(); }
+        function carregarTudo() { 
+            carregarDashboard(); 
+            carregarEstoque(); 
+            carregarC1(); 
+            carregarC2(); 
+        }
 
         verificarConexao();
     </script>
