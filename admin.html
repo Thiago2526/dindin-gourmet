@@ -18,8 +18,7 @@
         p { color:#8B4513; margin-bottom:20px; }
         input, select { width:100%; padding:14px 18px; margin-bottom:12px; border:2px solid #f0e0c0; border-radius:14px; font-size:16px; background:#FFFDF5; transition:all 0.3s; }
         input:focus, select:focus { border-color:#CC5500; box-shadow:0 0 0 4px rgba(204,85,0,0.15); outline:none; }
-        button { width:100%; padding:14px; background:linear-gradient(135deg,#CC5500,#E0551F); color:white; border:none; border-radius:14px; font-size:17px; font-weight:700; cursor:pointer; transition:all 0.3s; box-shadow:0 5px 15px rgba(204,85,0,0.3); }
-        button:hover { transform:translateY(-2px); box-shadow:0 10px 25px rgba(204,85,0,0.4); }
+        button { width:100%; padding:14px; background:linear-gradient(135deg,#CC5500,#E0551F); color:white; border:none; border-radius:14px; font-size:17px; font-weight:700; cursor:pointer; transition:all 0.3s; }
         .erro { color:red; margin-top:10px; display:none; }
         .status-conexao { font-size:13px; margin-top:15px; font-weight:600; }
         .painel { display:none; max-width:1350px; margin:20px auto; padding:25px; }
@@ -31,7 +30,7 @@
         .conteudo.active { display:block; }
         .form-group { margin-bottom:14px; }
         .form-group label { display:block; font-weight:700; color:#8B4513; margin-bottom:5px; font-size:14px; }
-        .btn { padding:10px 16px; border:none; border-radius:12px; font-weight:600; cursor:pointer; font-size:14px; transition:all 0.3s; margin:2px; }
+        .btn { padding:10px 16px; border:none; border-radius:12px; font-weight:600; cursor:pointer; font-size:14px; margin:2px; }
         .btn-primary { background:linear-gradient(135deg,#CC5500,#E0551F); color:white; }
         .btn-success { background:linear-gradient(135deg,#22c55e,#16a34a); color:white; }
         .btn-danger { background:linear-gradient(135deg,#ef4444,#dc2626); color:white; }
@@ -53,10 +52,6 @@
         .badge-entrega { background:#f3e8ff; color:#6b21a8; }
         .badge-entregue { background:#dcfce7; color:#166534; }
         .badge-cancelado { background:#fee2e2; color:#991b1b; }
-        .filtro-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px; padding:15px; background:#FFFDF5; border-radius:14px; border:1px solid #f0e0c0; }
-        .filtro-item { display:flex; flex-direction:column; gap:4px; }
-        .filtro-item label { font-size:12px; font-weight:700; color:#8B4513; }
-        .filtro-bar input, .filtro-bar select { min-width:130px; padding:10px; border:2px solid #f0e0c0; border-radius:10px; font-size:14px; }
         .dashboard-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:15px; margin-bottom:20px; }
         .dash-card { background:#FFFDF5; padding:25px; border-radius:18px; border:1px solid #f0e0c0; text-align:center; }
         .dash-card .icon { font-size:2.5em; margin-bottom:10px; }
@@ -76,7 +71,7 @@
         .perm-item label { margin:0; font-weight:600; color:#854d0e; }
         .pedido-itens { margin-top:10px; padding:12px; background:#FFF8DC; border-radius:10px; border:1px solid #f0e0c0; }
         .pedido-item-linha { padding:3px 0; font-size:0.9em; color:#333; }
-        @media (max-width:600px) { .tabs { flex-direction:column; } .filtro-bar { flex-direction:column; } }
+        @media (max-width:600px) { .tabs { flex-direction:column; } }
     </style>
 </head>
 <body>
@@ -201,10 +196,10 @@
 
         <div class="conteudo" id="conteudo-config">
             <h3>⚙️ Configurações</h3>
-            <div class="form-group"><label>WhatsApp (com DDD)</label><input type="text" id="configWhatsapp" placeholder="5561986471897"></div>
-            <div class="form-group"><label>Chave PIX</label><input type="text" id="configPix" placeholder="pix@dindingourmet.com.br"></div>
+            <div class="form-group"><label>WhatsApp (com DDD)</label><input type="text" id="configWhatsapp"></div>
+            <div class="form-group"><label>Chave PIX</label><input type="text" id="configPix"></div>
             <div class="form-group"><label>Endereço Retirada</label><input type="text" id="configEndereco"></div>
-            <div class="form-group"><label>👥 Link do Grupo WhatsApp</label><input type="text" id="configGrupoWhatsapp" placeholder="https://chat.whatsapp.com/..."></div>
+            <div class="form-group"><label>👥 Link do Grupo WhatsApp</label><input type="text" id="configGrupoWhatsapp"></div>
             <button class="btn btn-success" onclick="salvarConfig()">💾 Salvar</button>
         </div>
     </div>
@@ -270,14 +265,11 @@
         }
 
         function mostrarTrocaSenha() {
-            var atual = prompt('Senha ATUAL:');
-            if (!atual) return;
+            var atual = prompt('Senha ATUAL:'); if (!atual) return;
             var correta = adminAtual.tipo === 'master' ? (localStorage.getItem('senhaMaster') || 'Dindins@2026') : adminAtual.senha;
-            if (atual !== correta) { alert('❌ Senha incorreta!'); return; }
-            var nova = prompt('NOVA senha (mín. 6):');
-            if (!nova || nova.length < 6) { alert('❌ Mínimo 6 caracteres!'); return; }
-            var conf = prompt('Confirme:');
-            if (nova !== conf) { alert('❌ Não coincidem!'); return; }
+            if (atual !== correta) { alert('❌ Incorreta!'); return; }
+            var nova = prompt('NOVA senha (mín. 6):'); if (!nova || nova.length < 6) { alert('❌ Mínimo 6!'); return; }
+            var conf = prompt('Confirme:'); if (nova !== conf) { alert('❌ Não coincidem!'); return; }
             if (adminAtual.tipo === 'master') { localStorage.setItem('senhaMaster', nova); }
             else { var admins = JSON.parse(localStorage.getItem('admins') || '[]'); var a = admins.find(function(x){return x.id===adminAtual.id;}); if (a) { a.senha = nova; localStorage.setItem('admins', JSON.stringify(admins)); } adminAtual.senha = nova; }
             mostrarToast('✅ Senha alterada!'); alert('✅ Senha alterada!');
@@ -304,14 +296,13 @@
             if (tab === 'config') carregarConfig();
         }
 
-        // ============ CORREÇÃO DATA/HORA (BRASÍLIA UTC-3) ============
+        // ============ DATA/HORA BRASÍLIA ============
         function formatarData(d) {
             if (!d) return '';
             var dt = new Date(d);
             var dataBrasil = new Date(dt.getTime() - (3 * 60 * 60 * 1000));
             return dataBrasil.toLocaleDateString('pt-BR') + ' ' + dataBrasil.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         }
-
         function getDataBrasil() {
             var agora = new Date();
             return new Date(agora.getTime() - (3 * 60 * 60 * 1000)).toISOString();
@@ -331,7 +322,6 @@
             carregarListaAdmins(); document.getElementById('adminNome').value=''; document.getElementById('adminUsuario').value=''; document.getElementById('adminSenha').value='';
             mostrarToast('✅ Admin cadastrado!');
         }
-
         function carregarListaAdmins() {
             var admins = JSON.parse(localStorage.getItem('admins') || '[]');
             var l = document.getElementById('listaAdmins');
@@ -343,7 +333,6 @@
                 return '<div class="card-item"><div class="card-item-info"><strong>👤 '+a.nome+'</strong><br><small>Usuário: '+a.usuario+' | Permissões: '+perms.join(' ')+'</small></div><button class="btn btn-danger btn-small" onclick="excluirAdmin(\''+a.id+'\')">🗑️</button></div>';
             }).join('');
         }
-
         function excluirAdmin(id) {
             if (!confirm('Excluir?')) return;
             var admins = JSON.parse(localStorage.getItem('admins') || '[]');
@@ -352,20 +341,34 @@
             carregarListaAdmins(); mostrarToast('✅ Excluído!');
         }
 
-        // ============ DASHBOARD ============
+        // ============ DASHBOARD CORRIGIDO ============
         async function carregarDashboard() {
             var { data: e } = await supabase.from('estoquecentral').select('*');
             var { data: p } = await supabase.from('todospedidos').select('*');
             var estoque = e || []; var pedidos = p || [];
-            var totalEstoque = estoque.reduce(function(s,i){return s+(i.quantidadetotal||0);},0);
-            var baixo = estoque.filter(function(i){return (i.quantidadetotal||0)-(i.alocadocardapio2||0)<=5;}).length;
-            var hoje = pedidos.filter(function(x){var d=formatarData(x.data).split(' ')[0];var h=formatarData(getDataBrasil()).split(' ')[0];return d===h;}).length;
-            var fat = pedidos.filter(function(x){return x.pagamentostatus==='pago';}).reduce(function(s,x){return s+(x.total||0);},0);
+            
+            var totalEstoque = estoque.reduce(function(s,i){ return s + ((i.quantidadetotal || 0) || 0); }, 0);
+            
+            var baixo = estoque.filter(function(i){
+                var total = i.quantidadetotal || 0;
+                var alocado = i.alocadocardapio2 || 0;
+                var disponivel = total - alocado;
+                return disponivel <= 5;
+            }).length;
+            
+            var hoje = pedidos.filter(function(x){
+                var d = new Date(x.data);
+                var h = new Date();
+                return d.toDateString() === h.toDateString();
+            }).length;
+            
+            var fat = pedidos.filter(function(x){ return x.pagamentostatus === 'pago'; }).reduce(function(s,x){ return s + (x.total || 0); }, 0);
+            
             document.getElementById('dashboardCards').innerHTML =
-                '<div class="dash-card"><div class="icon">📦</div><div class="valor">'+totalEstoque+'</div><div class="label">Estoque</div></div>'+
-                '<div class="dash-card"><div class="icon">📋</div><div class="valor">'+hoje+'</div><div class="label">Pedidos Hoje</div></div>'+
-                '<div class="dash-card"><div class="icon">💰</div><div class="valor">R$ '+fat.toFixed(2)+'</div><div class="label">Faturamento</div></div>'+
-                '<div class="dash-card"><div class="icon">⚠️</div><div class="valor">'+baixo+'</div><div class="label">Estoque Baixo</div></div>';
+                '<div class="dash-card"><div class="icon">📦</div><div class="valor">' + totalEstoque + '</div><div class="label">Estoque Total</div></div>' +
+                '<div class="dash-card"><div class="icon">📋</div><div class="valor">' + hoje + '</div><div class="label">Pedidos Hoje</div></div>' +
+                '<div class="dash-card"><div class="icon">💰</div><div class="valor">R$ ' + fat.toFixed(2) + '</div><div class="label">Faturamento</div></div>' +
+                '<div class="dash-card"><div class="icon">⚠️</div><div class="valor">' + baixo + '</div><div class="label">Estoque Baixo</div></div>';
         }
 
         // ============ ESTOQUE ============
@@ -376,7 +379,6 @@
             var sel = document.getElementById('alocarSabor');
             if (sel) { sel.innerHTML = '<option value="">Selecione...</option>'; cacheEstoque.forEach(function(i){var d=(i.quantidadetotal||0)-(i.alocadocardapio2||0);sel.innerHTML+='<option value="'+i.id+'">'+i.nome+' - Disp: '+d+'</option>';}); }
         }
-
         function renderizarEstoque(e) {
             var l = document.getElementById('listaEstoque');
             if (e.length === 0) { l.innerHTML = '<p>Nenhum item.</p>'; return; }
@@ -387,7 +389,6 @@
                 return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+'<br><small>Total: '+(i.quantidadetotal||0)+' | C2: '+(i.alocadocardapio2||0)+' | <span class="badge '+b+'">Disp: '+d+'</span></small></div></div><div class="card-item-actions"><button class="btn btn-warning btn-small" onclick="editarItem('+i.id+')">✏️</button><button class="btn btn-danger btn-small" onclick="excluirItem('+i.id+')">🗑️</button></div></div>';
             }).join('');
         }
-
         async function cadastrarItem() {
             var nome = document.getElementById('estoqueNome').value.trim();
             var emoji = document.getElementById('estoqueEmoji').value.trim() || '🍦';
@@ -398,23 +399,21 @@
             if (ex) { await supabase.from('estoquecentral').update({ quantidadetotal:(ex.quantidadetotal||0)+qtd, preco:preco, emoji:emoji, foto:fotoEmBase64||ex.foto||null }).eq('id',ex.id); }
             else { await supabase.from('estoquecentral').insert([{ nome:nome, emoji:emoji, preco:preco, quantidadetotal:qtd||50, alocadocardapio2:0, foto:fotoEmBase64 }]); }
             fotoEmBase64 = null; document.getElementById('previewFotoContainer').style.display='none'; document.getElementById('estoqueFoto').value='';
-            carregarEstoque(); carregarC1(); mostrarToast('✅ Salvo!');
+            carregarEstoque(); carregarC1(); carregarDashboard(); mostrarToast('✅ Salvo!');
             document.getElementById('estoqueNome').value=''; document.getElementById('estoquePreco').value='';
         }
-
         async function editarItem(id) {
             var i = cacheEstoque.find(function(x){return x.id==id;}); if (!i) return;
             var nome = prompt('Nome:', i.nome); if (!nome) return;
             var preco = parseFloat(prompt('Preço R$:', i.preco)); if (!preco) return;
-            var qtdFinal = parseInt(prompt('Quantidade FINAL em estoque:\n(Atual: ' + i.quantidadetotal + ')', i.quantidadetotal));
+            var qtdFinal = parseInt(prompt('Quantidade FINAL:\n(Atual: ' + i.quantidadetotal + ')', i.quantidadetotal));
             if (isNaN(qtdFinal) || qtdFinal < 0) { alert('❌ Inválida!'); return; }
             await supabase.from('estoquecentral').update({ nome:nome, preco:preco, quantidadetotal:qtdFinal }).eq('id', id);
             var dif = qtdFinal - (i.quantidadetotal||0);
             if (dif !== 0) { try { await supabase.from('historicoestoque').insert([{data:new Date().toLocaleString('pt-BR'),tipo:dif>0?'entrada':'saida',item:nome,quantidade:Math.abs(dif),obs:'Ajuste'}]); } catch(e) {} }
-            carregarEstoque(); carregarC1(); mostrarToast('✅ Atualizado!');
+            carregarEstoque(); carregarC1(); carregarDashboard(); mostrarToast('✅ Atualizado!');
         }
-
-        async function excluirItem(id) { if (!confirm('Excluir?')) return; await supabase.from('estoquecentral').delete().eq('id', id); carregarEstoque(); carregarC1(); mostrarToast('✅ Excluído!'); }
+        async function excluirItem(id) { if (!confirm('Excluir?')) return; await supabase.from('estoquecentral').delete().eq('id', id); carregarEstoque(); carregarC1(); carregarDashboard(); mostrarToast('✅ Excluído!'); }
 
         // ============ CARDÁPIO 1 ============
         async function carregarC1() {
@@ -442,9 +441,8 @@
             if (ex) { await supabase.from('cardapio2').update({ quantidade:(ex.quantidade||0)+q, foto:i.foto }).eq('id', ex.id); }
             else { await supabase.from('cardapio2').insert([{ nome:i.nome, emoji:i.emoji, preco:i.preco, quantidade:q, foto:i.foto }]); }
             try { await supabase.from('historicoestoque').insert([{data:new Date().toLocaleString('pt-BR'),tipo:'alocacao',item:i.nome,quantidade:q,obs:'Alocado C2'}]); } catch(e) {}
-            carregarEstoque(); carregarC1(); carregarC2(); mostrarToast('✅ Alocado!');
+            carregarEstoque(); carregarC1(); carregarC2(); carregarDashboard(); mostrarToast('✅ Alocado!');
         }
-
         async function carregarC2() {
             var { data } = await supabase.from('cardapio2').select('*');
             cacheC2 = data || [];
@@ -481,7 +479,7 @@
                     '<div style="display:flex;gap:6px;margin-top:10px;"><button class="btn btn-danger btn-small" onclick="excluirPedido('+x.id+')">🗑️</button></div></div>';
             }).join('');
         }
-        async function excluirPedido(id) { if (!confirm('Excluir?')) return; await supabase.from('todospedidos').delete().eq('id', id); carregarPedidos(); mostrarToast('✅ Excluído!'); }
+        async function excluirPedido(id) { if (!confirm('Excluir?')) return; await supabase.from('todospedidos').delete().eq('id', id); carregarPedidos(); carregarDashboard(); mostrarToast('✅ Excluído!'); }
 
         // ============ PAGAMENTOS ============
         async function carregarPagamentos() {
@@ -499,7 +497,7 @@
                 return '<div class="card-item"><div class="card-item-info"><strong>👤 '+x.cliente+'</strong> '+st+'<br><small>📱 '+(x.telefone||'')+' | R$ '+(x.total||0).toFixed(2)+'</small></div><div class="card-item-actions">'+btn+' '+lem+'</div></div>';
             }).join('');
         }
-        async function confirmarPag(id) { await supabase.from('todospedidos').update({ pagamentostatus:'pago' }).eq('pedido_id', id); carregarPagamentos(); mostrarToast('✅ Confirmado!'); }
+        async function confirmarPag(id) { await supabase.from('todospedidos').update({ pagamentostatus:'pago' }).eq('pedido_id', id); carregarPagamentos(); carregarDashboard(); mostrarToast('✅ Confirmado!'); }
         function lembrar(tel, nome, total) { var m='🍦 *LEMBRETE*\n\nOlá '+nome+'!\nSeu pedido aguarda pagamento.\nValor: R$ '+total.toFixed(2); window.open('https://wa.me/55'+tel+'?text='+encodeURIComponent(m), '_blank'); }
         async function lembrarTodosPendentes() {
             var { data: pendentes } = await supabase.from('todospedidos').select('*').eq('pagamentostatus', 'pendente');
