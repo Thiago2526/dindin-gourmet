@@ -128,7 +128,6 @@
             <button class="tab-btn" onclick="mudarTab('config')">⚙️ Config</button>
         </div>
 
-        <!-- CONTEÚDOS -->
         <div class="conteudo active" id="conteudo-dashboard">
             <h3>📊 Dashboard</h3>
             <div class="dashboard-cards" id="dashboardCards"></div>
@@ -225,6 +224,7 @@
         var adminAtual = null;
 
         function mostrarToast(msg) { var t = document.getElementById('toastNotificacao'); t.textContent = msg; t.style.display = 'block'; setTimeout(function(){ t.style.display = 'none'; }, 4000); }
+        function alternarTema() { document.body.classList.toggle('dark'); }
 
         async function verificarConexao() {
             var s = document.getElementById('statusConexao');
@@ -241,12 +241,10 @@
         function fazerLogin() {
             var u = document.getElementById('campoUsuario').value.trim().toLowerCase();
             var s = document.getElementById('campoSenha').value;
-            
-            // Senha padrão do master (pode ser alterada)
             var senhaMaster = localStorage.getItem('senhaMaster') || 'Dindins@2026';
             
             if (u === 'master' && s === senhaMaster) {
-                adminAtual = { nome: 'Admin Master', tipo: 'master', usuario: 'master', permissoes: { estoque:true, cardapio1:true, cardapio2:true, pedidos:true, pagamentos:true, financeiro:true, admins:true } };
+                adminAtual = { nome: 'Admin Master', tipo: 'master', usuario: 'master', senha: senhaMaster, permissoes: { estoque:true, cardapio1:true, cardapio2:true, pedidos:true, pagamentos:true, financeiro:true, admins:true } };
                 entrarPainel();
                 return;
             }
@@ -291,15 +289,13 @@
             });
         }
 
-        // ============ TROCAR SENHA ============
         function mostrarTrocaSenha() {
             var senhaAtual = prompt('Digite a senha ATUAL:');
             if (!senhaAtual) return;
             
-            if (senhaAtual !== (adminAtual.senha || (adminAtual.tipo === 'master' ? (localStorage.getItem('senhaMaster') || 'Dindins@2026') : adminAtual.senha))) {
-                alert('❌ Senha atual incorreta!');
-                return;
-            }
+            var senhaCorreta = adminAtual.tipo === 'master' ? (localStorage.getItem('senhaMaster') || 'Dindins@2026') : adminAtual.senha;
+            
+            if (senhaAtual !== senhaCorreta) { alert('❌ Senha atual incorreta!'); return; }
             
             var novaSenha = prompt('Digite a NOVA senha (mínimo 6 caracteres):');
             if (!novaSenha || novaSenha.length < 6) { alert('❌ Senha deve ter no mínimo 6 caracteres!'); return; }
@@ -429,6 +425,7 @@
             var sel = document.getElementById('alocarSabor');
             if (sel) { sel.innerHTML = '<option value="">Selecione...</option>'; cacheEstoque.forEach(function(i){var d=(i.quantidadetotal||0)-(i.alocadocardapio2||0);sel.innerHTML+='<option value="'+i.id+'">'+i.nome+' - Disp: '+d+'</option>';}); }
         }
+
         function renderizarEstoque(e) {
             var l = document.getElementById('listaEstoque');
             if (e.length === 0) { l.innerHTML = '<p>Nenhum item.</p>'; return; }
@@ -436,9 +433,10 @@
                 var d = (i.quantidadetotal||0)-(i.alocadocardapio2||0);
                 var b = d <= 5 ? 'badge-baixo' : 'badge-normal';
                 var f = i.foto ? '<img src="'+i.foto+'" class="item-foto">' : '<div class="item-foto-placeholder">'+(i.emoji||'🍦')+'</div>';
-                return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+'<br><small>Total: '+(i.quantidadetotal||0)+' | C2: '+(i.alocadocardapio2||0)+' | <span class="badge '+b+'">Disp: '+d+'</span></small></div></div><div class="card-item-actions"><button class="btn btn-warning btn-small" onclick="editarItem('+i.id+')">✏️</button><button class="btn btn-danger btn-small" onclick="excluirItem('+i.id+')">🗑️</button></div></div>';
+                return '<div class="card-item"><div class="card-item-info">'+f+'<div><strong>'+(i.emoji||'🍦')+' '+i.nome+'</strong> - R$ '+(i.preco||0).toFixed(2)+'<br><small>Total: '+(i.quantidadetotal||0)+' | C2: '+(i.alocadocardapio2||0)+' | <span class="badge '+b+'">Disp: '+d+'</span></small></div></div><div class="card-item-actions"><button class="btn btn-warning btn-small" onclick="editarItem('+i.id+')">✏️ Editar</button><button class="btn btn-danger btn-small" onclick="excluirItem('+i.id+')">🗑️</button></div></div>';
             }).join('');
         }
+
         async function cadastrarItem() {
             var nome = document.getElementById('estoqueNome').value.trim();
             var emoji = document.getElementById('estoqueEmoji').value.trim() || '🍦';
@@ -452,14 +450,46 @@
             carregarEstoque(); carregarC1(); mostrarToast('✅ Salvo!');
             document.getElementById('estoqueNome').value=''; document.getElementById('estoquePreco').value='';
         }
+
         async function editarItem(id) {
-            var i = cacheEstoque.find(function(x){return x.id==id;}); if (!i) return;
-            var nome = prompt('Nome:', i.nome); if (!nome) return;
-            var preco = parseFloat(prompt('Preço R$:', i.preco)); if (!preco) return;
-            var qtd = parseInt(prompt('Adicionar quantidade:', 0));
-            await supabase.from('estoquecentral').update({ nome:nome, preco:preco, quantidadetotal:(i.quantidadetotal||0)+(qtd||0) }).eq('id', id);
-            carregarEstoque(); carregarC1(); mostrarToast('✅ Atualizado!');
+            var i = cacheEstoque.find(function(x){return x.id==id;}); 
+            if (!i) return;
+            
+            var novoNome = prompt('📝 Nome do item:', i.nome);
+            if (!novoNome) return;
+            
+            var novoPreco = parseFloat(prompt('💰 Preço R$:', i.preco));
+            if (!novoPreco) return;
+            
+            var qtdFinal = parseInt(prompt('📦 Quantidade FINAL em estoque:\n\n(Quantidade atual: ' + i.quantidadetotal + ')', i.quantidadetotal));
+            if (isNaN(qtdFinal) || qtdFinal < 0) { alert('❌ Quantidade inválida!'); return; }
+            
+            var { error } = await supabase.from('estoquecentral').update({
+                nome: novoNome,
+                preco: novoPreco,
+                quantidadetotal: qtdFinal
+            }).eq('id', id);
+            
+            if (error) { alert('❌ Erro: ' + error.message); return; }
+            
+            var diferenca = qtdFinal - (i.quantidadetotal || 0);
+            if (diferenca !== 0) {
+                var tipo = diferenca > 0 ? 'entrada' : 'saida';
+                var obs = diferenca > 0 ? 'Ajuste: +' + diferenca : 'Ajuste: ' + diferenca;
+                try {
+                    await supabase.from('historicoestoque').insert([{
+                        data: new Date().toLocaleString('pt-BR'),
+                        tipo: tipo,
+                        item: novoNome,
+                        quantidade: Math.abs(diferenca),
+                        obs: obs
+                    }]);
+                } catch(e) {}
+            }
+            
+            carregarEstoque(); carregarC1(); mostrarToast('✅ Estoque atualizado!');
         }
+
         async function excluirItem(id) { if (!confirm('Excluir?')) return; await supabase.from('estoquecentral').delete().eq('id', id); carregarEstoque(); carregarC1(); mostrarToast('✅ Excluído!'); }
 
         // ============ CARDÁPIO 1 ============
@@ -487,8 +517,10 @@
             var { data: ex } = await supabase.from('cardapio2').select('*').eq('nome', i.nome).maybeSingle();
             if (ex) { await supabase.from('cardapio2').update({ quantidade:(ex.quantidade||0)+q, foto:i.foto }).eq('id', ex.id); }
             else { await supabase.from('cardapio2').insert([{ nome:i.nome, emoji:i.emoji, preco:i.preco, quantidade:q, foto:i.foto }]); }
+            try { await supabase.from('historicoestoque').insert([{data:new Date().toLocaleString('pt-BR'),tipo:'alocacao',item:i.nome,quantidade:q,obs:'Alocado C2'}]); } catch(e) {}
             carregarEstoque(); carregarC1(); carregarC2(); mostrarToast('✅ Alocado!');
         }
+
         async function carregarC2() {
             var { data } = await supabase.from('cardapio2').select('*');
             cacheC2 = data || [];
