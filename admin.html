@@ -37,6 +37,7 @@
         .btn-warning { background:linear-gradient(135deg,#FFD700,#FFA500); color:#5C3317; }
         .btn-info { background:linear-gradient(135deg,#3b82f6,#2563eb); color:white; }
         .btn-whatsapp { background:linear-gradient(135deg,#25D366,#16a34a); color:white; }
+        .btn-deliver { background:linear-gradient(135deg,#10b981,#059669); color:white; }
         .btn-small { padding:6px 10px; font-size:12px; width:auto; }
         .card-item { background:#FFFDF5; padding:16px; border-radius:16px; border:1px solid #f0e0c0; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
         .card-item-info { flex:1; min-width:180px; display:flex; align-items:center; gap:12px; }
@@ -71,6 +72,69 @@
         .perm-item label { margin:0; font-weight:600; color:#854d0e; }
         .pedido-itens { margin-top:10px; padding:12px; background:#FFF8DC; border-radius:10px; border:1px solid #f0e0c0; }
         .pedido-item-linha { padding:3px 0; font-size:0.9em; color:#333; }
+        
+        /* FILTROS ESTILO */
+        .filtros-container {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 18px;
+            background: #f5f0e8;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            align-items: flex-end;
+        }
+        .filtros-container .form-group {
+            margin-bottom: 0;
+            flex: 1;
+            min-width: 150px;
+        }
+        .filtros-container .form-group label {
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+        .filtros-container input,
+        .filtros-container select {
+            padding: 10px 14px;
+            margin-bottom: 0;
+            font-size: 14px;
+        }
+        .filtros-container .btn {
+            padding: 10px 20px;
+            height: 46px;
+            width: auto;
+            align-self: flex-end;
+        }
+        .btn-limpar {
+            background: #6b7280;
+            color: white;
+        }
+        .btn-limpar:hover {
+            background: #4b5563;
+        }
+        .btn-deliver {
+            background: linear-gradient(135deg,#10b981,#059669);
+            color: white;
+        }
+        .btn-deliver:hover {
+            transform: scale(1.02);
+        }
+        .btn-deliver:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .badge-entregue {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .entregue-badge {
+            color: #065f46;
+            font-weight: bold;
+            background: #d1fae5;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        
         @media (max-width:600px) { .tabs { flex-direction:column; } }
     </style>
 </head>
@@ -146,8 +210,39 @@
             <div id="listaC2" style="margin-top:15px;"></div>
         </div>
 
+        <!-- ========== ABA PEDIDOS MODIFICADA ========== -->
         <div class="conteudo" id="conteudo-pedidos">
             <h3>📋 Pedidos</h3>
+            
+            <!-- FILTROS -->
+            <div class="filtros-container" id="filtrosPedidos">
+                <div class="form-group">
+                    <label>📌 Status</label>
+                    <select id="filtroStatus">
+                        <option value="todos">Todos</option>
+                        <option value="novo">🆕 Novo</option>
+                        <option value="preparo">👨‍🍳 Preparo</option>
+                        <option value="entrega">🛵 Entrega</option>
+                        <option value="entregue">✅ Entregue</option>
+                        <option value="cancelado">❌ Cancelado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>👤 Cliente</label>
+                    <input type="text" id="filtroCliente" placeholder="Buscar cliente...">
+                </div>
+                <div class="form-group">
+                    <label>📅 Data Início</label>
+                    <input type="date" id="filtroDataInicio">
+                </div>
+                <div class="form-group">
+                    <label>📅 Data Fim</label>
+                    <input type="date" id="filtroDataFim">
+                </div>
+                <button class="btn btn-primary" onclick="aplicarFiltros()">🔍 Filtrar</button>
+                <button class="btn btn-limpar" onclick="limparFiltros()">🗑️ Limpar</button>
+            </div>
+
             <div id="listaPedidos"></div>
         </div>
 
@@ -210,6 +305,7 @@
         var fotoEmBase64 = null;
         var cacheEstoque = [], cacheC2 = [], cachePedidos = [], cacheHistorico = [], configDados = {};
         var adminAtual = null;
+        var pedidosFiltrados = [];
 
         function mostrarToast(msg) { var t = document.getElementById('toastNotificacao'); t.textContent = msg; t.style.display = 'block'; setTimeout(function(){ t.style.display = 'none'; }, 4000); }
 
@@ -341,7 +437,7 @@
             carregarListaAdmins(); mostrarToast('✅ Excluído!');
         }
 
-        // ============ DASHBOARD CORRIGIDO ============
+        // ============ DASHBOARD ============
         async function carregarDashboard() {
             var { data: e } = await supabase.from('estoquecentral').select('*');
             var { data: p } = await supabase.from('todospedidos').select('*');
@@ -455,31 +551,180 @@
         }
         async function excluirC2(id) { if (!confirm('Excluir?')) return; await supabase.from('cardapio2').delete().eq('id', id); carregarC2(); mostrarToast('✅ Excluído!'); }
 
-        // ============ PEDIDOS ============
+        // ============ PEDIDOS COM FILTROS E BOTÃO ENTREGUE ============
         async function carregarPedidos() {
             var { data } = await supabase.from('todospedidos').select('*').order('id', { ascending: false });
             cachePedidos = data || [];
-            renderizarPedidos(cachePedidos);
+            pedidosFiltrados = cachePedidos;
+            renderizarPedidos(pedidosFiltrados);
         }
+
         function renderizarPedidos(p) {
             var l = document.getElementById('listaPedidos');
-            if (p.length === 0) { l.innerHTML = '<p>Nenhum pedido.</p>'; return; }
+            if (p.length === 0) { 
+                l.innerHTML = '<p style="text-align:center;padding:40px;color:#999;">📭 Nenhum pedido encontrado.</p>'; 
+                return; 
+            }
+            
             l.innerHTML = p.map(function(x) {
+                // Itens do pedido
                 var itensHtml = '';
                 if (x.itens && x.itens.length > 0) {
                     itensHtml = '<div class="pedido-itens"><strong>📋 ITENS:</strong><br>';
-                    x.itens.forEach(function(item) { itensHtml += '<div class="pedido-item-linha">• '+(item.quantidade||0)+'x '+(item.nome||'Item')+' - R$ '+((item.preco||0)*(item.quantidade||0)).toFixed(2)+'</div>'; });
+                    x.itens.forEach(function(item) { 
+                        itensHtml += '<div class="pedido-item-linha">• '+(item.quantidade||0)+'x '+(item.nome||'Item')+' - R$ '+((item.preco||0)*(item.quantidade||0)).toFixed(2)+'</div>'; 
+                    });
                     itensHtml += '</div>';
                 }
+                
+                // Status do pagamento
                 var stPag = x.pagamentostatus==='pago'?'<span class="badge badge-pago">✅ PAGO</span>':'<span class="badge badge-pendente">⏳ PENDENTE</span>';
-                var stPed = x.status==='entregue'?'<span class="badge badge-entregue">✅ Entregue</span>':x.status==='entrega'?'<span class="badge badge-entrega">🛵 Entrega</span>':x.status==='preparo'?'<span class="badge badge-preparo">👨‍🍳 Preparo</span>':x.status==='cancelado'?'<span class="badge badge-cancelado">❌ Cancelado</span>':'<span class="badge badge-novo">🆕 Novo</span>';
+                
+                // Status do pedido
+                var stPed = '';
+                if (x.status === 'entregue') {
+                    stPed = '<span class="badge badge-entregue">✅ Entregue</span>';
+                } else if (x.status === 'entrega') {
+                    stPed = '<span class="badge badge-entrega">🛵 Entrega</span>';
+                } else if (x.status === 'preparo') {
+                    stPed = '<span class="badge badge-preparo">👨‍🍳 Preparo</span>';
+                } else if (x.status === 'cancelado') {
+                    stPed = '<span class="badge badge-cancelado">❌ Cancelado</span>';
+                } else {
+                    stPed = '<span class="badge badge-novo">🆕 Novo</span>';
+                }
+                
+                // Botão "Pedido Entregue" - só aparece se NÃO estiver entregue
+                var btnEntregue = '';
+                if (x.status !== 'entregue' && x.status !== 'cancelado') {
+                    btnEntregue = '<button class="btn btn-deliver btn-small" onclick="marcarEntregue('+x.id+')" title="Marcar como entregue">✅ Entregue</button>';
+                } else if (x.status === 'entregue') {
+                    btnEntregue = '<span class="entregue-badge">✔ Entregue</span>';
+                }
+                
+                // Botão excluir
+                var btnExcluir = '<button class="btn btn-danger btn-small" onclick="excluirPedido('+x.id+')">🗑️</button>';
+                
+                // Link do WhatsApp (se tiver telefone)
+                var btnWhats = '';
+                if (x.telefone) {
+                    btnWhats = '<button class="btn btn-whatsapp btn-small" onclick="abrirWhatsapp(\''+x.telefone+'\',\''+x.cliente+'\','+(x.total||0)+')">📱</button>';
+                }
+                
                 return '<div class="card-item" style="flex-direction:column;align-items:stretch;">'+
-                    '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;"><div><strong>👤 '+x.cliente+'</strong><br><small>📱 '+(x.telefone||'N/A')+' | 📅 '+formatarData(x.data)+'</small></div><div style="text-align:right;"><strong style="font-size:1.2em;color:#CC5500;">R$ '+(x.total||0).toFixed(2)+'</strong><br>'+stPag+' '+stPed+'</div></div>'+
+                    '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">'+
+                        '<div><strong>👤 '+x.cliente+'</strong><br><small>📱 '+(x.telefone||'N/A')+' | 📅 '+formatarData(x.data)+'</small></div>'+
+                        '<div style="text-align:right;"><strong style="font-size:1.2em;color:#CC5500;">R$ '+(x.total||0).toFixed(2)+'</strong><br>'+stPag+' '+stPed+'</div>'+
+                    '</div>'+
                     itensHtml+
-                    '<div style="display:flex;gap:6px;margin-top:10px;"><button class="btn btn-danger btn-small" onclick="excluirPedido('+x.id+')">🗑️</button></div></div>';
+                    '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">'+
+                        btnEntregue + 
+                        btnWhats + 
+                        btnExcluir +
+                    '</div>'+
+                '</div>';
             }).join('');
         }
-        async function excluirPedido(id) { if (!confirm('Excluir?')) return; await supabase.from('todospedidos').delete().eq('id', id); carregarPedidos(); carregarDashboard(); mostrarToast('✅ Excluído!'); }
+
+        // ========== FUNÇÃO MARCAR ENTREGUE ==========
+        async function marcarEntregue(id) {
+            if (!confirm('✅ Confirmar que este pedido foi ENTREGUE?')) return;
+            
+            try {
+                // Atualiza o status do pedido para 'entregue'
+                const { error } = await supabase
+                    .from('todospedidos')
+                    .update({ status: 'entregue' })
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                mostrarToast('✅ Pedido #' + id + ' marcado como ENTREGUE!');
+                
+                // Recarrega a lista com os filtros atuais
+                aplicarFiltros();
+                
+            } catch (e) {
+                console.error('Erro ao marcar entregue:', e);
+                alert('❌ Erro ao marcar pedido como entregue. Tente novamente.');
+            }
+        }
+
+        // ========== FUNÇÕES DE FILTRO ==========
+        function aplicarFiltros() {
+            var status = document.getElementById('filtroStatus').value;
+            var cliente = document.getElementById('filtroCliente').value.toLowerCase().trim();
+            var dataInicio = document.getElementById('filtroDataInicio').value;
+            var dataFim = document.getElementById('filtroDataFim').value;
+            
+            var filtrados = cachePedidos.filter(function(pedido) {
+                // Filtro por status
+                if (status !== 'todos') {
+                    var statusMap = {
+                        'novo': 'novo',
+                        'preparo': 'preparo',
+                        'entrega': 'entrega',
+                        'entregue': 'entregue',
+                        'cancelado': 'cancelado'
+                    };
+                    if ((pedido.status || 'novo') !== statusMap[status]) return false;
+                }
+                
+                // Filtro por cliente
+                if (cliente !== '') {
+                    if (!pedido.cliente.toLowerCase().includes(cliente)) return false;
+                }
+                
+                // Filtro por data
+                if (dataInicio !== '') {
+                    var dataPedido = new Date(pedido.data);
+                    var dataIni = new Date(dataInicio);
+                    dataIni.setHours(0, 0, 0, 0);
+                    if (dataPedido < dataIni) return false;
+                }
+                
+                if (dataFim !== '') {
+                    var dataPedido2 = new Date(pedido.data);
+                    var dataFim2 = new Date(dataFim);
+                    dataFim2.setHours(23, 59, 59, 999);
+                    if (dataPedido2 > dataFim2) return false;
+                }
+                
+                return true;
+            });
+            
+            pedidosFiltrados = filtrados;
+            renderizarPedidos(filtrados);
+            
+            if (filtrados.length === 0) {
+                mostrarToast('📭 Nenhum pedido encontrado com esses filtros.');
+            }
+        }
+
+        function limparFiltros() {
+            document.getElementById('filtroStatus').value = 'todos';
+            document.getElementById('filtroCliente').value = '';
+            document.getElementById('filtroDataInicio').value = '';
+            document.getElementById('filtroDataFim').value = '';
+            pedidosFiltrados = cachePedidos;
+            renderizarPedidos(cachePedidos);
+            mostrarToast('🧹 Filtros limpos!');
+        }
+
+        // ========== ABRIR WHATSAPP ==========
+        function abrirWhatsapp(tel, nome, total) {
+            var msg = '🍦 *Olá ' + nome + '!*\n\nSeu pedido está sendo preparado. Em breve estará pronto!\n\nValor: R$ ' + total.toFixed(2);
+            window.open('https://wa.me/55' + tel + '?text=' + encodeURIComponent(msg), '_blank');
+        }
+
+        // ========== EXCLUIR PEDIDO ==========
+        async function excluirPedido(id) { 
+            if (!confirm('Excluir este pedido permanentemente?')) return; 
+            await supabase.from('todospedidos').delete().eq('id', id); 
+            carregarPedidos(); 
+            carregarDashboard(); 
+            mostrarToast('🗑️ Pedido excluído!'); 
+        }
 
         // ============ PAGAMENTOS ============
         async function carregarPagamentos() {
