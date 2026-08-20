@@ -36,6 +36,9 @@
         .pix-info { display:none; background:#FFF8DC; padding:18px; border-radius:14px; border:2px solid #DAA520; margin-bottom:15px; }
         .pix-chave { background:white; padding:14px; border-radius:12px; font-size:1.15em; text-align:center; word-break:break-all; }
         .btn-copiar-pix { width:100%; padding:12px; background:#CC5500; color:#FFD700; border:none; border-radius:12px; font-size:1.05em; cursor:pointer; font-weight:bold; margin-top:8px; }
+        .link-info { display:none; background:#fef9c3; padding:18px; border-radius:14px; border:2px solid #FFD700; margin-bottom:15px; }
+        .link-info h4 { color:#854d0e; margin-bottom:8px; }
+        .link-info p { color:#854d0e; font-size:0.95em; }
         .sucesso-msg { display:none; background:#dcfce7; color:#166534; padding:20px; border-radius:14px; text-align:center; margin-top:15px; font-size:1.15em; }
         .item-carrinho { display:flex; justify-content:space-between; align-items:center; padding:12px; background:#FFF8DC; border-radius:10px; margin-bottom:8px; font-size:1.05em; }
         .btn-remover { background:#ef4444; color:white; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:bold; }
@@ -55,8 +58,24 @@
             <div class="form-section" id="form-section" style="display:none;">
                 <div class="form-group"><label>👤 Nome Completo *</label><input type="text" id="nome-cliente"></div>
                 <div class="form-group"><label>📱 WhatsApp *</label><input type="tel" id="telefone-cliente" placeholder="(00) 00000-0000"></div>
-                <div class="form-group"><label>💳 Pagamento *</label><select id="pagamento-select"><option value="">Selecione</option><option value="PIX">PIX</option><option value="Dinheiro">Dinheiro</option><option value="Cartão">Cartão</option></select></div>
-                <div class="pix-info" id="pix-info"><h4>📱 Chave PIX</h4><div class="pix-chave" id="pix-chave-display"></div><button class="btn-copiar-pix" onclick="copiarPix()">📋 Copiar PIX</button></div>
+                <div class="form-group">
+                    <label>💳 Pagamento *</label>
+                    <select id="pagamento-select">
+                        <option value="">Selecione</option>
+                        <option value="PIX">📱 PIX</option>
+                        <option value="Dinheiro">💵 Dinheiro</option>
+                        <option value="Solicitar Link">🔗 Solicitar Link de Pagamento (Crédito)</option>
+                    </select>
+                </div>
+                <div class="pix-info" id="pix-info">
+                    <h4>📱 Chave PIX</h4>
+                    <div class="pix-chave" id="pix-chave-display"></div>
+                    <button class="btn-copiar-pix" onclick="copiarPix()">📋 Copiar PIX</button>
+                </div>
+                <div class="link-info" id="link-info">
+                    <h4>🔗 Link de Pagamento</h4>
+                    <p>📱 O vendedor enviará o link de pagamento pelo WhatsApp após confirmar o pedido!</p>
+                </div>
             </div>
             <button class="btn-finalizar" id="btn-finalizar" onclick="finalizarPedido()" disabled>📱 Finalizar Pedido</button>
             <div class="sucesso-msg" id="sucesso-msg"><h3>✅ Pedido Realizado!</h3><p>📦 Nº <strong id="pedido-id"></strong></p></div>
@@ -119,10 +138,9 @@
             if (!nome || !tel || !pag || carrinho.length === 0) { alert('Preencha!'); return; }
             var pedidoId = Date.now();
             
-            // Salvar pedido
             await supabase.from('todospedidos').insert([{ pedido_id: pedidoId, data: new Date().toISOString(), cardapio: 'cardapio2', cliente: nome, telefone: tel, pagamento: pag, total: sub, itens: carrinho.map(function(i) { return { nome: i.nome, emoji: i.emoji, quantidade: i.quantidade, preco: i.preco }; }), status: 'novo', pagamentostatus: 'pendente' }]);
 
-            // ✅ BAIXAR ESTOQUE DO CARDÁPIO 2
+            // Baixar estoque
             for (var idx = 0; idx < carrinho.length; idx++) {
                 var item = carrinho[idx];
                 var { data: atual } = await supabase.from('cardapio2').select('*').eq('id', item.id).maybeSingle();
@@ -132,11 +150,26 @@
                 }
             }
 
-            // Mensagem WhatsApp
-            var msg = '🍦 *NOVO PEDIDO* 🍦\n\n👤 *' + nome + '*\n📱 *' + tel + '*\n📦 *Pedido #' + pedidoId + '*\n💳 *' + pag + '*\n\n📋 *ITENS:*\n';
+            // Montar mensagem
+            var msg = '🍦 *NOVO PEDIDO* 🍦\n\n';
+            msg += '👤 *' + nome + '*\n';
+            msg += '📱 *' + tel + '*\n';
+            msg += '📦 *Pedido #' + pedidoId + '*\n';
+            msg += '💳 *Pagamento: ' + pag + '*\n\n';
+            msg += '📋 *ITENS:*\n';
             carrinho.forEach(function(i) { msg += (i.emoji||'🍦') + ' ' + i.quantidade + 'x ' + i.nome + ' - R$ ' + (i.preco*i.quantidade).toFixed(2) + '\n'; });
-            msg += '\n💵 *TOTAL: R$ ' + sub.toFixed(2) + '*';
-            if (pag === 'PIX') msg += '\n\n📱 *PIX:* `' + (configDados.pix || 'pix@dindingourmet.com.br') + '`';
+            msg += '\n💵 *TOTAL: R$ ' + sub.toFixed(2) + '*\n';
+
+            if (pag === 'PIX') {
+                msg += '\n📱 *PIX:* `' + (configDados.pix || 'pix@dindingourmet.com.br') + '`';
+            }
+
+            if (pag === 'Solicitar Link') {
+                msg += '\n\n⚠️ *CLIENTE SOLICITOU LINK DE PAGAMENTO (CRÉDITO)!*\n';
+                msg += '📱 *Envie o link da InfinitePay para o cliente!*\n';
+                msg += '💳 *Valor: R$ ' + sub.toFixed(2) + '*';
+            }
+
             window.open('https://wa.me/' + (configDados.whatsapp || '5561986471897') + '?text=' + encodeURIComponent(msg), '_blank');
 
             document.getElementById('pedido-id').textContent = '#' + pedidoId;
@@ -153,7 +186,10 @@
         });
         document.getElementById('nome-cliente').addEventListener('input', validar);
         document.getElementById('pagamento-select').addEventListener('change', function() {
-            document.getElementById('pix-info').style.display = this.value === 'PIX' ? 'block' : 'none'; validar();
+            var pag = this.value;
+            document.getElementById('pix-info').style.display = pag === 'PIX' ? 'block' : 'none';
+            document.getElementById('link-info').style.display = pag === 'Solicitar Link' ? 'block' : 'none';
+            validar();
         });
 
         carregarConfig();
