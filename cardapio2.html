@@ -140,7 +140,6 @@
             
             await supabase.from('todospedidos').insert([{ pedido_id: pedidoId, data: new Date().toISOString(), cardapio: 'cardapio2', cliente: nome, telefone: tel, pagamento: pag, total: sub, itens: carrinho.map(function(i) { return { nome: i.nome, emoji: i.emoji, quantidade: i.quantidade, preco: i.preco }; }), status: 'novo', pagamentostatus: 'pendente' }]);
 
-            // Baixar estoque
             for (var idx = 0; idx < carrinho.length; idx++) {
                 var item = carrinho[idx];
                 var { data: atual } = await supabase.from('cardapio2').select('*').eq('id', item.id).maybeSingle();
@@ -150,7 +149,6 @@
                 }
             }
 
-            // Montar mensagem
             var msg = '🍦 *NOVO PEDIDO* 🍦\n\n';
             msg += '👤 *' + nome + '*\n';
             msg += '📱 *' + tel + '*\n';
@@ -158,10 +156,10 @@
             msg += '💳 *Pagamento: ' + pag + '*\n\n';
             msg += '📋 *ITENS:*\n';
             carrinho.forEach(function(i) { msg += (i.emoji||'🍦') + ' ' + i.quantidade + 'x ' + i.nome + ' - R$ ' + (i.preco*i.quantidade).toFixed(2) + '\n'; });
-            msg += '\n💵 *TOTAL: R$ ' + sub.toFixed(2) + '*\n';
+            msg += '\n💵 *TOTAL: R$ ' + sub.toFixed(2) + '*';
 
             if (pag === 'PIX') {
-                msg += '\n📱 *PIX:* `' + (configDados.pix || 'pix@dindingourmet.com.br') + '`';
+                msg += '\n\n📱 *PIX:* `' + (configDados.pix || 'pix@dindingourmet.com.br') + '`';
             }
 
             if (pag === 'Solicitar Link') {
@@ -170,7 +168,11 @@
                 msg += '💳 *Valor: R$ ' + sub.toFixed(2) + '*';
             }
 
-            window.open('https://wa.me/' + (configDados.whatsapp || '5561986471897') + '?text=' + encodeURIComponent(msg), '_blank');
+            // ENVIO CORRIGIDO
+            var whatsapp = configDados.whatsapp || '5561986471897';
+            var linkWhatsApp = 'https://wa.me/' + whatsapp + '?text=' + encodeURIComponent(msg);
+            var novaJanela = window.open(linkWhatsApp, '_blank');
+            if (!novaJanela) { window.location.href = linkWhatsApp; }
 
             document.getElementById('pedido-id').textContent = '#' + pedidoId;
             document.getElementById('sucesso-msg').style.display = 'block';
