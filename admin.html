@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* ================================================================
-           ESTILOS COMPLETOS (Tema Escuro/Claro, Responsivo, Skeleton, etc.)
+           ESTILOS COMPLETOS
            ================================================================ */
         :root {
             --marrom: #5C3317;
@@ -42,6 +42,7 @@
             --scrollbar-thumb: #6a4a30;
             --skeleton-bg: #2a1a10;
             --skeleton-shine: #3a2a1a;
+            --modal-bg: rgba(0, 0, 0, 0.85);
         }
 
         [data-theme="light"] {
@@ -63,6 +64,7 @@
             --scrollbar-thumb: #b4a490;
             --skeleton-bg: #e8dfd6;
             --skeleton-shine: #f5efe8;
+            --modal-bg: rgba(0, 0, 0, 0.5);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -536,6 +538,70 @@
         .pagination .btn.active { background: var(--dourado); color: #5C3317; font-weight: 700; }
         .pagination .info { display: flex; align-items: center; padding: 0 12px; color: var(--text-secondary); font-size: 13px; }
 
+        /* ================================================================
+           MODAL TROCA DE SENHA
+           ================================================================ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-bg);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: var(--bg-card);
+            padding: 32px;
+            border-radius: 24px;
+            max-width: 420px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-hover);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-box h3 { color: var(--dourado); margin-bottom: 16px; font-size: 1.3em; }
+        .modal-box .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0 4px;
+            width: auto;
+        }
+        .modal-box .close-btn:hover { color: var(--danger); }
+        .modal-box .form-group { margin-bottom: 14px; }
+        .modal-box .form-group label { display: block; font-weight: 700; color: var(--dourado); margin-bottom: 4px; font-size: 0.85em; }
+        .modal-box .form-group input { width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: var(--radius); font-size: 15px; background: var(--bg-input); color: var(--text-primary); transition: var(--transition); }
+        .modal-box .form-group input:focus { border-color: var(--laranja); box-shadow: 0 0 0 4px rgba(204,85,0,0.15); outline: none; }
+        .modal-box .senha-forca {
+            height: 4px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+        .modal-box .senha-forca .barra {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 4px;
+        }
+        .modal-box .senha-texto { font-size: 0.75em; color: var(--text-muted); margin-top: 4px; }
+        .modal-box .btn-row { display: flex; gap: 8px; margin-top: 8px; }
+        .modal-box .btn-row .btn { flex: 1; }
+        .modal-box .btn-row .btn-close-modal { flex: 0 0 auto; }
+        .modal-box .mensagem { margin-top: 12px; color: var(--text-secondary); font-size: 0.9em; }
+
         /* Responsividade */
         @media (max-width: 768px) {
             .painel { padding: 12px; margin: 8px; }
@@ -560,6 +626,7 @@
             #toastContainer { left: 12px; right: 12px; max-width: none; }
             .login-box { padding: 28px 20px; }
             .logo { width: 70px; height: 70px; font-size: 35px; }
+            .modal-box { padding: 24px; margin: 12px; }
         }
         @media (max-width: 480px) {
             .header-painel h2 { font-size: 1.1em; text-align: center; }
@@ -573,6 +640,7 @@
             .dash-card .valor { font-size: 1.1em; }
             .permissoes-grid { grid-template-columns: 1fr; }
             .card-item { padding: 12px; }
+            .modal-box { padding: 16px; }
         }
 
         /* Utilitários */
@@ -602,6 +670,40 @@
     <div id="toastContainer"></div>
 
     <!-- ================================================================
+    MODAL TROCA DE SENHA (SEGURO)
+    ================================================================ -->
+    <div class="modal-overlay" id="modalTrocaSenha">
+        <div class="modal-box">
+            <button class="close-btn" onclick="fecharModalTrocaSenha()">✕</button>
+            <h3>🔒 Trocar Senha</h3>
+
+            <div class="form-group">
+                <label>Senha Atual <span class="required">*</span></label>
+                <input type="password" id="modalSenhaAtual" placeholder="Digite sua senha atual" autocomplete="current-password">
+            </div>
+
+            <div class="form-group">
+                <label>Nova Senha <span class="required">*</span></label>
+                <input type="password" id="modalNovaSenha" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+                <div class="senha-forca"><div class="barra" id="modalSenhaBarra"></div></div>
+                <div class="senha-texto" id="modalSenhaTexto">Digite uma senha forte</div>
+            </div>
+
+            <div class="form-group">
+                <label>Confirmar Nova Senha <span class="required">*</span></label>
+                <input type="password" id="modalConfirmaSenha" placeholder="Confirme a nova senha" autocomplete="new-password">
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-success" onclick="trocarSenhaModal()">✅ Alterar</button>
+                <button class="btn btn-danger btn-close-modal" onclick="fecharModalTrocaSenha()">✕</button>
+            </div>
+
+            <div class="mensagem" id="modalMensagem"></div>
+        </div>
+    </div>
+
+    <!-- ================================================================
     TELA DE LOGIN
     ================================================================ -->
     <div id="telaLogin" class="login-container">
@@ -623,11 +725,9 @@
                     <div id="senhaError" class="help-text" style="color:var(--danger);display:none;"></div>
                 </div>
 
-                <div class="flex gap-8" style="margin-bottom:12px;">
-                    <button type="button" class="btn btn-primary btn-block btn-lg" id="btnLogin" onclick="fazerLogin()">
-                        🚀 Entrar
-                    </button>
-                </div>
+                <button type="button" class="btn btn-primary btn-block btn-lg" id="btnLogin" onclick="fazerLogin()">
+                    🚀 Entrar
+                </button>
 
                 <div id="loginLoading" style="display:none;margin-top:10px;">
                     <span>⏳ Entrando...</span>
@@ -660,7 +760,7 @@
                     <span id="themeIcon">🌙</span>
                 </button>
                 <span class="user-info" id="userLogado">👤 Carregando...</span>
-                <button class="btn btn-info btn-sm" onclick="mostrarTrocaSenha()">🔒 Trocar Senha</button>
+                <button class="btn btn-info btn-sm" onclick="abrirModalTrocaSenha()">🔒 Trocar Senha</button>
                 <button class="btn btn-danger btn-sm" onclick="sair()">🚪 Sair</button>
             </div>
         </div>
@@ -726,7 +826,6 @@
                 </div>
             </div>
             <div class="flex gap-8 flex-wrap">
-                <!-- ✅ CORRIGIDO: itemcadastra() → cadastrarItem() -->
                 <button class="btn btn-primary" onclick="cadastrarItem()">💾 Cadastrar</button>
                 <button class="btn btn-success" onclick="carregarEstoque()">🔄 Atualizar</button>
             </div>
@@ -925,7 +1024,6 @@
                         <input type="number" id="setorTaxa" step="0.50" value="5.00" min="0">
                     </div>
                     <div class="form-group" style="flex:0 0 140px;display:flex;align-items:flex-end;">
-                        <!-- ✅ CORRIGIDO: Setor cadastral() → cadastrarSetor() -->
                         <button class="btn btn-success btn-block" onclick="cadastrarSetor()">➕ Adicionar</button>
                     </div>
                 </div>
@@ -988,7 +1086,6 @@
             <h3>⚙️ Configurações</h3>
             <div class="form-group">
                 <label>WhatsApp (com DDD)</label>
-                <!-- ✅ CORRIGIDO: ID correto é configWhatsapp -->
                 <input type="text" id="configWhatsapp" placeholder="Ex: 11999999999" maxlength="15">
                 <div class="help-text">Digite apenas números, sem espaços ou caracteres especiais.</div>
             </div>
@@ -1050,7 +1147,7 @@
 
     <script>
         // ================================================================
-        //  CÓDIGO JAVASCRIPT COMPLETO - COM TODAS AS CORREÇÕES
+        //  CÓDIGO JAVASCRIPT COMPLETO
         // ================================================================
         (function() {
             'use strict';
@@ -1142,9 +1239,14 @@
                     try {
                         const dt = new Date(d);
                         if (isNaN(dt.getTime())) return '';
-                        const dataBrasil = new Date(dt.getTime() - (3 * 60 * 60 * 1000));
-                        return dataBrasil.toLocaleDateString('pt-BR') + ' ' +
-                            dataBrasil.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        return dt.toLocaleDateString('pt-BR', {
+                            timeZone: 'America/Sao_Paulo',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
                     } catch {
                         return '';
                     }
@@ -1154,15 +1256,21 @@
                     try {
                         const dt = new Date(d);
                         if (isNaN(dt.getTime())) return '';
-                        return dt.toLocaleDateString('pt-BR') + ' ' +
-                            dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        return dt.toLocaleString('pt-BR', {
+                            timeZone: 'America/Sao_Paulo',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        });
                     } catch {
                         return '';
                     }
                 },
                 getDataBrasil: function() {
-                    const agora = new Date();
-                    return new Date(agora.getTime() - (3 * 60 * 60 * 1000)).toISOString();
+                    return new Date().toISOString();
                 },
                 escapeHtml: function(texto) {
                     if (!texto) return '';
@@ -1572,29 +1680,132 @@
             }
 
             // ============================================================
-            //  TROCA DE SENHA
+            //  MODAL TROCA DE SENHA (SEGURA)
             // ============================================================
-            async function mostrarTrocaSenha() {
-                if (!State.user) return;
-                const atual = prompt('Digite sua senha ATUAL:');
-                if (atual === null) return;
+            function verificarForcaSenhaModal(senha) {
+                const barra = document.getElementById('modalSenhaBarra');
+                const texto = document.getElementById('modalSenhaTexto');
+
+                if (!senha || senha.length === 0) {
+                    barra.style.width = '0%';
+                    barra.style.background = '';
+                    texto.textContent = 'Digite uma senha forte';
+                    return;
+                }
+
+                let score = 0;
+                if (senha.length >= 8) score++;
+                if (senha.length >= 12) score++;
+                if (/[a-z]/.test(senha) && /[A-Z]/.test(senha)) score++;
+                if (/\d/.test(senha)) score++;
+                if (/[^a-zA-Z0-9]/.test(senha)) score++;
+
+                const cores = ['', '#ef4444', '#ef4444', '#f59e0b', '#3b82f6', '#22c55e'];
+                const textos = ['Digite uma senha forte', 'Senha fraca', 'Senha fraca', 'Senha média', 'Senha forte',
+                    'Senha muito forte!'
+                ];
+
+                barra.style.width = (score / 5 * 100) + '%';
+                barra.style.background = cores[score] || '#22c55e';
+                texto.textContent = textos[score] || 'Digite uma senha forte';
+            }
+
+            function abrirModalTrocaSenha() {
+                document.getElementById('modalTrocaSenha').classList.add('active');
+                document.getElementById('modalSenhaAtual').value = '';
+                document.getElementById('modalNovaSenha').value = '';
+                document.getElementById('modalConfirmaSenha').value = '';
+                document.getElementById('modalMensagem').textContent = '';
+                document.getElementById('modalMensagem').style.color = '';
+                document.getElementById('modalSenhaAtual').focus();
+                verificarForcaSenhaModal('');
+            }
+
+            function fecharModalTrocaSenha() {
+                document.getElementById('modalTrocaSenha').classList.remove('active');
+            }
+
+            async function trocarSenhaModal() {
+                const atual = document.getElementById('modalSenhaAtual').value;
+                const nova = document.getElementById('modalNovaSenha').value;
+                const confirma = document.getElementById('modalConfirmaSenha').value;
+                const msg = document.getElementById('modalMensagem');
+
+                msg.textContent = '';
+                msg.style.color = '';
+
+                if (!atual || !nova || !confirma) {
+                    msg.textContent = '⚠️ Preencha todos os campos!';
+                    msg.style.color = '#f59e0b';
+                    return;
+                }
+
+                if (nova.length < 8) {
+                    msg.textContent = '⚠️ A nova senha deve ter no mínimo 8 caracteres!';
+                    msg.style.color = '#f59e0b';
+                    document.getElementById('modalNovaSenha').focus();
+                    return;
+                }
+
+                if (nova !== confirma) {
+                    msg.textContent = '❌ As senhas não coincidem!';
+                    msg.style.color = '#ef4444';
+                    document.getElementById('modalConfirmaSenha').focus();
+                    return;
+                }
+
                 try {
-                    const { error } = await supabase.auth.signInWithPassword({ email: State.user.email, password: atual });
-                    if (error) { mostrarToast('Senha atual incorreta!', 'error'); return; }
-                } catch (error) { mostrarToast('Erro ao verificar senha: ' + error.message, 'error'); return; }
-                const nova = prompt('NOVA senha (mínimo 8 caracteres):');
-                if (nova === null || nova.length < 8) { mostrarToast('Senha deve ter no mínimo 8 caracteres!', 'warning'); return; }
-                const confirma = prompt('Confirme a NOVA senha:');
-                if (nova !== confirma) { mostrarToast('As senhas não coincidem!', 'error'); return; }
-                try {
-                    const { error } = await supabase.auth.updateUser({ password: nova });
-                    if (error) throw error;
-                    mostrarToast('✅ Senha alterada com sucesso!', 'success');
+                    // Verificar senha atual
+                    const { error: verifyError } = await supabase.auth.signInWithPassword({
+                        email: State.user.email,
+                        password: atual
+                    });
+
+                    if (verifyError) {
+                        msg.textContent = '❌ Senha atual incorreta!';
+                        msg.style.color = '#ef4444';
+                        document.getElementById('modalSenhaAtual').focus();
+                        return;
+                    }
+
+                    // Atualizar senha
+                    const { error: updateError } = await supabase.auth.updateUser({
+                        password: nova
+                    });
+
+                    if (updateError) throw updateError;
+
+                    msg.textContent = '✅ Senha alterada com sucesso!';
+                    msg.style.color = '#22c55e';
+
+                    setTimeout(() => {
+                        fecharModalTrocaSenha();
+                        mostrarToast('✅ Senha alterada com sucesso!', 'success');
+                    }, 1500);
+
                 } catch (error) {
-                    console.error('Erro ao alterar senha:', error);
-                    mostrarToast('❌ Erro ao alterar senha: ' + error.message, 'error');
+                    console.error('Erro ao trocar senha:', error);
+                    msg.textContent = '❌ ' + (error.message || 'Erro ao trocar senha');
+                    msg.style.color = '#ef4444';
                 }
             }
+
+            // Event listeners para o modal
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('modalNovaSenha').addEventListener('input', function() {
+                    verificarForcaSenhaModal(this.value);
+                });
+            });
+
+            // Fechar modal com ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') fecharModalTrocaSenha();
+            });
+
+            // Fechar modal clicando fora
+            document.getElementById('modalTrocaSenha').addEventListener('click', function(e) {
+                if (e.target === this) fecharModalTrocaSenha();
+            });
 
             // ============================================================
             //  NAVEGAÇÃO ENTRE TABS
@@ -1918,7 +2129,6 @@
                 }).join('');
             }
 
-            // ✅ CORRIGIDO: Função cadastrarItem (era itemcadastra)
             async function cadastrarItem() {
                 try {
                     const nome = document.getElementById('estoqueNome').value.trim();
@@ -2760,7 +2970,6 @@
                 }).join('');
             }
 
-            // ✅ CORRIGIDO: Função cadastrarSetor (era Setor cadastral)
             async function cadastrarSetor() {
                 try {
                     const nome = document.getElementById('setorNome').value.trim();
@@ -2822,7 +3031,7 @@
             }
 
             // ============================================================
-            //  CONFIG - CORRIGIDO
+            //  CONFIG
             // ============================================================
             async function carregarConfig() {
                 try {
@@ -2833,7 +3042,6 @@
                         .maybeSingle();
                     if (error) throw error;
                     State.cache.config = c ? (c.dados || {}) : {};
-                    // ✅ CORRIGIDO: configWhatsapp (era configurarWhatsapp)
                     document.getElementById('configWhatsapp').value = State.cache.config.whatsapp || '';
                     document.getElementById('configPix').value = State.cache.config.pix || '';
                     document.getElementById('configInfinitePay').value = State.cache.config.infinitePay || '';
@@ -3001,7 +3209,9 @@
             window.fazerLogin = fazerLogin;
             window.sair = sair;
             window.toggleTheme = toggleTheme;
-            window.mostrarTrocaSenha = mostrarTrocaSenha;
+            window.abrirModalTrocaSenha = abrirModalTrocaSenha;
+            window.fecharModalTrocaSenha = fecharModalTrocaSenha;
+            window.trocarSenhaModal = trocarSenhaModal;
             window.mudarTab = mudarTab;
             window.previewFotoAdmin = previewFotoAdmin;
             window.mostrarToast = mostrarToast;
