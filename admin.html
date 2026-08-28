@@ -538,9 +538,7 @@
         .pagination .btn.active { background: var(--dourado); color: #5C3317; font-weight: 700; }
         .pagination .info { display: flex; align-items: center; padding: 0 12px; color: var(--text-secondary); font-size: 13px; }
 
-        /* ================================================================
-           MODAL TROCA DE SENHA
-           ================================================================ */
+        /* Modal Troca Senha */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -670,7 +668,7 @@
     <div id="toastContainer"></div>
 
     <!-- ================================================================
-    MODAL TROCA DE SENHA (SEGURO)
+    MODAL TROCA DE SENHA
     ================================================================ -->
     <div class="modal-overlay" id="modalTrocaSenha">
         <div class="modal-box">
@@ -866,7 +864,7 @@
         </div>
 
         <!-- ============================================================
-        CONTEÚDO: PEDIDOS (COM PAGINAÇÃO)
+        CONTEÚDO: PEDIDOS
         ============================================================ -->
         <div class="conteudo" id="conteudo-pedidos">
             <h3>📋 Pedidos <span class="badge-count" id="pedidosCount">0</span></h3>
@@ -1147,7 +1145,7 @@
 
     <script>
         // ================================================================
-        //  CÓDIGO JAVASCRIPT COMPLETO
+        //  CÓDIGO JAVASCRIPT COMPLETO CORRIGIDO
         // ================================================================
         (function() {
             'use strict';
@@ -1269,8 +1267,11 @@
                         return '';
                     }
                 },
+                // ✅ CORRIGIDO: Fuso horário de Brasília
                 getDataBrasil: function() {
-                    return new Date().toISOString();
+                    const agora = new Date();
+                    // Formato ISO com timezone de Brasília (UTC-3)
+                    return new Date(agora.getTime() - (3 * 60 * 60 * 1000)).toISOString();
                 },
                 escapeHtml: function(texto) {
                     if (!texto) return '';
@@ -1680,7 +1681,7 @@
             }
 
             // ============================================================
-            //  MODAL TROCA DE SENHA (SEGURA)
+            //  MODAL TROCA DE SENHA
             // ============================================================
             function verificarForcaSenhaModal(senha) {
                 const barra = document.getElementById('modalSenhaBarra');
@@ -1755,7 +1756,6 @@
                 }
 
                 try {
-                    // Verificar senha atual
                     const { error: verifyError } = await supabase.auth.signInWithPassword({
                         email: State.user.email,
                         password: atual
@@ -1768,11 +1768,7 @@
                         return;
                     }
 
-                    // Atualizar senha
-                    const { error: updateError } = await supabase.auth.updateUser({
-                        password: nova
-                    });
-
+                    const { error: updateError } = await supabase.auth.updateUser({ password: nova });
                     if (updateError) throw updateError;
 
                     msg.textContent = '✅ Senha alterada com sucesso!';
@@ -1790,25 +1786,22 @@
                 }
             }
 
-            // Event listeners para o modal
             document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('modalNovaSenha').addEventListener('input', function() {
                     verificarForcaSenhaModal(this.value);
                 });
             });
 
-            // Fechar modal com ESC
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') fecharModalTrocaSenha();
             });
 
-            // Fechar modal clicando fora
             document.getElementById('modalTrocaSenha').addEventListener('click', function(e) {
                 if (e.target === this) fecharModalTrocaSenha();
             });
 
             // ============================================================
-            //  NAVEGAÇÃO ENTRE TABS
+            //  NAVEGAÇÃO
             // ============================================================
             function mudarTab(tab) {
                 document.querySelectorAll('.conteudo').forEach(el => el.classList.remove('active'));
@@ -1842,35 +1835,64 @@
                 return msg;
             }
 
-            // ============================================================
-            //  EVENTOS
-            // ============================================================
             document.getElementById('campoSenha').addEventListener('keypress', function(e) { if (e.key === 'Enter') fazerLogin(); });
             document.getElementById('campoEmail').addEventListener('keypress', function(e) { if (e.key === 'Enter') fazerLogin(); });
 
             // ============================================================
-            //  ADMINS - CRUD
+            //  ADMIN - EDGE FUNCTION (SEGURO)
             // ============================================================
+            async function chamarEdgeFunction(action, dados) {
+                const session = await supabase.auth.getSession()
+                const token = session.data.session?.access_token
+
+                if (!token) {
+                    throw new Error('Usuário não autenticado')
+                }
+
+                const response = await fetch(
+                    'https://khgkneegpxcgufslupby.supabase.co/functions/v1/manage-admin',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ action, ...dados })
+                    }
+                )
+
+                const result = await response.json()
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Erro na requisição')
+                }
+
+                return result
+            }
+
             async function cadastrarAdminSupabase() {
                 try {
-                    const nome = document.getElementById('adminNome').value.trim();
-                    const email = document.getElementById('adminEmail').value.trim();
-                    const senha = document.getElementById('adminSenha').value;
-                    if (!nome || !email || !senha) { mostrarToast('Preencha todos os campos!', 'warning'); return; }
-                    if (!Utils.validarEmail(email)) { mostrarToast('E-mail inválido!', 'warning'); return; }
-                    if (senha.length < 8) { mostrarToast('Senha deve ter no mínimo 8 caracteres!', 'warning'); return; }
+                    const nome = document.getElementById('adminNome').value.trim()
+                    const email = document.getElementById('adminEmail').value.trim()
+                    const senha = document.getElementById('adminSenha').value
 
-                    const loadingEl = document.getElementById('adminCadastroLoading');
-                    loadingEl.style.display = 'block';
+                    if (!nome || !email || !senha) {
+                        mostrarToast('Preencha todos os campos!', 'warning')
+                        return
+                    }
 
-                    const { data: authData, error: authErr } = await supabase.auth.admin.createUser({
-                        email,
-                        password: senha,
-                        email_confirm: true,
-                        user_metadata: { nome }
-                    });
-                    if (authErr) throw authErr;
-                    if (!authData.user) throw new Error('Falha ao criar usuário no Auth');
+                    if (!Utils.validarEmail(email)) {
+                        mostrarToast('E-mail inválido!', 'warning')
+                        return
+                    }
+
+                    if (senha.length < 8) {
+                        mostrarToast('Senha deve ter no mínimo 8 caracteres!', 'warning')
+                        return
+                    }
+
+                    const loadingEl = document.getElementById('adminCadastroLoading')
+                    loadingEl.style.display = 'block'
 
                     const permissoes = {
                         estoque: document.getElementById('permEstoque').checked,
@@ -1882,39 +1904,48 @@
                         setores: document.getElementById('permSetores').checked,
                         admins: document.getElementById('permAdmins').checked,
                         auditoria: document.getElementById('permAuditoria')?.checked || false
-                    };
-
-                    const { error: insertErr } = await supabase
-                        .from('admin_usuarios')
-                        .insert([{ user_id: authData.user.id, nome, usuario: email.split('@')[0], email, permissoes,
-                            ativo: true }]);
-                    if (insertErr) {
-                        await supabase.auth.admin.deleteUser(authData.user.id);
-                        throw insertErr;
                     }
 
-                    // Inserir permissões
-                    const permList = Object.keys(permissoes).filter(k => permissoes[k]);
-                    if (permList.length > 0) {
-                        const permInsert = permList.map(p => ({ admin_id: authData.user.id, permissao: p }));
-                        await supabase.from('admin_permissoes').insert(permInsert);
-                    }
+                    const result = await chamarEdgeFunction('create_user', {
+                        email,
+                        password: senha,
+                        nome,
+                        permissoes
+                    })
 
-                    document.getElementById('adminNome').value = '';
-                    document.getElementById('adminEmail').value = '';
-                    document.getElementById('adminSenha').value = '';
+                    document.getElementById('adminNome').value = ''
+                    document.getElementById('adminEmail').value = ''
+                    document.getElementById('adminSenha').value = ''
 
-                    await carregarListaAdmins();
-                    loadingEl.style.display = 'none';
-                    mostrarToast('✅ Admin cadastrado com sucesso!', 'success');
+                    await carregarListaAdmins()
+                    loadingEl.style.display = 'none'
+                    mostrarToast('✅ Admin cadastrado com sucesso!', 'success')
 
                 } catch (error) {
-                    console.error('Erro ao cadastrar admin:', error);
-                    document.getElementById('adminCadastroLoading').style.display = 'none';
-                    tratarErro(error, 'Erro ao cadastrar admin');
+                    console.error('Erro ao cadastrar admin:', error)
+                    document.getElementById('adminCadastroLoading').style.display = 'none'
+                    tratarErro(error, 'Erro ao cadastrar admin')
                 }
             }
 
+            async function excluirAdminSupabase(userId) {
+                try {
+                    if (!confirm('Excluir este administrador permanentemente?')) return
+                    if (!confirm('⚠️ O usuário também será removido do Supabase Auth. Confirmar?')) return
+
+                    await chamarEdgeFunction('delete_user', { userId })
+
+                    await carregarListaAdmins()
+                    mostrarToast('✅ Admin excluído com sucesso!', 'success')
+
+                } catch (error) {
+                    tratarErro(error, 'Erro ao excluir admin')
+                }
+            }
+
+            // ============================================================
+            //  CARREGAR LISTA ADMINS
+            // ============================================================
             async function carregarListaAdmins() {
                 if (State.loading.admins) return;
                 State.loading.admins = true;
@@ -1997,33 +2028,6 @@
                     await carregarListaAdmins();
                     mostrarToast(`✅ Admin ${acao}do com sucesso!`, 'success');
                 } catch (error) { tratarErro(error, 'Erro ao alterar status do admin'); }
-            }
-
-            async function excluirAdminSupabase(userId) {
-                try {
-                    const { data: admin, error: findErr } = await supabase
-                        .from('admin_usuarios')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .single();
-                    if (findErr) throw findErr;
-                    if (!admin) return;
-                    if (!confirm(`Excluir permanentemente o administrador "${admin.nome}"?`)) return;
-                    if (!confirm(`⚠️ O usuário também será removido do Supabase Auth. Confirmar?`)) return;
-                    await supabase.from('admin_permissoes').delete().eq('admin_id', userId);
-                    const { error: delAdminErr } = await supabase
-                        .from('admin_usuarios')
-                        .delete()
-                        .eq('user_id', userId);
-                    if (delAdminErr) throw delAdminErr;
-                    const { error: delAuthErr } = await supabase.auth.admin.deleteUser(userId);
-                    if (delAuthErr) {
-                        await supabase.from('admin_usuarios').insert([admin]);
-                        throw delAuthErr;
-                    }
-                    await carregarListaAdmins();
-                    mostrarToast('✅ Admin excluído com sucesso!', 'success');
-                } catch (error) { tratarErro(error, 'Erro ao excluir admin'); }
             }
 
             // ============================================================
@@ -2376,7 +2380,7 @@
             }
 
             // ============================================================
-            //  PEDIDOS COM PAGINAÇÃO
+            //  PEDIDOS
             // ============================================================
             async function carregarPedidos(page = 1) {
                 if (State.loading.pedidos) return;
