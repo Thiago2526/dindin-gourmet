@@ -840,35 +840,25 @@ window.aplicarFiltroPedidos = aplicarFiltroPedidos;
 window.limparFiltroPedidos = limparFiltroPedidos;
 
 // ============================================================
-// EXCLUIR PEDIDO (COM OPÇÃO DE DEVOLVER ESTOQUE)
+// EXCLUIR PEDIDO (DEVOLVE ESTOQUE AUTOMATICAMENTE)
 // ============================================================
 async function excluirPedido(id) {
     const pedido = State.cache.pedidos.find(p => p.id === id);
     if (!pedido) { mostrarToast('Pedido não encontrado', 'error'); return; }
 
-    if (!confirm('🗑️ Excluir este pedido?')) return;
-
-    // Perguntar se quer devolver estoque
-    let devolverEstoque = false;
-    if (pedido.itens && pedido.itens.length > 0) {
-        const listaItens = pedido.itens.map(i => `• ${i.quantidade}x ${i.nome}`).join('\n');
-        devolverEstoque = confirm(
-            `📦 DEVOLVER ITENS AO ESTOQUE?\n\n` +
-            `Itens do pedido ${pedido.pedido_id || '#' + id}:\n${listaItens}\n\n` +
-            `✅ OK = Devolver ao estoque\n` +
-            `❌ Cancelar = NÃO devolver`
-        );
-    }
+    if (!confirm('🗑️ Excluir este pedido?\n\nO estoque dos itens será DEVOLVIDO automaticamente.')) return;
 
     try {
-        // Se for devolver, percorre os itens e soma de volta
-        if (devolverEstoque && pedido.itens) {
+        // ═══════════════════════════════════════════════════
+        // DEVOLVER ESTOQUE DOS ITENS
+        // ═══════════════════════════════════════════════════
+        if (pedido.itens && pedido.itens.length > 0) {
             for (const item of pedido.itens) {
                 const nome = item.nome;
                 const qtd = item.quantidade || 0;
                 if (!nome || qtd <= 0) continue;
 
-                // Buscar produto pelo nome
+                // Buscar produto pelo nome (case-insensitive)
                 const { data: prod } = await sb
                     .from('estoquecentral')
                     .select('*')
@@ -896,21 +886,22 @@ async function excluirPedido(id) {
             }
         }
 
-        // Excluir o pedido
+        // ═══════════════════════════════════════════════════
+        // EXCLUIR O PEDIDO
+        // ═══════════════════════════════════════════════════
         const { error } = await sb.from('todospedidos').delete().eq('id', id);
         if (error) throw error;
 
+        // ═══════════════════════════════════════════════════
+        // RECARREGAR TUDO
+        // ═══════════════════════════════════════════════════
         await carregarPedidos(State.pagination.pedidos.page);
         await carregarDashboard();
+        await carregarEstoque();
+        await carregarC1();
+        await carregarC2();
 
-        if (devolverEstoque) {
-            await carregarEstoque();
-            await carregarC1();
-            await carregarC2();
-            mostrarToast('🗑️ Pedido excluído e estoque devolvido!', 'success');
-        } else {
-            mostrarToast('🗑️ Pedido excluído!', 'success');
-        }
+        mostrarToast('🗑️ Pedido excluído e estoque devolvido!', 'success');
 
     } catch (e) { tratarErro(e, 'Erro ao excluir pedido'); }
 }
@@ -1004,4 +995,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 console.log('✅ Admin parte 1 carregado!');
 console.log('📦 Estoque detalhado v3.0');
-console.log('🗑️ Exclusão com opção de devolver estoque');
+console.log('🗑️ Exclusão com DEVOLUÇÃO AUTOMÁTICA de estoque');
