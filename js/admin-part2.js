@@ -441,7 +441,7 @@ async function excluirSetor(id) {
 window.excluirSetor = excluirSetor;
 
 // ============================================================
-// CONFIG
+// CONFIG (CORRIGIDO - UPDATE PRIMEIRO, INSERT SE NÃO EXISTIR)
 // ============================================================
 async function carregarConfig() {
     try {
@@ -466,9 +466,32 @@ async function salvarConfig() {
             endereco: document.getElementById('configEndereco').value.trim(),
             grupoWhatsapp: document.getElementById('configGrupoWhatsapp').value.trim()
         };
-        await sb.from('config').upsert({ chave: 'admin', dados: d });
-        State.cache.config = d;
-        mostrarToast('✅ Salvo!', 'success');
+
+        try {
+            // Tenta UPDATE primeiro
+            const { data: updated, error: errUpdate } = await sb
+                .from('config')
+                .update({ dados: d })
+                .eq('chave', 'admin')
+                .select();
+
+            if (errUpdate) throw errUpdate;
+
+            // Se não atualizou nenhuma linha, INSERT
+            if (!updated || updated.length === 0) {
+                const { error: errInsert } = await sb
+                    .from('config')
+                    .insert([{ chave: 'admin', dados: d }]);
+                if (errInsert) throw errInsert;
+            }
+
+            State.cache.config = d;
+            mostrarToast('✅ Configurações salvas!', 'success');
+        } catch (err) {
+            console.error('❌ Erro ao salvar config:', err);
+            mostrarToast('❌ Erro: ' + (err.message || 'Falha ao salvar'), 'error');
+            throw err;
+        }
     });
 }
 window.salvarConfig = salvarConfig;
@@ -797,3 +820,4 @@ window.fecharModalLembrete = fecharModalLembrete;
 
 console.log('✅ Admin parte 2 carregada!');
 console.log('🎉 Sistema completo!');
+console.log('🔧 Config save: UPDATE primeiro, INSERT se não existir');
