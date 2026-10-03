@@ -1,5 +1,5 @@
 // ============================================================
-// ADMIN.JS - VERSÃO CORRIGIDA (sb em vez de supabase)
+// SUPABASE CLIENT
 // ============================================================
 const SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
@@ -10,7 +10,6 @@ if (SUPABASE_KEY.startsWith('eyJ') || SUPABASE_KEY.startsWith('sb_secret_')) {
 }
 console.log('%c🔒 Segurança OK', 'color: #22c55e; font-weight: bold;');
 
-// Nome diferente para evitar conflito com window.supabase do CDN
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storage: window.localStorage, flowType: 'pkce' }
 });
@@ -34,7 +33,8 @@ window.State = {
     loading: {},
     fotoEmBase64: null,
     realtimeChannel: null,
-    ingredientesTemporarios: []
+    ingredientesTemporarios: [],
+    clientesPendentes: []
 };
 const State = window.State;
 
@@ -66,7 +66,7 @@ window.Utils = {
 const Utils = window.Utils;
 
 // ============================================================
-// FUNÇÕES AUXILIARES
+// FUNÇÃO AUXILIAR - EXECUTAR COM LOADING
 // ============================================================
 async function executarComLoading(btn, textoLoading, fn) {
     if (!btn) return await fn();
@@ -77,6 +77,9 @@ async function executarComLoading(btn, textoLoading, fn) {
 }
 window.executarComLoading = executarComLoading;
 
+// ============================================================
+// TOAST
+// ============================================================
 function mostrarToast(msg, tipo = 'success') {
     const c = document.getElementById('toastContainer'); if (!c) return;
     const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
@@ -88,6 +91,9 @@ function mostrarToast(msg, tipo = 'success') {
 }
 window.mostrarToast = mostrarToast;
 
+// ============================================================
+// SKELETON
+// ============================================================
 function mostrarSkeleton(id, qtd = 3) {
     const el = document.getElementById(id); if (!el) return;
     let h = '';
@@ -96,6 +102,9 @@ function mostrarSkeleton(id, qtd = 3) {
 }
 window.mostrarSkeleton = mostrarSkeleton;
 
+// ============================================================
+// PAGINAÇÃO
+// ============================================================
 function renderPagination(cid, cp, tp, ti, cb) {
     const c = document.getElementById(cid);
     if (!c || tp <= 1) { if (c) c.innerHTML = ''; return; }
@@ -498,17 +507,8 @@ async function carregarEstoque() {
         const { data, error } = await sb.from('estoquecentral').select('*').order('nome');
         if (error) throw error;
         State.cache.estoque = data || [];
-        const l = document.getElementById('listaEstoque');
-        if (State.cache.estoque.length === 0) {
-            l.innerHTML = '<div class="empty-state"><span class="empty-icon">📦</span><div>Estoque vazio</div></div>';
-        } else {
-            l.innerHTML = State.cache.estoque.map(i => {
-                const d = (i.quantidadetotal || 0) - (i.alocadocardapio2 || 0);
-                const b = d <= 5 ? 'badge-baixo' : 'badge-normal';
-                const f = i.foto ? `<img src="${i.foto}" class="item-foto">` : `<div class="foto-placeholder">${i.emoji || '🍦'}</div>`;
-                return `<div class="card-item"><div class="card-item-info">${f}<div><strong>${i.emoji || '🍦'} ${Utils.escapeHtml(i.nome)}</strong><br><small>R$ ${(i.preco || 0).toFixed(2)} | Total: ${i.quantidadetotal || 0} | C2: ${i.alocadocardapio2 || 0} | <span class="badge ${b}">Disp: ${d}</span></small></div></div><div class="card-item-actions"><button class="btn btn-warning btn-sm" onclick="editarItem(${i.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="excluirItem(${i.id})">🗑️</button></div></div>`;
-            }).join('');
-        }
+        renderizarEstoque(State.cache.estoque);
+
         const sel = document.getElementById('alocarSabor');
         if (sel) {
             sel.innerHTML = '<option value="">Selecione...</option>';
@@ -520,6 +520,81 @@ async function carregarEstoque() {
     } catch (e) { tratarErro(e); }
 }
 window.carregarEstoque = carregarEstoque;
+
+function renderizarEstoque(data) {
+    const l = document.getElementById('listaEstoque');
+    if (!l) return;
+
+    if (data.length === 0) {
+        l.innerHTML = '<div class="empty-state"><span class="empty-icon">📦</span><div>Estoque vazio</div></div>';
+        return;
+    }
+
+    l.innerHTML = data.map(i => {
+        const total = i.quantidadetotal || 0;
+        const c2 = i.alocadocardapio2 || 0;
+        const dispC1 = total - c2;
+        const preco = i.preco || 0;
+        const valorEstoque = total * preco;
+
+        let badgeC1, badgeC1Class;
+        if (dispC1 <= 0) { badgeC1Class = 'badge-baixo'; badgeC1 = '🔴 Esgotado'; }
+        else if (dispC1 <= 5) { badgeC1Class = 'badge-pendente'; badgeC1 = '⚠️ Poucas unid.'; }
+        else { badgeC1Class = 'badge-pago'; badgeC1 = '✅ Disponível'; }
+
+        let badgeC2, badgeC2Class;
+        if (c2 <= 0) { badgeC2Class = 'badge-inativo'; badgeC2 = '⚪ Não alocado'; }
+        else if (c2 <= 5) { badgeC2Class = 'badge-pendente'; badgeC2 = '⚠️ Poucas unid.'; }
+        else { badgeC2Class = 'badge-pago'; badgeC2 = '✅ Disponível'; }
+
+        const fotoHtml = i.foto
+            ? `<img src="${i.foto}" class="item-foto" alt="${Utils.escapeHtml(i.nome)}">`
+            : `<div class="foto-placeholder">${i.emoji || '🍦'}</div>`;
+
+        return `
+            <div class="card-item" style="flex-direction:column;align-items:stretch;">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                    <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:200px;">
+                        ${fotoHtml}
+                        <div>
+                            <strong style="color:var(--dourado);font-size:1.15em;">${i.emoji || '🍦'} ${Utils.escapeHtml(i.nome)}</strong>
+                            <br>
+                            <small style="color:var(--text-secondary);font-size:1em;">💰 R$ ${preco.toFixed(2)} por unidade</small>
+                        </div>
+                    </div>
+                    <div class="card-item-actions">
+                        <button class="btn btn-warning btn-sm" onclick="editarItem(${i.id})">✏️ Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="excluirItem(${i.id})">🗑️</button>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:14px;">
+                    <div style="background:var(--bg-secondary);padding:12px;border-radius:10px;border-left:4px solid var(--dourado);">
+                        <div style="font-size:0.75em;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">📦 Estoque Total</div>
+                        <div style="font-size:1.4em;font-weight:800;color:var(--dourado);">${total} <span style="font-size:0.5em;">unid.</span></div>
+                    </div>
+
+                    <div style="background:var(--bg-secondary);padding:12px;border-radius:10px;border-left:4px solid var(--info);">
+                        <div style="font-size:0.75em;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">📋 Cardápio 1</div>
+                        <div style="font-size:1.4em;font-weight:800;color:${dispC1 > 5 ? 'var(--success)' : dispC1 > 0 ? '#f59e0b' : 'var(--danger)'};">${dispC1} <span style="font-size:0.5em;">unid.</span></div>
+                        <span class="badge ${badgeC1Class}" style="margin-top:6px;">${badgeC1}</span>
+                    </div>
+
+                    <div style="background:var(--bg-secondary);padding:12px;border-radius:10px;border-left:4px solid #ef4444;">
+                        <div style="font-size:0.75em;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">🔥 Cardápio 2</div>
+                        <div style="font-size:1.4em;font-weight:800;color:${c2 > 5 ? 'var(--success)' : c2 > 0 ? '#f59e0b' : 'var(--text-muted)'};">${c2} <span style="font-size:0.5em;">unid.</span></div>
+                        <span class="badge ${badgeC2Class}" style="margin-top:6px;">${badgeC2}</span>
+                    </div>
+
+                    <div style="background:var(--bg-secondary);padding:12px;border-radius:10px;border-left:4px solid var(--success);">
+                        <div style="font-size:0.75em;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">💰 Valor em Estoque</div>
+                        <div style="font-size:1.4em;font-weight:800;color:var(--success);">R$ ${valorEstoque.toFixed(2)}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 
 async function cadastrarItem() {
     const btn = document.querySelector('#conteudo-estoque .btn-primary');
@@ -639,9 +714,6 @@ async function alocarC2() {
         const disp = (it.quantidadetotal || 0) - (it.alocadocardapio2 || 0);
         if (q > disp) { mostrarToast('Máx: ' + disp, 'warning'); return; }
         await sb.from('estoquecentral').update({ alocadocardapio2: (it.alocadocardapio2 || 0) + q }).eq('id', id);
-        const { data: ex } = await sb.from('cardapio2').select('*').eq('nome', it.nome).maybeSingle();
-        if (ex) await sb.from('cardapio2').update({ quantidade: (ex.quantidade || 0) + q }).eq('id', ex.id);
-        else await sb.from('cardapio2').insert([{ nome: it.nome, emoji: it.emoji, preco: it.preco, quantidade: q, foto: it.foto }]);
         await carregarEstoque();
         await carregarC1();
         await carregarC2();
@@ -653,21 +725,41 @@ window.alocarC2 = alocarC2;
 
 async function carregarC2() {
     try {
-        const { data } = await sb.from('cardapio2').select('*').order('nome');
+        const { data } = await sb.from('estoquecentral').select('*').gt('alocadocardapio2', 0).order('nome');
         State.cache.c2 = data || [];
         const l = document.getElementById('listaC2');
         if (State.cache.c2.length === 0) { l.innerHTML = '<div class="empty-state"><span class="empty-icon">🔥</span><div>Vazio</div></div>'; return; }
-        l.innerHTML = State.cache.c2.map(i => `<div class="card-item"><div class="card-item-info">${i.foto ? `<img src="${i.foto}" class="item-foto">` : `<div class="foto-placeholder">${i.emoji || '🔥'}</div>`}<div><strong>${i.emoji || '🔥'} ${Utils.escapeHtml(i.nome)}</strong><br><small>R$ ${(i.preco || 0).toFixed(2)} | Qtd: ${i.quantidade || 0}</small></div></div><div class="card-item-actions"><button class="btn btn-danger btn-sm" onclick="excluirC2(${i.id})">🗑️</button></div></div>`).join('');
+        l.innerHTML = State.cache.c2.map(i => `<div class="card-item"><div class="card-item-info">${i.foto ? `<img src="${i.foto}" class="item-foto">` : `<div class="foto-placeholder">${i.emoji || '🔥'}</div>`}<div><strong>${i.emoji || '🔥'} ${Utils.escapeHtml(i.nome)}</strong><br><small>R$ ${(i.preco || 0).toFixed(2)} | Qtd: ${i.alocadocardapio2 || 0}</small></div></div><div class="card-item-actions"><button class="btn btn-warning btn-sm" onclick="editarAlocacao(${i.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="excluirC2(${i.id})">🗑️</button></div></div>`).join('');
     } catch (e) { tratarErro(e); }
 }
 window.carregarC2 = carregarC2;
 
-async function excluirC2(id) {
-    if (!confirm('Excluir?')) return;
+async function editarAlocacao(id) {
+    const item = State.cache.c2.find(x => x.id === id);
+    if (!item) return;
+    const atual = item.alocadocardapio2 || 0;
+    const novaQtd = prompt(`Quantidade alocada no Cardápio 2:\n(Atual: ${atual})`, atual);
+    if (novaQtd === null) return;
+    const q = parseInt(novaQtd);
+    if (isNaN(q) || q < 0) { mostrarToast('Quantidade inválida', 'warning'); return; }
     try {
-        await sb.from('cardapio2').delete().eq('id', id);
+        await sb.from('estoquecentral').update({ alocadocardapio2: q }).eq('id', id);
+        await carregarEstoque();
         await carregarC2();
-        mostrarToast('Excluído!');
+        await carregarC1();
+        mostrarToast('Alocação atualizada!', 'success');
+    } catch (e) { tratarErro(e); }
+}
+window.editarAlocacao = editarAlocacao;
+
+async function excluirC2(id) {
+    if (!confirm('Remover alocação do Cardápio 2?')) return;
+    try {
+        await sb.from('estoquecentral').update({ alocadocardapio2: 0 }).eq('id', id);
+        await carregarEstoque();
+        await carregarC2();
+        await carregarC1();
+        mostrarToast('Alocação removida!');
     } catch (e) { tratarErro(e); }
 }
 window.excluirC2 = excluirC2;
@@ -723,7 +815,9 @@ function renderizarPedidos(p) {
         if (st !== 'entregue' && st !== 'cancelado') be = `<button class="btn btn-deliver btn-sm" onclick="marcarEntregue(${x.id})">✅ Entregue</button>`;
         else if (st === 'entregue') be = '<span style="color:#6ee7b7;font-weight:bold;background:#064e3b;padding:4px 14px;border-radius:20px;font-size:12px;">✔ Entregue</span>';
         const bw = x.telefone ? `<button class="btn btn-whatsapp btn-sm" onclick="abrirWhatsapp('${x.telefone}','${Utils.escapeHtml(x.cliente)}',${x.total || 0})">📱</button>` : '';
-        return `<div class="card-item" style="flex-direction:column;align-items:stretch;"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;"><div><strong style="color:var(--dourado);">👤 ${Utils.escapeHtml(x.cliente)}</strong><br><small>📱 ${x.telefone ? Utils.mascararTelefone(x.telefone) : 'N/A'} | 📅 ${Utils.formatarData(x.data)}</small></div><div style="text-align:right;"><strong style="color:var(--dourado);font-size:1.2em;">R$ ${(x.total || 0).toFixed(2)}</strong><br>${sp} ${spd}</div></div>${ih}<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">${be} ${bw} <button class="btn btn-danger btn-sm" onclick="excluirPedido(${x.id})">🗑️</button></div></div>`;
+        const pedidoId = x.pedido_id || `#${x.id}`;
+        const descontoTag = x.desconto ? `<span class="badge badge-pendente" style="background:#8b5cf6;color:white;">🎁 ${Utils.escapeHtml(x.desconto)}</span>` : '';
+        return `<div class="card-item" style="flex-direction:column;align-items:stretch;"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;"><div><strong style="color:var(--dourado);">${pedidoId}</strong><br><strong>👤 ${Utils.escapeHtml(x.cliente)}</strong> ${descontoTag}<br><small>📱 ${x.telefone ? Utils.mascararTelefone(x.telefone) : 'N/A'} | 📅 ${Utils.formatarData(x.data)}</small></div><div style="text-align:right;"><strong style="color:var(--dourado);font-size:1.2em;">R$ ${(x.total || 0).toFixed(2)}</strong><br>${sp} ${spd}</div></div>${ih}<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">${be} ${bw} <button class="btn btn-danger btn-sm" onclick="excluirPedido(${x.id})">🗑️</button></div></div>`;
     }).join('');
 }
 
@@ -766,101 +860,13 @@ function abrirWhatsapp(tel, nome, total) {
 window.abrirWhatsapp = abrirWhatsapp;
 
 // ============================================================
-// PAGAMENTOS
-// ============================================================
-async function carregarPagamentos() {
-    try {
-        const { data } = await sb.from('todospedidos').select('*').order('id', { ascending: false });
-        State.cache.pedidos = data || [];
-        renderizarPagamentos(State.cache.pedidos);
-        document.getElementById('pagamentosCount').textContent = State.cache.pedidos.filter(p => p.pagamentostatus === 'pendente').length;
-    } catch (e) { tratarErro(e); }
-}
-window.carregarPagamentos = carregarPagamentos;
-
-function renderizarPagamentos(p) {
-    const l = document.getElementById('listaPagamentos');
-    if (p.length === 0) { l.innerHTML = '<div class="empty-state"><span class="empty-icon">💳</span><div>Nenhum</div></div>'; return; }
-    l.innerHTML = p.map(x => {
-        const s = x.pagamentostatus === 'pago' ? '<span class="badge badge-pago">✅</span>' : '<span class="badge badge-pendente">⏳</span>';
-        const b = x.pagamentostatus !== 'pago' ? `<button class="btn btn-success btn-sm" onclick="confirmarPag(${x.id})">✅</button>` : '';
-        const lem = x.pagamentostatus !== 'pago' && x.telefone ? `<button class="btn btn-whatsapp btn-sm" onclick="lembrar('${x.telefone}','${Utils.escapeHtml(x.cliente)}',${x.total || 0})">📱</button>` : '';
-        return `<div class="card-item"><div class="card-item-info"><div><strong>${Utils.escapeHtml(x.cliente)}</strong> ${s}<br><small>${x.telefone ? Utils.mascararTelefone(x.telefone) : ''} | R$ ${(x.total || 0).toFixed(2)}</small></div></div><div class="card-item-actions">${b} ${lem}</div></div>`;
-    }).join('');
-}
-
-function aplicarFiltroPagamentos() {
-    const s = document.getElementById('filtroPagamentosStatus').value;
-    const c = document.getElementById('filtroPagamentosCliente').value.toLowerCase().trim();
-    const filtered = State.cache.pedidos.filter(p => {
-        if (s !== 'todos' && (p.pagamentostatus || 'pendente') !== s) return false;
-        if (c && !p.cliente.toLowerCase().includes(c)) return false;
-        return true;
-    });
-    renderizarPagamentos(filtered);
-}
-function limparFiltroPagamentos() {
-    ['filtroPagamentosStatus', 'filtroPagamentosCliente', 'filtroPagamentosInicio', 'filtroPagamentosFim'].forEach(i => document.getElementById(i).value = i === 'filtroPagamentosStatus' ? 'todos' : '');
-    renderizarPagamentos(State.cache.pedidos);
-}
-window.aplicarFiltroPagamentos = aplicarFiltroPagamentos;
-window.limparFiltroPagamentos = limparFiltroPagamentos;
-
-async function confirmarPag(id) {
-    try {
-        await sb.from('todospedidos').update({ pagamentostatus: 'pago' }).eq('id', id);
-        await carregarPagamentos();
-        await carregarDashboard();
-        mostrarToast('Confirmado!');
-    } catch (e) { tratarErro(e); }
-}
-window.confirmarPag = confirmarPag;
-
-function lembrar(tel, nome, total) {
-    const m = `🍦 LEMBRETE\n\nOlá ${nome}!\nPedido aguarda pagamento.\nR$ ${total.toFixed(2)}\n\nPIX: ${State.cache.config?.pix || ''}`;
-    window.open(`https://wa.me/55${tel.replace(/\D/g, '')}?text=${encodeURIComponent(m)}`, '_blank');
-}
-window.lembrar = lembrar;
-
-async function lembrarTodosPendentes() {
-    try {
-        const { data } = await sb.from('todospedidos').select('*').eq('pagamentostatus', 'pendente');
-        if (!data || data.length === 0) { mostrarToast('Sem pendentes'); return; }
-        const cli = {};
-        data.forEach(p => {
-            if (p.telefone) {
-                const t = p.telefone.replace(/\D/g, '');
-                if (!cli[t]) cli[t] = { nome: p.cliente, tel: t, total: 0 };
-                cli[t].total += p.total || 0;
-            }
-        });
-        const tels = Object.keys(cli);
-        if (tels.length === 0) { mostrarToast('Nenhum com telefone', 'warning'); return; }
-        if (tels.length === 1) { enviarLembreteCli(cli[tels[0]]); return; }
-        let m = 'Clientes:\n';
-        tels.forEach((t, i) => m += `${i + 1}. ${cli[t].nome}\n`);
-        m += '\nNúmero:';
-        const e = prompt(m);
-        if (!e) return;
-        const idx = parseInt(e) - 1;
-        if (idx >= 0 && idx < tels.length) enviarLembreteCli(cli[tels[idx]]);
-    } catch (e) { tratarErro(e); }
-}
-window.lembrarTodosPendentes = lembrarTodosPendentes;
-
-function enviarLembreteCli(c) {
-    const m = `🍦 LEMBRETE\n\nOlá ${c.nome}!\nTotal: R$ ${c.total.toFixed(2)}\n\nPIX: ${State.cache.config?.pix || ''}`;
-    window.open(`https://wa.me/55${c.tel}?text=${encodeURIComponent(m)}`, '_blank');
-}
-
-// ============================================================
 // CSV
 // ============================================================
 function exportarPedidosCSV() {
     const p = State.cache.pedidos || [];
     if (p.length === 0) { mostrarToast('Sem pedidos', 'warning'); return; }
     let c = 'ID,Cliente,Telefone,Total,Status,Data\n';
-    p.forEach(x => c += `${x.id},"${x.cliente}","${x.telefone || ''}",${(x.total || 0).toFixed(2)},${x.status || 'novo'},${Utils.formatarData(x.data)}\n`);
+    p.forEach(x => c += `${x.pedido_id || x.id},"${x.cliente}","${x.telefone || ''}",${(x.total || 0).toFixed(2)},${x.status || 'novo'},${Utils.formatarData(x.data)}\n`);
     const blob = new Blob(['\uFEFF' + c], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -917,6 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof fecharModalInsumo === 'function') fecharModalInsumo();
             if (typeof fecharModalReceita === 'function') fecharModalReceita();
             fecharModalEditarEstoque();
+            if (typeof fecharModalLembrete === 'function') fecharModalLembrete();
         }
     });
 
@@ -930,3 +937,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log('✅ Admin parte 1 carregado!');
+console.log('📦 Estoque detalhado v3.0');
