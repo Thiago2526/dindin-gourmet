@@ -1,1 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Dindins Gourmet FX</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div id="toastContainer"></div>
 
+    <!-- MODAL TROCA DE SENHA -->
+    <div class="modal-overlay" id="modalTrocaSenha">
+        <div class="modal-box">
+            <button class="close-btn" onclick="fecharModalTrocaSenha()">✕</button>
+            <h3>🔒 Trocar Senha</h3>
+            <div class="form-group"><label>Senha Atual</label><input type="password" id="modalSenhaAtual"></div>
+            <div class="form-group">
+                <label>Nova Senha</label>
+                <input type="password" id="modalNovaSenha">
+                <div class="senha-forca"><div class="barra" id="modalSenhaBarra"></div></div>
+                <div class="senha-texto" id="modalSenhaTexto">Digite uma senha forte</div>
+            </div>
+            <div class="form-group"><label>Confirmar</label><input type="password" id="modalConfirmaSenha"></div>
+            <div class="btn-row">
+                <button class="btn btn-success" onclick="trocarSenhaModal()">✅ Alterar</button>
+                <button class="btn btn-danger" onclick="fecharModalTrocaSenha()">✕</button>
+            </div>
+            <div id="modalMensagem"></div>
+        </div>
+    </div>
+
+    <!-- MODAL INSUMO -->
+    <div class="modal-overlay" id="modalInsumo">
+        <div class="modal-box">
+            <button class="close-btn" onclick="fecharModalInsumo()">✕</button>
+            <h3 id="modalInsumoTitulo">➕ Novo Insumo</h3>
+            <input type="hidden" id="insumoId">
+            <div class="form-group"><label>Nome *</label><input type="text" id="insumoNome" maxlength="100"></div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Unidade *</label>
+                    <select id="insumoUnidade">
+                        <option value="g">Gramas (g)</option>
+                        <option value="kg">Quilos (kg)</option>
+                        <option value="ml">Mililitros (ml)</option>
+                        <option value="l">Litros (l)</option>
+                        <option value="un">Unidade (un)</option>
+                        <option value="cx">Caixa (cx)</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Preço/Unidade *</label><input type="number" id="insumoPreco" step="0.0001" min="0"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Estoque</label><input type="number" id="insumoEstoque" step="0.01" value="0"></div>
+                <div class="form-group"><label>Mínimo</label><input type="number" id="insumoMinimo" step="0.01" value="0"></div>
+            </div>
+            <div class="form-group"><label>Fornecedor</label><input type="text" id="insumoFornecedor" maxlength="100"></div>
+            <div class="form-group"><label>Obs</label><input type="text" id="insumoObs" maxlength="200"></div>
+            <div class="btn-row">
+                <button class="btn btn-success" onclick="salvarInsumo()">💾 Salvar</button>
+                <button class="btn btn-danger" onclick="fecharModalInsumo()">✕</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RECEITA -->
+    <div class="modal-overlay" id="modalReceita">
+        <div class="modal-box modal-large">
+            <button class="close-btn" onclick="fecharModalReceita()">✕</button>
+            <h3 id="modalReceitaTitulo">💰 Nova Receita</h3>
+            <input type="hidden" id="receitaId">
+            <div class="form-row">
+                <div class="form-group"><label>Nome *</label><input type="text" id="receitaNome" maxlength="100"></div>
+                <div class="form-group" style="flex:0.4;"><label>Rendimento *</label><input type="number" id="receitaRendimento" value="10" min="1"></div>
+                <div class="form-group" style="flex:0.4;"><label>Margem % *</label><input type="number" id="receitaMargem" value="150" step="10" min="0"></div>
+            </div>
+            <div class="form-group"><label>Descrição</label><input type="text" id="receitaDescricao" maxlength="200"></div>
+            <h4 style="color:var(--dourado);margin:20px 0 12px;">📋 Ingredientes</h4>
+            <div id="ingredientesList"></div>
+            <button class="btn btn-info btn-sm" onclick="adicionarIngrediente()" style="margin-top:8px;">➕ Adicionar</button>
+            <div class="resultado-calculadora" id="resultadoReceita" style="display:none;">
+                <div class="resultado-linha"><span>Custo Total:</span><strong id="resCustoTotal">R$ 0</strong></div>
+                <div class="resultado-linha"><span>Custo Unit:</span><strong id="resCustoUnit">R$ 0</strong></div>
+                <div class="resultado-linha"><span>Margem:</span><strong id="resMargem">150%</strong></div>
+                <div class="resultado-linha destaque"><span>💰 Venda:</span><strong id="resPrecoVenda">R$ 0</strong></div>
+            </div>
+            <div class="btn-row" style="margin-top:16px;">
+                <button class="btn btn-success" onclick="salvarReceita()">💾 Salvar</button>
+                <button class="btn btn-danger" onclick="fecharModalReceita()">✕</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR ESTOQUE -->
+    <div class="modal-overlay" id="modalEditarEstoque">
+        <div class="modal-box">
+            <button class="close-btn" onclick="fecharModalEditarEstoque()">✕</button>
+            <h3>✏️ Editar Item</h3>
+            <input type="hidden" id="editarEstoqueId">
+            <div class="form-group"><label>Nome</label><input type="text" id="editarEstoqueNome" maxlength="100"></div>
+            <div class="form-row">
+                <div class="form-group"><label>Preço R$</label><input type="number" id="editarEstoquePreco" step="0.01" min="0"></div>
+                <div class="form-group"><label>Quantidade</label><input type="number" id="editarEstoqueQtd" min="0"></div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-success" onclick="salvarEdicaoEstoque()">💾 Salvar</button>
+                <button class="btn btn-danger" onclick="fecharModalEditarEstoque()">✕</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA DE LOGIN -->
+    <div id="telaLogin" class="login-container">
+        <div class="login-box">
+            <div class="logo">🍦</div>
+            <h2>Dindins Gourmet FX</h2>
+            <p>Painel do Administrador</p>
+            <form id="formLogin" onsubmit="return false;">
+                <div class="input-group"><label>E-mail</label><input type="email" id="campoEmail" autocomplete="email"></div>
+                <div class="input-group"><label>Senha</label><input type="password" id="campoSenha" autocomplete="current-password"></div>
+                <button type="button" class="btn btn-primary btn-block btn-lg" id="btnLogin" onclick="fazerLogin()">🚀 Entrar</button>
+                <div id="loginLoading" style="display:none;margin-top:10px;">
+                    <span>⏳ Entrando...</span>
+                    <div style="height:4px;background:var(--bg-secondary);border-radius:4px;margin-top:8px;overflow:hidden;">
+                        <div id="loginProgressBar" style="width:0%;height:100%;background:var(--laranja);transition:width 0.3s;"></div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-info btn-sm" onclick="esqueciSenha()" style="margin-top:12px;">🔑 Esqueci senha</button>
+                <p id="erroLogin" style="color:var(--danger);margin-top:10px;display:none;"></p>
+                <p id="statusConexao" style="font-size:13px;margin-top:15px;color:var(--text-secondary);">🟡 Conectando...</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- PAINEL ADMIN -->
+    <div class="painel" id="painelAdmin">
+        <div class="header-painel">
+            <h2>🍦 Dindins Gourmet FX</h2>
+            <div class="header-actions">
+                <button class="btn btn-theme" onclick="toggleTheme()"><span id="themeIcon">🌙</span></button>
+                <span class="user-info" id="userLogado">👤 Carregando...</span>
+                <button class="btn btn-info btn-sm" onclick="abrirModalTrocaSenha()">🔒 Trocar Senha</button>
+                <button class="btn btn-danger btn-sm" onclick="sair()">🚪 Sair</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+            <button class="tab-btn" data-tab="estoque">📦 Estoque</button>
+            <button class="tab-btn" data-tab="c1">📋 Cardápio 1</button>
+            <button class="tab-btn" data-tab="c2">🔥 Cardápio 2</button>
+            <button class="tab-btn" data-tab="pedidos">📋 Pedidos</button>
+            <button class="tab-btn" data-tab="pagamentos">💳 Pagamentos</button>
+            <button class="tab-btn" data-tab="financeiro">💰 Financeiro</button>
+            <button class="tab-btn" data-tab="ranking">🏆 Ranking</button>
+            <button class="tab-btn" data-tab="historico">📜 Histórico</button>
+            <button class="tab-btn" data-tab="insumos">🧪 Insumos</button>
+            <button class="tab-btn" data-tab="calculadora">💰 Calculadora</button>
+            <button class="tab-btn" data-tab="setores">📍 Setores</button>
+            <button class="tab-btn" data-tab="admins">👥 Admins</button>
+            <button class="tab-btn" data-tab="config">⚙️ Config</button>
+            <button class="tab-btn" data-tab="auditoria">📋 Auditoria</button>
+        </div>
+
+        <div class="conteudo active" id="conteudo-dashboard">
+            <h3>📊 Dashboard</h3>
+            <div class="dashboard-cards" id="dashboardCards"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-estoque">
+            <h3>📦 Estoque Geral</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Nome</label><input type="text" id="estoqueNome"></div>
+                <div class="form-group" style="flex:0.3;"><label>Emoji</label><input type="text" id="estoqueEmoji" maxlength="2" value="🍦"></div>
+                <div class="form-group" style="flex:0.5;"><label>Preço R$</label><input type="number" id="estoquePreco" step="0.01" min="0"></div>
+                <div class="form-group" style="flex:0.5;"><label>Qtd</label><input type="number" id="estoqueQtd" value="50" min="0"></div>
+            </div>
+            <div class="form-group">
+                <label>📸 Foto</label>
+                <input type="file" id="estoqueFoto" accept="image/*" onchange="previewFotoAdmin(this)">
+                <div class="foto-preview" id="previewFotoContainer"><img id="previewFotoAdmin"></div>
+            </div>
+            <div class="flex gap-8 flex-wrap">
+                <button class="btn btn-primary" onclick="cadastrarItem()">💾 Cadastrar</button>
+                <button class="btn btn-success" onclick="carregarEstoque()">🔄 Atualizar</button>
+            </div>
+            <div id="listaEstoque" class="mt-16"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-c1">
+            <h3>📋 Cardápio 1</h3>
+            <div id="listaC1"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-c2">
+            <h3>🔥 Cardápio 2</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Sabor</label><select id="alocarSabor"><option value="">Selecione...</option></select></div>
+                <div class="form-group" style="flex:0.4;"><label>Qtd</label><input type="number" id="alocarQtd" value="10" min="1"></div>
+                <div class="form-group" style="flex:0.3;display:flex;align-items:flex-end;"><button class="btn btn-success btn-block" onclick="alocarC2()">📤 Alocar</button></div>
+            </div>
+            <div id="listaC2" class="mt-16"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-pedidos">
+            <h3>📋 Pedidos <span class="badge-count" id="pedidosCount">0</span>
+                <div class="btn-group"><button class="btn btn-success btn-sm" onclick="exportarPedidosCSV()">📥 CSV</button></div>
+            </h3>
+            <div class="filtros-container">
+                <div class="form-group"><label>Status</label><select id="filtroPedidosStatus">
+                    <option value="todos">Todos</option><option value="novo">Novo</option><option value="preparo">Preparo</option><option value="entrega">Entrega</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option>
+                </select></div>
+                <div class="form-group"><label>Cliente</label><input type="text" id="filtroPedidosCliente"></div>
+                <div class="form-group"><label>Início</label><input type="date" id="filtroPedidosInicio"></div>
+                <div class="form-group"><label>Fim</label><input type="date" id="filtroPedidosFim"></div>
+                <button class="btn btn-primary" onclick="aplicarFiltroPedidos()">🔍 Filtrar</button>
+                <button class="btn btn-limpar" onclick="limparFiltroPedidos()">🗑️ Limpar</button>
+            </div>
+            <div id="listaPedidos"></div>
+            <div id="paginacaoPedidos" class="pagination"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-pagamentos">
+            <h3>💳 Pagamentos <span class="badge-count" id="pagamentosCount">0</span></h3>
+            <div class="filtros-container">
+                <div class="form-group"><label>Status</label><select id="filtroPagamentosStatus">
+                    <option value="todos">Todos</option><option value="pago">Pago</option><option value="pendente">Pendente</option>
+                </select></div>
+                <div class="form-group"><label>Cliente</label><input type="text" id="filtroPagamentosCliente"></div>
+                <div class="form-group"><label>Início</label><input type="date" id="filtroPagamentosInicio"></div>
+                <div class="form-group"><label>Fim</label><input type="date" id="filtroPagamentosFim"></div>
+                <button class="btn btn-primary" onclick="aplicarFiltroPagamentos()">🔍 Filtrar</button>
+                <button class="btn btn-limpar" onclick="limparFiltroPagamentos()">🗑️ Limpar</button>
+            </div>
+            <button class="btn btn-whatsapp" onclick="lembrarTodosPendentes()" style="margin-bottom:16px;">📱 Lembrar Pendentes</button>
+            <div id="listaPagamentos"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-financeiro">
+            <h3>💰 Financeiro</h3>
+            <div class="filtros-container">
+                <div class="form-group"><label>Início</label><input type="date" id="filtroFinanceiroInicio"></div>
+                <div class="form-group"><label>Fim</label><input type="date" id="filtroFinanceiroFim"></div>
+                <div class="form-group"><label>Cliente</label><input type="text" id="filtroFinanceiroCliente"></div>
+                <button class="btn btn-primary" onclick="aplicarFiltroFinanceiro()">🔍 Filtrar</button>
+                <button class="btn btn-limpar" onclick="limparFiltroFinanceiro()">🗑️ Limpar</button>
+            </div>
+            <div id="listaFinanceiro"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-ranking">
+            <h3>🏆 Mais Vendidos</h3>
+            <div class="filtros-container">
+                <div class="form-group"><label>Início</label><input type="date" id="filtroRankingInicio"></div>
+                <div class="form-group"><label>Fim</label><input type="date" id="filtroRankingFim"></div>
+                <button class="btn btn-primary" onclick="aplicarFiltroRanking()">🔍 Filtrar</button>
+                <button class="btn btn-limpar" onclick="limparFiltroRanking()">🗑️ Limpar</button>
+            </div>
+            <div id="listaRanking"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-historico">
+            <h3>📜 Histórico de Estoque</h3>
+            <div class="filtros-container">
+                <div class="form-group"><label>Tipo</label><select id="filtroHistoricoTipo">
+                    <option value="todos">Todos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="alocacao">Alocação</option>
+                </select></div>
+                <div class="form-group"><label>Item</label><input type="text" id="filtroHistoricoItem"></div>
+                <button class="btn btn-primary" onclick="aplicarFiltroHistorico()">🔍 Filtrar</button>
+                <button class="btn btn-limpar" onclick="limparFiltroHistorico()">🗑️ Limpar</button>
+            </div>
+            <div id="listaHistorico"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-insumos">
+            <h3>🧪 Insumos <span class="badge-count" id="insumosCount">0</span>
+                <div class="btn-group"><button class="btn btn-success btn-sm" onclick="abrirModalInsumo()">➕ Novo</button></div>
+            </h3>
+            <div class="filtros-container">
+                <div class="form-group"><label>Buscar</label><input type="text" id="filtroInsumos" oninput="filtrarInsumos()"></div>
+                <div class="form-group"><label>Status</label><select id="filtroInsumosStatus" onchange="filtrarInsumos()">
+                    <option value="todos">Todos</option><option value="ok">OK</option><option value="baixo">Baixo</option><option value="critico">Crítico</option>
+                </select></div>
+            </div>
+            <div id="listaInsumos"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-calculadora">
+            <h3>💰 Calculadora
+                <div class="btn-group"><button class="btn btn-success btn-sm" onclick="abrirModalReceita()">➕ Nova Receita</button></div>
+            </h3>
+            <div id="listaReceitas"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-setores">
+            <h3>📍 Setores</h3>
+            <div style="background:var(--bg-secondary);padding:16px;border-radius:var(--radius);margin-bottom:16px;">
+                <div class="form-row">
+                    <div class="form-group" style="flex:2;"><label>Nome</label><input type="text" id="setorNome"></div>
+                    <div class="form-group" style="flex:1;"><label>Taxa R$</label><input type="number" id="setorTaxa" step="0.50" value="5.00"></div>
+                    <div class="form-group" style="flex:0 0 140px;display:flex;align-items:flex-end;">
+                        <button class="btn btn-success btn-block" onclick="cadastrarSetor()">➕ Adicionar</button>
+                    </div>
+                </div>
+            </div>
+            <div id="listaSetores"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-admins">
+            <h3>👥 Admins</h3>
+            <div class="card-item" style="flex-direction:column;align-items:stretch;">
+                <div class="form-row">
+                    <div class="form-group"><label>Nome</label><input type="text" id="adminNome"></div>
+                    <div class="form-group"><label>E-mail</label><input type="email" id="adminEmail"></div>
+                    <div class="form-group"><label>Senha</label><input type="password" id="adminSenha"></div>
+                </div>
+                <div style="background:var(--bg-secondary);padding:12px;border-radius:12px;margin:8px 0;">
+                    <label style="color:var(--dourado);font-weight:700;">📋 Permissões:</label>
+                    <div class="permissoes-grid">
+                        <div class="perm-item"><input type="checkbox" id="permEstoque" checked><label>Estoque</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permC1" checked><label>C1</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permC2"><label>C2</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permPedidos" checked><label>Pedidos</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permPagamentos" checked><label>Pagamentos</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permFinanceiro"><label>Financeiro</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permInsumos"><label>Insumos</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permCalculadora"><label>Calc</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permSetores"><label>Setores</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permAdmins"><label>Admins</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permAuditoria"><label>Auditoria</label></div>
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="cadastrarAdminSupabase()">✅ Cadastrar</button>
+            </div>
+            <div id="listaAdmins"></div>
+        </div>
+
+        <div class="conteudo" id="conteudo-config">
+            <h3>⚙️ Configurações</h3>
+            <div class="form-group"><label>WhatsApp</label><input type="text" id="configWhatsapp" maxlength="15"></div>
+            <div class="form-group"><label>PIX</label><input type="text" id="configPix" maxlength="200"></div>
+            <div class="form-group"><label>InfinitePay</label><input type="text" id="configInfinitePay" maxlength="500"></div>
+            <div class="form-group"><label>Endereço</label><input type="text" id="configEndereco" maxlength="200"></div>
+            <div class="form-group"><label>Grupo WhatsApp</label><input type="text" id="configGrupoWhatsapp" maxlength="500"></div>
+            <button class="btn btn-success" onclick="salvarConfig()">💾 Salvar</button>
+        </div>
+
+        <div class="conteudo" id="conteudo-auditoria">
+            <h3>📋 Auditoria</h3>
+            <div class="filtros-container">
+                <div class="form-group"><label>Ação</label><select id="filtroAuditoriaAcao">
+                    <option value="todos">Todos</option><option value="INSERT">Insert</option><option value="UPDATE">Update</option><option value="DELETE">Delete</option>
+                </select></div>
+                <div class="form-group"><label>Tabela</label><select id="filtroAuditoriaTabela">
+                    <option value="todos">Todas</option><option value="estoquecentral">Estoque</option><option value="todospedidos">Pedidos</option><option value="insumos">Insumos</option><option value="receitas">Receitas</option>
+                </select></div>
+                <div class="form-group"><label>Usuário</label><input type="text" id="filtroAuditoriaUsuario"></div>
+                <button class="btn btn-primary" onclick="aplicarFiltroAuditoria()">🔍 Filtrar</button>
+                <button class="btn btn-limpar" onclick="limparFiltroAuditoria()">🗑️ Limpar</button>
+            </div>
+            <div id="listaAuditoria"></div>
+            <div id="paginacaoAuditoria" class="pagination"></div>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+    <script src="js/admin-part2.js"></script>
+</body>
+</html>
