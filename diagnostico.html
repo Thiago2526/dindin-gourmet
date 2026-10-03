@@ -94,8 +94,14 @@
     </div>
 
     <script>
+    (function() {
+        'use strict';
+
         const SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
+
+        // Usa "sb" para evitar conflito com window.supabase
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const resultados = [];
 
@@ -175,8 +181,7 @@
 
             // 7. Supabase
             try {
-                const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                const { error } = await supabase.from('estoquecentral').select('*').limit(1);
+                const { error } = await sb.from('estoquecentral').select('*').limit(1);
 
                 if (error) {
                     adicionarCheck('error', '🚨 Erro de Conexão', error.message);
@@ -184,7 +189,7 @@
                     adicionarCheck('ok', '✅ Supabase Conectado', 'Conexão com o banco estabelecida.');
                 }
 
-                const { data: adminData, error: adminErr } = await supabase
+                const { data: adminData, error: adminErr } = await sb
                     .from('admin_usuarios')
                     .select('*')
                     .limit(1);
@@ -241,6 +246,7 @@
         }
 
         window.addEventListener('DOMContentLoaded', executarDiagnostico);
+    })();
     </script>
 </body>
 </html>
