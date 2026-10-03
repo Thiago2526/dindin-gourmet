@@ -136,13 +136,15 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        const supabase = window.supabase.createClient(
+    (function() {
+        'use strict';
+
+        // Usa "sb" para evitar conflito com window.supabase
+        const sb = window.supabase.createClient(
             'https://khgkneegpxcgufslupby.supabase.co',
             'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G',
             { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
         );
-
-        let strengthTimeout = null;
 
         function mostrarToast(msg, tipo) {
             const t = document.getElementById('toast');
@@ -217,7 +219,7 @@
             statusMsg.style.color = '#3b82f6';
 
             try {
-                const { data, error } = await supabase.auth.updateUser({ password: nova });
+                const { data, error } = await sb.auth.updateUser({ password: nova });
 
                 if (error) throw error;
 
@@ -225,7 +227,6 @@
                 statusMsg.style.color = '#22c55e';
                 mostrarToast('✅ Senha redefinida com sucesso!', 'success');
 
-                // Redirecionar após 2 segundos
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 2000);
@@ -240,10 +241,9 @@
             }
         }
 
-        // Verificar sessão
         async function verificarSessao() {
             try {
-                const { data: { session }, error } = await supabase.auth.getSession();
+                const { data: { session }, error } = await sb.auth.getSession();
                 if (error) throw error;
 
                 if (!session) {
@@ -263,7 +263,6 @@
             }
         }
 
-        // Enter key
         document.getElementById('confirmaSenha').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') redefinirSenha();
         });
@@ -273,6 +272,10 @@
         });
 
         verificarSessao();
+
+        // Expõe globalmente
+        window.redefinirSenha = redefinirSenha;
+    })();
     </script>
 </body>
 </html>
