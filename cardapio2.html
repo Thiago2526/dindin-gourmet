@@ -277,6 +277,18 @@
             outline: none;
         }
 
+        .aviso-retirada {
+            background: linear-gradient(135deg, rgba(218,165,32,0.15), rgba(255,215,0,0.1));
+            border: 2px solid var(--dourado);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            margin-top: 12px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+        .aviso-retirada strong { color: var(--dourado); }
+
         .btn-finalizar {
             padding: 12px 32px;
             border: none;
@@ -421,13 +433,13 @@
                 <span>Subtotal:</span>
                 <span id="subtotalValor">R$ 0,00</span>
             </div>
-            <div class="carrinho-total hidden" id="linhaTaxa">
-                <span>Taxa de entrega:</span>
-                <span id="taxaValor">R$ 0,00</span>
-            </div>
             <div class="carrinho-total principal hidden" id="linhaTotal">
                 <span>Total:</span>
                 <span class="valor" id="totalValor">R$ 0,00</span>
+            </div>
+
+            <div class="aviso-retirada hidden" id="avisoRetirada">
+                📍 <strong>Retirada no local</strong> — sem taxa de entrega
             </div>
 
             <div class="form-pedido hidden" id="formPedido">
@@ -440,16 +452,11 @@
                     <input type="tel" id="telefone" placeholder="(11) 99999-9999" required maxlength="15">
                 </div>
                 <div class="form-group">
-                    <label for="setor">Bairro (entrega)</label>
-                    <select id="setor" onchange="atualizarTaxa()">
-                        <option value="">Retirar no local (sem taxa)</option>
-                    </select>
-                </div>
-                <div class="form-group">
                     <label for="pagamento">Forma de pagamento</label>
                     <select id="pagamento">
-                        <option value="pendente">Pendente (pagar na entrega/retirada)</option>
-                        <option value="pago">Pago via PIX</option>
+                        <option value="pix">📱 Chave PIX</option>
+                        <option value="dinheiro">💵 Dinheiro</option>
+                        <option value="credito">💳 Solicitar link de pagamento no crédito</option>
                     </select>
                 </div>
                 <div class="form-group" style="flex:0 0 auto;display:flex;align-items:flex-end;">
@@ -463,9 +470,6 @@
     (function() {
         'use strict';
 
-        // ================================================================
-        // VALIDAÇÃO DE SEGURANÇA
-        // ================================================================
         const SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
 
@@ -476,25 +480,15 @@
         }
         console.log('%c🔒 Segurança OK', 'color: #22c55e; font-weight: bold;');
 
-        // ================================================================
-        // SUPABASE (usa "sb" para evitar conflito)
-        // ================================================================
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ================================================================
-        // ESTADO
-        // ================================================================
         let produtos = [];
-        let setores = [];
         let carrinho = {};
         let config = { whatsapp: '', pix: '' };
         let realtimeChannel = null;
         const MAX_POR_ITEM = 20;
         const CART_EXPIRY_DAYS = 7;
 
-        // ================================================================
-        // UTILITÁRIOS
-        // ================================================================
         function mostrarToast(msg, tipo = 'info') {
             const t = document.getElementById('toast');
             t.textContent = msg;
@@ -506,9 +500,6 @@
 
         function formatarPreco(v) { return 'R$ ' + (v || 0).toFixed(2); }
 
-        // ================================================================
-        // TEMA
-        // ================================================================
         const THEME_KEY = 'theme_c2';
         function getTheme() { return localStorage.getItem(THEME_KEY) || 'dark'; }
         function setTheme(theme) {
@@ -531,9 +522,6 @@
             input.value = v;
         }
 
-        // ================================================================
-        // CARRINHO
-        // ================================================================
         function salvarCarrinho() {
             try {
                 const data = { itens: carrinho, timestamp: Date.now() };
@@ -566,9 +554,6 @@
             }
         }
 
-        // ================================================================
-        // LOG DE ERROS
-        // ================================================================
         async function logErro(erro, contexto, extras = {}) {
             try {
                 await sb.from('error_logs').insert([{
@@ -582,9 +567,6 @@
             } catch (e) {}
         }
 
-        // ================================================================
-        // IDEMPOTÊNCIA
-        // ================================================================
         function gerarIdempotencyKey() {
             let key = sessionStorage.getItem('idempotency_key_c2');
             if (!key) {
@@ -598,27 +580,11 @@
             sessionStorage.removeItem('idempotency_key_c2');
         }
 
-        // ================================================================
-        // CARREGAR DADOS
-        // ================================================================
         async function carregarConfig() {
             try {
                 const { data } = await sb.from('config').select('*').eq('chave', 'admin').maybeSingle();
                 if (data && data.dados) config = data.dados;
             } catch (e) { console.warn('Config não carregada:', e); }
-        }
-
-        async function carregarSetores() {
-            try {
-                const { data, error } = await sb.from('setores').select('*').eq('ativo', true).order('nome');
-                if (error) throw error;
-                setores = data || [];
-                const sel = document.getElementById('setor');
-                sel.innerHTML = '<option value="">Retirar no local (sem taxa)</option>';
-                setores.forEach(s => {
-                    sel.innerHTML += `<option value="${s.id}" data-taxa="${s.taxa_entrega}">${s.nome} - ${formatarPreco(s.taxa_entrega)}</option>`;
-                });
-            } catch (e) { console.warn('Setores não carregados:', e); }
         }
 
         async function carregarCardapio() {
@@ -718,9 +684,6 @@
             }).join('');
         }
 
-        // ================================================================
-        // CARRINHO (ações)
-        // ================================================================
         function alterarQuantidade(id, delta) {
             const item = produtos.find(p => p.id == id);
             if (!item) return;
@@ -768,29 +731,23 @@
             renderizarCardapio();
         }
 
-        function atualizarTaxa() { atualizarCarrinho(); }
-
         function calcularTotal() {
             let subtotal = 0;
             Object.keys(carrinho).forEach(id => {
                 subtotal += carrinho[id].preco * carrinho[id].quantidade;
             });
-            const setorSel = document.getElementById('setor');
-            const opt = setorSel.options[setorSel.selectedIndex];
-            const taxa = parseFloat(opt?.dataset.taxa || 0);
-            return { subtotal, taxa, total: subtotal + taxa };
+            return { subtotal, total: subtotal };
         }
 
         function atualizarCarrinho() {
             const container = document.getElementById('carrinhoItens');
             const linhaSubtotal = document.getElementById('linhaSubtotal');
-            const linhaTaxa = document.getElementById('linhaTaxa');
             const linhaTotal = document.getElementById('linhaTotal');
             const subtotalValor = document.getElementById('subtotalValor');
-            const taxaValor = document.getElementById('taxaValor');
             const totalValor = document.getElementById('totalValor');
             const countSpan = document.getElementById('carrinhoCount');
             const formPedido = document.getElementById('formPedido');
+            const avisoRetirada = document.getElementById('avisoRetirada');
 
             const itens = Object.keys(carrinho);
             const totalItens = itens.reduce((acc, id) => acc + carrinho[id].quantidade, 0);
@@ -803,9 +760,9 @@
                     </div>
                 `;
                 linhaSubtotal.classList.add('hidden');
-                linhaTaxa.classList.add('hidden');
                 linhaTotal.classList.add('hidden');
                 formPedido.classList.add('hidden');
+                avisoRetirada.classList.add('hidden');
                 countSpan.textContent = '0 itens';
                 return;
             }
@@ -825,27 +782,22 @@
             });
             container.innerHTML = html;
 
-            const { subtotal, taxa, total } = calcularTotal();
+            const { subtotal, total } = calcularTotal();
             subtotalValor.textContent = formatarPreco(subtotal);
-            taxaValor.textContent = formatarPreco(taxa);
             totalValor.textContent = formatarPreco(total);
 
             linhaSubtotal.classList.remove('hidden');
-            linhaTaxa.classList.remove('hidden');
             linhaTotal.classList.remove('hidden');
             formPedido.classList.remove('hidden');
+            avisoRetirada.classList.remove('hidden');
             countSpan.textContent = `${totalItens} ${totalItens === 1 ? 'item' : 'itens'}`;
         }
 
-        // ================================================================
-        // FINALIZAR PEDIDO
-        // ================================================================
         async function finalizarPedidoCliente() {
             const cliente = document.getElementById('cliente').value.trim();
             const telefoneRaw = document.getElementById('telefone').value.trim();
             const telefone = telefoneRaw.replace(/\D/g, '');
             const pagamento = document.getElementById('pagamento').value;
-            const setorId = document.getElementById('setor').value;
 
             if (!cliente) { mostrarToast('❌ Preencha seu nome.', 'error'); return; }
             if (telefone.length < 10) { mostrarToast('❌ WhatsApp inválido.', 'error'); return; }
@@ -856,15 +808,17 @@
                 return { nome: item.nome, quantidade: item.quantidade, preco: item.preco };
             });
 
-            const { subtotal, taxa, total } = calcularTotal();
+            const { subtotal, total } = calcularTotal();
 
-            let obs = 'Cardápio 2';
-            if (setorId) {
-                const setor = setores.find(s => s.id == setorId);
-                if (setor) obs += ` | Entrega: ${setor.nome} (taxa ${formatarPreco(taxa)})`;
-            } else {
-                obs += ' | Retirada no local';
-            }
+            // Formas de pagamento
+            const formasPagamento = {
+                'pix': '📱 PIX',
+                'dinheiro': '💵 Dinheiro',
+                'credito': '💳 Link de Crédito'
+            };
+            const formaTexto = formasPagamento[pagamento] || pagamento;
+
+            const obs = 'Cardápio 2 | Retirada no local | Pagamento: ' + formaTexto;
 
             const idempotencyKey = gerarIdempotencyKey();
             const overlay = document.getElementById('loadingOverlay');
@@ -898,11 +852,17 @@
                 const whatsNum = (config.whatsapp || '').replace(/\D/g, '');
                 if (whatsNum) {
                     setTimeout(() => {
-                        const msg = `🔥 *NOVO PEDIDO ${data.pedido_id} (Cardápio 2)*\n\n` +
-                            `👤 ${cliente}\n📱 ${telefoneRaw}\n📍 ${obs.split('|')[1] || 'Retirada'}\n\n` +
+                        let msg = `🔥 *NOVO PEDIDO ${data.pedido_id} (Cardápio 2)*\n\n` +
+                            `👤 ${cliente}\n📱 ${telefoneRaw}\n` +
+                            `📍 *Retirada no local*\n` +
+                            `💳 Pagamento: ${formaTexto}\n\n` +
                             `📋 *Itens:*\n${itens.map(i => `• ${i.quantidade}x ${i.nome} - ${formatarPreco(i.preco * i.quantidade)}`).join('\n')}\n\n` +
-                            `💰 Subtotal: ${formatarPreco(subtotal)}\n🚚 Taxa: ${formatarPreco(taxa)}\n` +
-                            `💵 *TOTAL: ${formatarPreco(total)}*\n\nForma: ${pagamento === 'pago' ? '✅ PIX' : '⏳ Pendente'}`;
+                            `💵 *TOTAL: ${formatarPreco(total)}*`;
+
+                        if (pagamento === 'credito') {
+                            msg += `\n\n⚠️ *CLIENTE SOLICITOU LINK DE PAGAMENTO NO CRÉDITO*`;
+                        }
+
                         window.open(`https://wa.me/55${whatsNum}?text=${encodeURIComponent(msg)}`, '_blank');
                     }, 800);
                 } else {
@@ -914,8 +874,7 @@
                 limparIdempotencyKey();
                 document.getElementById('cliente').value = '';
                 document.getElementById('telefone').value = '';
-                document.getElementById('setor').value = '';
-                document.getElementById('pagamento').value = 'pendente';
+                document.getElementById('pagamento').value = 'pix';
                 atualizarCarrinho();
                 setTimeout(carregarCardapio, 1500);
 
@@ -929,9 +888,6 @@
             }
         }
 
-        // ================================================================
-        // REALTIME
-        // ================================================================
         function iniciarRealtime() {
             if (realtimeChannel) { sb.removeChannel(realtimeChannel); }
 
@@ -985,14 +941,10 @@
 
         async function recarregarTudo() {
             await carregarConfig();
-            await carregarSetores();
             await carregarCardapio();
             mostrarToast('🔄 Cardápio atualizado!', 'info');
         }
 
-        // ================================================================
-        // INICIALIZAÇÃO
-        // ================================================================
         document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('telefone').addEventListener('input', function() {
                 mascararTelefone(this);
@@ -1000,7 +952,6 @@
 
             carregarCarrinhoSalvo();
             await carregarConfig();
-            await carregarSetores();
             await carregarCardapio();
             iniciarRealtime();
             verificarCarrinhoSalvo();
@@ -1010,11 +961,10 @@
         window.adicionarAoCarrinho = adicionarAoCarrinho;
         window.removerDoCarrinho = removerDoCarrinho;
         window.finalizarPedidoCliente = finalizarPedidoCliente;
-        window.atualizarTaxa = atualizarTaxa;
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🔥 Cardápio 2 - v4.0 carregado!');
+        console.log('🔥 Cardápio 2 - v5.0 (sem entrega + PIX/Dinheiro/Crédito) carregado!');
         console.log('🔒 Tema:', getTheme());
         console.log('📡 Realtime ativo.');
     })();
