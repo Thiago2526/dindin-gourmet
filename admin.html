@@ -6,37 +6,9 @@
     <title>Admin - Dindins Gourmet FX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --marrom: #5C3317;
-            --laranja: #CC5500;
-            --dourado: #DAA520;
-            --amarelo: #FFD700;
-            --danger: #ef4444;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-            --whatsapp: #25D366;
-            --radius: 14px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        [data-theme="dark"] {
-            --bg-primary: #0a0604; --bg-secondary: #160c08; --bg-card: #24140c;
-            --bg-card-hover: #341c12; --bg-input: #1a0f0a; --bg-conteudo: rgba(30, 18, 12, 0.97);
-            --bg-filtro: #160c08; --text-primary: #f0e0d0; --text-secondary: #c4b0a0;
-            --text-muted: #8a7a6a; --border-color: #4a3020; --border-hover: #6a4a30;
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.8); --shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.9);
-            --skeleton-bg: #2a1a10; --skeleton-shine: #3a2a1a;
-            --modal-bg: rgba(0, 0, 0, 0.85); --trend-up: #22c55e; --trend-down: #ef4444;
-        }
-        [data-theme="light"] {
-            --bg-primary: #f5efe8; --bg-secondary: #e8dfd6; --bg-card: #ffffff;
-            --bg-card-hover: #f5efe8; --bg-input: #ffffff; --bg-conteudo: rgba(255, 255, 255, 0.98);
-            --bg-filtro: #f5efe8; --text-primary: #2a1a10; --text-secondary: #5a4030;
-            --text-muted: #8a7a6a; --border-color: #d4c4b0; --border-hover: #b4a490;
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1); --shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.15);
-            --skeleton-bg: #e8dfd6; --skeleton-shine: #f5efe8;
-            --modal-bg: rgba(0, 0, 0, 0.5); --trend-up: #16a34a; --trend-down: #dc2626;
-        }
+        :root { --marrom: #5C3317; --laranja: #CC5500; --dourado: #DAA520; --amarelo: #FFD700; --danger: #ef4444; --success: #22c55e; --warning: #f59e0b; --info: #3b82f6; --whatsapp: #25D366; --radius: 14px; --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        [data-theme="dark"] { --bg-primary: #0a0604; --bg-secondary: #160c08; --bg-card: #24140c; --bg-card-hover: #341c12; --bg-input: #1a0f0a; --bg-conteudo: rgba(30, 18, 12, 0.97); --bg-filtro: #160c08; --text-primary: #f0e0d0; --text-secondary: #c4b0a0; --text-muted: #8a7a6a; --border-color: #4a3020; --border-hover: #6a4a30; --shadow: 0 8px 32px rgba(0, 0, 0, 0.8); --skeleton-bg: #2a1a10; --skeleton-shine: #3a2a1a; --modal-bg: rgba(0, 0, 0, 0.85); --trend-up: #22c55e; --trend-down: #ef4444; }
+        [data-theme="light"] { --bg-primary: #f5efe8; --bg-secondary: #e8dfd6; --bg-card: #ffffff; --bg-card-hover: #f5efe8; --bg-input: #ffffff; --bg-conteudo: rgba(255, 255, 255, 0.98); --bg-filtro: #f5efe8; --text-primary: #2a1a10; --text-secondary: #5a4030; --text-muted: #8a7a6a; --border-color: #d4c4b0; --border-hover: #b4a490; --shadow: 0 8px 32px rgba(0, 0, 0, 0.1); --skeleton-bg: #e8dfd6; --skeleton-shine: #f5efe8; --modal-bg: rgba(0, 0, 0, 0.5); --trend-up: #16a34a; --trend-down: #dc2626; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg-primary); min-height: 100vh; font-size: 16px; color: var(--text-primary); transition: var(--transition); line-height: 1.6; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -45,8 +17,7 @@
         .skeleton { background: var(--skeleton-bg); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; border: 1px solid var(--border-color); animation: pulse 1.5s ease-in-out infinite; }
         @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
         .skeleton-line { height: 16px; background: var(--skeleton-shine); border-radius: 8px; margin-bottom: 8px; }
-        .skeleton-line.short { width: 60%; }
-        .skeleton-line.medium { width: 80%; }
+        .skeleton-line.short { width: 60%; } .skeleton-line.medium { width: 80%; }
         .login-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; background: radial-gradient(ellipse at center, var(--bg-secondary), var(--bg-primary)); }
         .login-box { max-width: 420px; width: 100%; background: var(--bg-card); padding: 40px 32px; border-radius: 24px; text-align: center; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
         .logo { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, var(--laranja), var(--dourado)); color: white; font-size: 45px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 10px 30px rgba(204,85,0,0.3); animation: float 3s ease-in-out infinite; }
@@ -75,13 +46,8 @@
         .btn-lg { padding: 14px 28px; font-size: 17px; min-height: 54px; }
         .btn-block { width: 100%; justify-content: center; }
         #toastContainer { position: fixed; top: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 8px; max-width: 420px; width: 100%; }
-        .toast { padding: 14px 20px; border-radius: var(--radius); font-weight: 600; color: white; box-shadow: var(--shadow); animation: slideInRight 0.4s cubic-bezier(0.4,0,0.2,1); display: flex; align-items: center; gap: 10px; }
-        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .toast-success { background: var(--success); }
-        .toast-error { background: var(--danger); }
-        .toast-warning { background: var(--warning); }
-        .toast-info { background: var(--info); }
-        .toast .toast-close { background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 0 4px; margin-left: auto; opacity: 0.7; width: auto; }
+        .toast { padding: 14px 20px; border-radius: var(--radius); font-weight: 600; color: white; box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px; }
+        .toast-success { background: var(--success); } .toast-error { background: var(--danger); } .toast-warning { background: var(--warning); } .toast-info { background: var(--info); }
         .painel { display: none; max-width: 1400px; margin: 16px auto; padding: 16px 24px; }
         .painel.active { display: block; }
         .header-painel { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 16px 24px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; flex-wrap: wrap; gap: 12px; border: 1px solid var(--border-color); }
@@ -90,8 +56,8 @@
         .header-actions .user-info { font-weight: 700; color: var(--dourado); padding: 4px 12px; background: var(--bg-secondary); border-radius: 20px; border: 1px solid var(--border-color); font-size: 0.9em; }
         .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
         .tab-btn { padding: 10px 16px; background: transparent; color: var(--text-secondary); border: 2px solid transparent; border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 13px; transition: var(--transition); width: auto; white-space: nowrap; }
-        .tab-btn:hover { background: var(--bg-card); color: var(--text-primary); border-color: var(--border-color); }
-        .tab-btn.active { background: linear-gradient(135deg, var(--dourado), var(--amarelo)); color: #5C3317; font-weight: 700; border-color: var(--dourado); box-shadow: 0 4px 16px rgba(218,165,32,0.3); }
+        .tab-btn:hover { background: var(--bg-card); color: var(--text-primary); }
+        .tab-btn.active { background: linear-gradient(135deg, var(--dourado), var(--amarelo)); color: #5C3317; font-weight: 700; }
         .conteudo { display: none; background: var(--bg-conteudo); padding: 24px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border-color); }
         .conteudo.active { display: block; }
         .conteudo h3 { color: var(--dourado); font-size: 1.3em; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -99,36 +65,25 @@
         .conteudo h3 .btn-group { display: flex; gap: 8px; margin-left: auto; }
         .form-group { margin-bottom: 14px; }
         .form-group label { display: block; font-weight: 700; color: var(--dourado); margin-bottom: 4px; font-size: 0.85em; }
-        .form-group .help-text { font-size: 0.75em; color: var(--text-muted); margin-top: 3px; }
         .form-row { display: flex; gap: 12px; flex-wrap: wrap; }
         .form-row .form-group { flex: 1; min-width: 150px; }
-        .card-item { background: var(--bg-card); padding: 16px; border-radius: var(--radius); border: 1px solid var(--border-color); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; transition: var(--transition); }
-        .card-item:hover { border-color: var(--border-hover); background: var(--bg-card-hover); }
-        .card-item-info { flex: 1; min-width: 200px; display: flex; align-items: center; gap: 12px; color: var(--text-primary); }
+        .card-item { background: var(--bg-card); padding: 16px; border-radius: var(--radius); border: 1px solid var(--border-color); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .card-item-info { flex: 1; min-width: 200px; display: flex; align-items: center; gap: 12px; }
         .card-item-info strong { color: var(--dourado); }
         .card-item-info small { color: var(--text-secondary); font-size: 0.85em; }
         .card-item-actions { display: flex; gap: 6px; flex-wrap: wrap; }
         .badge { padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; text-transform: uppercase; }
-        .badge-pago { background: #064e3b; color: #6ee7b7; }
-        .badge-pendente { background: #713f12; color: #fcd34d; }
-        .badge-baixo { background: #7f1d1d; color: #fca5a5; }
-        .badge-normal { background: #064e3b; color: #6ee7b7; }
-        .badge-novo { background: #713f12; color: #fcd34d; }
-        .badge-preparo { background: #1e3a5f; color: #93c5fd; }
-        .badge-entrega { background: #4c1d95; color: #c4b5fd; }
-        .badge-entregue { background: #064e3b; color: #6ee7b7; }
-        .badge-cancelado { background: #7f1d1d; color: #fca5a5; }
-        .badge-ativo { background: #064e3b; color: #6ee7b7; }
+        .badge-pago { background: #064e3b; color: #6ee7b7; } .badge-pendente { background: #713f12; color: #fcd34d; }
+        .badge-baixo { background: #7f1d1d; color: #fca5a5; } .badge-normal { background: #064e3b; color: #6ee7b7; }
+        .badge-novo { background: #713f12; color: #fcd34d; } .badge-preparo { background: #1e3a5f; color: #93c5fd; }
+        .badge-entrega { background: #4c1d95; color: #c4b5fd; } .badge-entregue { background: #064e3b; color: #6ee7b7; }
+        .badge-cancelado { background: #7f1d1d; color: #fca5a5; } .badge-ativo { background: #064e3b; color: #6ee7b7; }
         .badge-inativo { background: #7f1d1d; color: #fca5a5; }
         .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
-        .dash-card { background: var(--bg-card); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border-color); text-align: center; transition: var(--transition); }
-        .dash-card:hover { border-color: var(--dourado); transform: translateY(-4px); }
+        .dash-card { background: var(--bg-card); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border-color); text-align: center; }
         .dash-card .icon { font-size: 2.5em; margin-bottom: 8px; }
         .dash-card .valor { font-size: 1.8em; font-weight: 800; color: var(--dourado); }
         .dash-card .label { font-size: 0.8em; color: var(--text-secondary); margin-top: 4px; }
-        .dash-card .trend { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75em; font-weight: 600; margin-top: 6px; padding: 2px 10px; border-radius: 20px; }
-        .dash-card .trend.up { color: var(--trend-up); background: rgba(34, 197, 94, 0.15); }
-        .dash-card .trend.down { color: var(--trend-down); background: rgba(239, 68, 68, 0.15); }
         .filtros-container { display: flex; gap: 12px; flex-wrap: wrap; padding: 16px 18px; background: var(--bg-filtro); border-radius: var(--radius); margin-bottom: 16px; align-items: flex-end; border: 1px solid var(--border-color); }
         .filtros-container .form-group { margin-bottom: 0; flex: 1; min-width: 140px; }
         .filtros-container .form-group label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px; }
@@ -186,7 +141,7 @@
         .resultado-linha:last-child { border-bottom: none; }
         .resultado-linha.destaque { font-size: 1.3em; font-weight: 800; color: var(--dourado); padding-top: 14px; margin-top: 8px; border-top: 2px solid var(--dourado); }
         @media (max-width: 768px) {
-            .painel { padding: 12px; margin: 8px; }
+            .painel { padding: 12px; }
             .header-painel { flex-direction: column; }
             .tabs { flex-wrap: nowrap; overflow-x: auto; }
             .tab-btn { font-size: 12px; padding: 8px 12px; }
@@ -194,21 +149,13 @@
             .filtros-container { flex-direction: column; }
             .form-row { flex-direction: column; }
             .dashboard-cards { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
-            .modal-box { padding: 20px; }
         }
         .hidden { display: none !important; }
-        .flex { display: flex; }
-        .flex-wrap { flex-wrap: wrap; }
-        .gap-8 { gap: 8px; }
-        .gap-12 { gap: 12px; }
-        .items-center { align-items: center; }
-        .flex-1 { flex: 1; }
-        .w-full { width: 100%; }
-        .mt-16 { margin-top: 16px; }
+        .flex { display: flex; } .flex-wrap { flex-wrap: wrap; }
+        .gap-8 { gap: 8px; } .mt-16 { margin-top: 16px; }
     </style>
 </head>
 <body>
-
     <div id="toastContainer"></div>
 
     <!-- MODAL TROCA DE SENHA -->
@@ -216,19 +163,19 @@
         <div class="modal-box">
             <button class="close-btn" onclick="fecharModalTrocaSenha()">✕</button>
             <h3>🔒 Trocar Senha</h3>
-            <div class="form-group"><label>Senha Atual</label><input type="password" id="modalSenhaAtual" placeholder="Senha atual"></div>
+            <div class="form-group"><label>Senha Atual</label><input type="password" id="modalSenhaAtual"></div>
             <div class="form-group">
                 <label>Nova Senha</label>
-                <input type="password" id="modalNovaSenha" placeholder="Mín. 8 caracteres">
+                <input type="password" id="modalNovaSenha">
                 <div class="senha-forca"><div class="barra" id="modalSenhaBarra"></div></div>
                 <div class="senha-texto" id="modalSenhaTexto">Digite uma senha forte</div>
             </div>
-            <div class="form-group"><label>Confirmar</label><input type="password" id="modalConfirmaSenha" placeholder="Confirme"></div>
+            <div class="form-group"><label>Confirmar</label><input type="password" id="modalConfirmaSenha"></div>
             <div class="btn-row">
                 <button class="btn btn-success" onclick="trocarSenhaModal()">✅ Alterar</button>
                 <button class="btn btn-danger" onclick="fecharModalTrocaSenha()">✕</button>
             </div>
-            <div class="mensagem" id="modalMensagem"></div>
+            <div id="modalMensagem"></div>
         </div>
     </div>
 
@@ -238,27 +185,24 @@
             <button class="close-btn" onclick="fecharModalInsumo()">✕</button>
             <h3 id="modalInsumoTitulo">➕ Novo Insumo</h3>
             <input type="hidden" id="insumoId">
-            <div class="form-group"><label>Nome do Insumo *</label><input type="text" id="insumoNome" placeholder="Ex: Leite Condensado" maxlength="100"></div>
+            <div class="form-group"><label>Nome *</label><input type="text" id="insumoNome" maxlength="100"></div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Unidade *</label>
                     <select id="insumoUnidade">
-                        <option value="g">Gramas (g)</option>
-                        <option value="kg">Quilogramas (kg)</option>
-                        <option value="ml">Mililitros (ml)</option>
-                        <option value="l">Litros (l)</option>
-                        <option value="un">Unidade (un)</option>
-                        <option value="cx">Caixa (cx)</option>
+                        <option value="g">Gramas (g)</option><option value="kg">Quilos (kg)</option>
+                        <option value="ml">Mililitros (ml)</option><option value="l">Litros (l)</option>
+                        <option value="un">Unidade (un)</option><option value="cx">Caixa (cx)</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Preço por Unidade R$ *</label><input type="number" id="insumoPreco" step="0.0001" placeholder="0.0000" min="0"></div>
+                <div class="form-group"><label>Preço/Unidade *</label><input type="number" id="insumoPreco" step="0.0001" min="0"></div>
             </div>
             <div class="form-row">
-                <div class="form-group"><label>Estoque Atual</label><input type="number" id="insumoEstoque" step="0.01" value="0" min="0"></div>
-                <div class="form-group"><label>Estoque Mínimo</label><input type="number" id="insumoMinimo" step="0.01" value="0" min="0"></div>
+                <div class="form-group"><label>Estoque</label><input type="number" id="insumoEstoque" step="0.01" value="0"></div>
+                <div class="form-group"><label>Mínimo</label><input type="number" id="insumoMinimo" step="0.01" value="0"></div>
             </div>
-            <div class="form-group"><label>Fornecedor</label><input type="text" id="insumoFornecedor" placeholder="Ex: Distribuidora XYZ" maxlength="100"></div>
-            <div class="form-group"><label>Observações</label><input type="text" id="insumoObs" placeholder="Ex: comprar na promoção" maxlength="200"></div>
+            <div class="form-group"><label>Fornecedor</label><input type="text" id="insumoFornecedor" maxlength="100"></div>
+            <div class="form-group"><label>Obs</label><input type="text" id="insumoObs" maxlength="200"></div>
             <div class="btn-row">
                 <button class="btn btn-success" onclick="salvarInsumo()">💾 Salvar</button>
                 <button class="btn btn-danger" onclick="fecharModalInsumo()">✕</button>
@@ -273,19 +217,19 @@
             <h3 id="modalReceitaTitulo">💰 Nova Receita</h3>
             <input type="hidden" id="receitaId">
             <div class="form-row">
-                <div class="form-group"><label>Nome do Produto *</label><input type="text" id="receitaNome" placeholder="Ex: Dindim de Chocolate" maxlength="100"></div>
-                <div class="form-group" style="flex:0.4;"><label>Rendimento (un) *</label><input type="number" id="receitaRendimento" value="10" min="1"></div>
-                <div class="form-group" style="flex:0.4;"><label>Margem Lucro (%) *</label><input type="number" id="receitaMargem" value="150" step="10" min="0"></div>
+                <div class="form-group"><label>Nome *</label><input type="text" id="receitaNome" maxlength="100"></div>
+                <div class="form-group" style="flex:0.4;"><label>Rendimento *</label><input type="number" id="receitaRendimento" value="10" min="1"></div>
+                <div class="form-group" style="flex:0.4;"><label>Margem % *</label><input type="number" id="receitaMargem" value="150" step="10" min="0"></div>
             </div>
-            <div class="form-group"><label>Descrição</label><input type="text" id="receitaDescricao" placeholder="Ex: Dindim gourmet" maxlength="200"></div>
+            <div class="form-group"><label>Descrição</label><input type="text" id="receitaDescricao" maxlength="200"></div>
             <h4 style="color:var(--dourado);margin:20px 0 12px;">📋 Ingredientes</h4>
             <div id="ingredientesList"></div>
-            <button class="btn btn-info btn-sm" onclick="adicionarIngrediente()" style="margin-top:8px;">➕ Adicionar Ingrediente</button>
+            <button class="btn btn-info btn-sm" onclick="adicionarIngrediente()" style="margin-top:8px;">➕ Adicionar</button>
             <div class="resultado-calculadora" id="resultadoReceita" style="display:none;">
-                <div class="resultado-linha"><span>📦 Custo Total:</span><strong id="resCustoTotal">R$ 0,00</strong></div>
-                <div class="resultado-linha"><span>🔹 Custo Unitário:</span><strong id="resCustoUnit">R$ 0,00</strong></div>
-                <div class="resultado-linha"><span>📈 Margem:</span><strong id="resMargem">150%</strong></div>
-                <div class="resultado-linha destaque"><span>💰 Preço de Venda:</span><strong id="resPrecoVenda">R$ 0,00</strong></div>
+                <div class="resultado-linha"><span>Custo Total:</span><strong id="resCustoTotal">R$ 0</strong></div>
+                <div class="resultado-linha"><span>Custo Unit:</span><strong id="resCustoUnit">R$ 0</strong></div>
+                <div class="resultado-linha"><span>Margem:</span><strong id="resMargem">150%</strong></div>
+                <div class="resultado-linha destaque"><span>💰 Venda:</span><strong id="resPrecoVenda">R$ 0</strong></div>
             </div>
             <div class="btn-row" style="margin-top:16px;">
                 <button class="btn btn-success" onclick="salvarReceita()">💾 Salvar</button>
@@ -301,16 +245,8 @@
             <h2>Dindins Gourmet FX</h2>
             <p>Painel do Administrador</p>
             <form id="formLogin" onsubmit="return false;">
-                <div class="input-group">
-                    <label for="campoEmail">E-mail</label>
-                    <input type="email" id="campoEmail" placeholder="Digite seu e-mail">
-                    <div id="emailError" class="help-text" style="color:var(--danger);display:none;"></div>
-                </div>
-                <div class="input-group">
-                    <label for="campoSenha">Senha</label>
-                    <input type="password" id="campoSenha" placeholder="Digite sua senha">
-                    <div id="senhaError" class="help-text" style="color:var(--danger);display:none;"></div>
-                </div>
+                <div class="input-group"><label>E-mail</label><input type="email" id="campoEmail" autocomplete="email"></div>
+                <div class="input-group"><label>Senha</label><input type="password" id="campoSenha" autocomplete="current-password"></div>
                 <button type="button" class="btn btn-primary btn-block btn-lg" id="btnLogin" onclick="fazerLogin()">🚀 Entrar</button>
                 <div id="loginLoading" style="display:none;margin-top:10px;">
                     <span>⏳ Entrando...</span>
@@ -318,9 +254,7 @@
                         <div id="loginProgressBar" style="width:0%;height:100%;background:var(--laranja);transition:width 0.3s;"></div>
                     </div>
                 </div>
-                <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
-                    <button type="button" class="btn btn-info btn-sm" onclick="esqueciSenha()">🔑 Esqueci senha</button>
-                </div>
+                <button type="button" class="btn btn-info btn-sm" onclick="esqueciSenha()" style="margin-top:12px;">🔑 Esqueci senha</button>
                 <p id="erroLogin" style="color:var(--danger);margin-top:10px;display:none;"></p>
                 <p id="statusConexao" style="font-size:13px;margin-top:15px;color:var(--text-secondary);">🟡 Conectando...</p>
             </form>
@@ -332,14 +266,14 @@
         <div class="header-painel">
             <h2>🍦 Dindins Gourmet FX</h2>
             <div class="header-actions">
-                <button class="btn btn-theme" onclick="toggleTheme()" id="btnTheme"><span id="themeIcon">🌙</span></button>
+                <button class="btn btn-theme" onclick="toggleTheme()"><span id="themeIcon">🌙</span></button>
                 <span class="user-info" id="userLogado">👤 Carregando...</span>
                 <button class="btn btn-info btn-sm" onclick="abrirModalTrocaSenha()">🔒 Trocar Senha</button>
                 <button class="btn btn-danger btn-sm" onclick="sair()">🚪 Sair</button>
             </div>
         </div>
 
-        <div class="tabs" id="tabsMenu">
+        <div class="tabs">
             <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
             <button class="tab-btn" data-tab="estoque">📦 Estoque</button>
             <button class="tab-btn" data-tab="c1">📋 Cardápio 1</button>
@@ -367,12 +301,12 @@
         <div class="conteudo" id="conteudo-estoque">
             <h3>📦 Estoque Geral</h3>
             <div class="form-row">
-                <div class="form-group"><label>Nome</label><input type="text" id="estoqueNome" placeholder="Ex: Chocolate"></div>
+                <div class="form-group"><label>Nome</label><input type="text" id="estoqueNome"></div>
                 <div class="form-group" style="flex:0.3;"><label>Emoji</label><input type="text" id="estoqueEmoji" maxlength="2" value="🍦"></div>
-                <div class="form-group" style="flex:0.5;"><label>Preço R$</label><input type="number" id="estoquePreco" step="0.01" placeholder="0.00" min="0"></div>
+                <div class="form-group" style="flex:0.5;"><label>Preço R$</label><input type="number" id="estoquePreco" step="0.01" min="0"></div>
                 <div class="form-group" style="flex:0.5;"><label>Qtd</label><input type="number" id="estoqueQtd" value="50" min="0"></div>
             </div>
-            <div class="form-group"><label>📸 Foto</label><input type="file" id="estoqueFoto" accept="image/*" onchange="previewFotoAdmin(this)"><div class="foto-preview" id="previewFotoContainer"><img id="previewFotoAdmin" src=""></div></div>
+            <div class="form-group"><label>📸 Foto</label><input type="file" id="estoqueFoto" accept="image/*" onchange="previewFotoAdmin(this)"><div class="foto-preview" id="previewFotoContainer"><img id="previewFotoAdmin"></div></div>
             <div class="flex gap-8 flex-wrap">
                 <button class="btn btn-primary" onclick="cadastrarItem()">💾 Cadastrar</button>
                 <button class="btn btn-success" onclick="carregarEstoque()">🔄 Atualizar</button>
@@ -396,10 +330,10 @@
 
         <!-- PEDIDOS -->
         <div class="conteudo" id="conteudo-pedidos">
-            <h3>📋 Pedidos <span class="badge-count" id="pedidosCount">0</span><div class="btn-group"><button class="btn btn-success btn-sm" onclick="exportarPedidosCSV()">📥 Exportar CSV</button></div></h3>
+            <h3>📋 Pedidos <span class="badge-count" id="pedidosCount">0</span><div class="btn-group"><button class="btn btn-success btn-sm" onclick="exportarPedidosCSV()">📥 CSV</button></div></h3>
             <div class="filtros-container">
-                <div class="form-group"><label>Status</label><select id="filtroPedidosStatus"><option value="todos">Todos</option><option value="novo">🆕 Novo</option><option value="preparo">👨‍🍳 Preparo</option><option value="entrega">🛵 Entrega</option><option value="entregue">✅ Entregue</option><option value="cancelado">❌ Cancelado</option></select></div>
-                <div class="form-group"><label>Cliente</label><input type="text" id="filtroPedidosCliente" placeholder="Buscar..."></div>
+                <div class="form-group"><label>Status</label><select id="filtroPedidosStatus"><option value="todos">Todos</option><option value="novo">Novo</option><option value="preparo">Preparo</option><option value="entrega">Entrega</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select></div>
+                <div class="form-group"><label>Cliente</label><input type="text" id="filtroPedidosCliente"></div>
                 <div class="form-group"><label>Início</label><input type="date" id="filtroPedidosInicio"></div>
                 <div class="form-group"><label>Fim</label><input type="date" id="filtroPedidosFim"></div>
                 <button class="btn btn-primary" onclick="aplicarFiltroPedidos()">🔍 Filtrar</button>
@@ -413,8 +347,8 @@
         <div class="conteudo" id="conteudo-pagamentos">
             <h3>💳 Pagamentos <span class="badge-count" id="pagamentosCount">0</span></h3>
             <div class="filtros-container">
-                <div class="form-group"><label>Status</label><select id="filtroPagamentosStatus"><option value="todos">Todos</option><option value="pago">✅ Pago</option><option value="pendente">⏳ Pendente</option></select></div>
-                <div class="form-group"><label>Cliente</label><input type="text" id="filtroPagamentosCliente" placeholder="Buscar..."></div>
+                <div class="form-group"><label>Status</label><select id="filtroPagamentosStatus"><option value="todos">Todos</option><option value="pago">Pago</option><option value="pendente">Pendente</option></select></div>
+                <div class="form-group"><label>Cliente</label><input type="text" id="filtroPagamentosCliente"></div>
                 <div class="form-group"><label>Início</label><input type="date" id="filtroPagamentosInicio"></div>
                 <div class="form-group"><label>Fim</label><input type="date" id="filtroPagamentosFim"></div>
                 <button class="btn btn-primary" onclick="aplicarFiltroPagamentos()">🔍 Filtrar</button>
@@ -430,7 +364,7 @@
             <div class="filtros-container">
                 <div class="form-group"><label>Início</label><input type="date" id="filtroFinanceiroInicio"></div>
                 <div class="form-group"><label>Fim</label><input type="date" id="filtroFinanceiroFim"></div>
-                <div class="form-group"><label>Cliente</label><input type="text" id="filtroFinanceiroCliente" placeholder="Buscar..."></div>
+                <div class="form-group"><label>Cliente</label><input type="text" id="filtroFinanceiroCliente"></div>
                 <button class="btn btn-primary" onclick="aplicarFiltroFinanceiro()">🔍 Filtrar</button>
                 <button class="btn btn-limpar" onclick="limparFiltroFinanceiro()">🗑️ Limpar</button>
             </div>
@@ -453,8 +387,8 @@
         <div class="conteudo" id="conteudo-historico">
             <h3>📜 Histórico de Estoque</h3>
             <div class="filtros-container">
-                <div class="form-group"><label>Tipo</label><select id="filtroHistoricoTipo"><option value="todos">Todos</option><option value="entrada">🟢 Entrada</option><option value="saida">🔴 Saída</option><option value="alocacao">📤 Alocação</option></select></div>
-                <div class="form-group"><label>Item</label><input type="text" id="filtroHistoricoItem" placeholder="Buscar..."></div>
+                <div class="form-group"><label>Tipo</label><select id="filtroHistoricoTipo"><option value="todos">Todos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="alocacao">Alocação</option></select></div>
+                <div class="form-group"><label>Item</label><input type="text" id="filtroHistoricoItem"></div>
                 <button class="btn btn-primary" onclick="aplicarFiltroHistorico()">🔍 Filtrar</button>
                 <button class="btn btn-limpar" onclick="limparFiltroHistorico()">🗑️ Limpar</button>
             </div>
@@ -463,28 +397,27 @@
 
         <!-- INSUMOS -->
         <div class="conteudo" id="conteudo-insumos">
-            <h3>🧪 Controle de Insumos <span class="badge-count" id="insumosCount">0</span><div class="btn-group"><button class="btn btn-success btn-sm" onclick="abrirModalInsumo()">➕ Novo Insumo</button></div></h3>
+            <h3>🧪 Insumos <span class="badge-count" id="insumosCount">0</span><div class="btn-group"><button class="btn btn-success btn-sm" onclick="abrirModalInsumo()">➕ Novo</button></div></h3>
             <div class="filtros-container">
-                <div class="form-group"><label>Buscar</label><input type="text" id="filtroInsumos" placeholder="Nome..." oninput="filtrarInsumos()"></div>
-                <div class="form-group"><label>Status</label><select id="filtroInsumosStatus" onchange="filtrarInsumos()"><option value="todos">Todos</option><option value="ok">✅ OK</option><option value="baixo">⚠️ Baixo</option><option value="critico">🔴 Crítico</option></select></div>
+                <div class="form-group"><label>Buscar</label><input type="text" id="filtroInsumos" oninput="filtrarInsumos()"></div>
+                <div class="form-group"><label>Status</label><select id="filtroInsumosStatus" onchange="filtrarInsumos()"><option value="todos">Todos</option><option value="ok">OK</option><option value="baixo">Baixo</option><option value="critico">Crítico</option></select></div>
             </div>
             <div id="listaInsumos"></div>
         </div>
 
         <!-- CALCULADORA -->
         <div class="conteudo" id="conteudo-calculadora">
-            <h3>💰 Calculadora de Preço<div class="btn-group"><button class="btn btn-success btn-sm" onclick="abrirModalReceita()">➕ Nova Receita</button></div></h3>
+            <h3>💰 Calculadora<div class="btn-group"><button class="btn btn-success btn-sm" onclick="abrirModalReceita()">➕ Nova Receita</button></div></h3>
             <div id="listaReceitas"></div>
         </div>
 
         <!-- SETORES -->
         <div class="conteudo" id="conteudo-setores">
-            <h3>📍 Setores (Bairros)</h3>
+            <h3>📍 Setores</h3>
             <div style="background:var(--bg-secondary);padding:16px;border-radius:var(--radius);margin-bottom:16px;">
-                <h4 style="color:var(--dourado);margin-bottom:12px;">➕ Novo Setor</h4>
                 <div class="form-row">
-                    <div class="form-group" style="flex:2;"><label>Nome</label><input type="text" id="setorNome" placeholder="Ex: Jardim América"></div>
-                    <div class="form-group" style="flex:1;"><label>Taxa R$</label><input type="number" id="setorTaxa" step="0.50" value="5.00" min="0"></div>
+                    <div class="form-group" style="flex:2;"><label>Nome</label><input type="text" id="setorNome"></div>
+                    <div class="form-group" style="flex:1;"><label>Taxa R$</label><input type="number" id="setorTaxa" step="0.50" value="5.00"></div>
                     <div class="form-group" style="flex:0 0 140px;display:flex;align-items:flex-end;"><button class="btn btn-success btn-block" onclick="cadastrarSetor()">➕ Adicionar</button></div>
                 </div>
             </div>
@@ -493,28 +426,27 @@
 
         <!-- ADMINS -->
         <div class="conteudo" id="conteudo-admins">
-            <h3>👥 Administradores</h3>
+            <h3>👥 Admins</h3>
             <div class="card-item" style="flex-direction:column;align-items:stretch;">
-                <h4 style="color:var(--dourado);">➕ Novo Admin</h4>
                 <div class="form-row">
-                    <div class="form-group"><label>Nome</label><input type="text" id="adminNome" placeholder="Nome"></div>
-                    <div class="form-group"><label>E-mail</label><input type="email" id="adminEmail" placeholder="email@dominio.com"></div>
-                    <div class="form-group"><label>Senha</label><input type="password" id="adminSenha" placeholder="Mín. 8 caracteres"></div>
+                    <div class="form-group"><label>Nome</label><input type="text" id="adminNome"></div>
+                    <div class="form-group"><label>E-mail</label><input type="email" id="adminEmail"></div>
+                    <div class="form-group"><label>Senha</label><input type="password" id="adminSenha"></div>
                 </div>
-                <div style="background:var(--bg-secondary);padding:12px 16px;border-radius:12px;margin:8px 0;">
-                    <label style="font-weight:700;color:var(--dourado);display:block;margin-bottom:8px;">📋 Permissões:</label>
+                <div style="background:var(--bg-secondary);padding:12px;border-radius:12px;margin:8px 0;">
+                    <label style="color:var(--dourado);font-weight:700;">📋 Permissões:</label>
                     <div class="permissoes-grid">
-                        <div class="perm-item"><input type="checkbox" id="permEstoque" checked><label>📦 Estoque</label></div>
-                        <div class="perm-item"><input type="checkbox" id="permC1" checked><label>📋 Cardápio 1</label></div>
-                        <div class="perm-item"><input type="checkbox" id="permC2"><label>🔥 Cardápio 2</label></div>
-                        <div class="perm-item"><input type="checkbox" id="permPedidos" checked><label>📋 Pedidos</label></div>
-                        <div class="perm-item"><input type="checkbox" id="permPagamentos" checked><label>💳 Pagamentos</label></div>
-                        <div class="perm-item"><input type="checkbox" id="permFinanceiro"><label>💰 Financeiro</label></div>
-                        <div class="perm-item"><input type="checkbox" id="permInsumos"><label>🧪 Insumos</label></div>
-                        <div class="perm-item"><input type="checkbox" id="permCalculadora"><label>💰 Calculadora</label></div>
-                        <div class="perm-item"><input type="checkbox" id="permSetores"><label>📍 Setores</label></div>
-                        <div class="perm-item"><input type="checkbox" id="permAdmins"><label>👥 Admins</label></div>
-                        <div class="perm-item"><input type="checkbox" id="permAuditoria"><label>📋 Auditoria</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permEstoque" checked><label>Estoque</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permC1" checked><label>C1</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permC2"><label>C2</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permPedidos" checked><label>Pedidos</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permPagamentos" checked><label>Pagamentos</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permFinanceiro"><label>Financeiro</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permInsumos"><label>Insumos</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permCalculadora"><label>Calc</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permSetores"><label>Setores</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permAdmins"><label>Admins</label></div>
+                        <div class="perm-item"><input type="checkbox" id="permAuditoria"><label>Auditoria</label></div>
                     </div>
                 </div>
                 <button class="btn btn-success" onclick="cadastrarAdminSupabase()">✅ Cadastrar</button>
@@ -525,21 +457,21 @@
         <!-- CONFIG -->
         <div class="conteudo" id="conteudo-config">
             <h3>⚙️ Configurações</h3>
-            <div class="form-group"><label>WhatsApp (com DDD)</label><input type="text" id="configWhatsapp" placeholder="11999999999"></div>
-            <div class="form-group"><label>Chave PIX</label><input type="text" id="configPix" placeholder="pix@seudominio.com"></div>
-            <div class="form-group"><label>Link InfinitePay</label><input type="text" id="configInfinitePay" placeholder="https://pay.infinitepay.io/..."></div>
-            <div class="form-group"><label>Endereço Retirada</label><input type="text" id="configEndereco" placeholder="Rua, número, bairro"></div>
-            <div class="form-group"><label>Link Grupo WhatsApp</label><input type="text" id="configGrupoWhatsapp" placeholder="https://chat.whatsapp.com/..."></div>
+            <div class="form-group"><label>WhatsApp</label><input type="text" id="configWhatsapp" maxlength="15"></div>
+            <div class="form-group"><label>PIX</label><input type="text" id="configPix" maxlength="200"></div>
+            <div class="form-group"><label>InfinitePay</label><input type="text" id="configInfinitePay" maxlength="500"></div>
+            <div class="form-group"><label>Endereço</label><input type="text" id="configEndereco" maxlength="200"></div>
+            <div class="form-group"><label>Grupo WhatsApp</label><input type="text" id="configGrupoWhatsapp" maxlength="500"></div>
             <button class="btn btn-success" onclick="salvarConfig()">💾 Salvar</button>
         </div>
 
         <!-- AUDITORIA -->
         <div class="conteudo" id="conteudo-auditoria">
-            <h3>📋 Log de Auditoria</h3>
+            <h3>📋 Auditoria</h3>
             <div class="filtros-container">
-                <div class="form-group"><label>Ação</label><select id="filtroAuditoriaAcao"><option value="todos">Todos</option><option value="INSERT">➕ Inserção</option><option value="UPDATE">✏️ Atualização</option><option value="DELETE">🗑️ Exclusão</option></select></div>
-                <div class="form-group"><label>Tabela</label><select id="filtroAuditoriaTabela"><option value="todos">Todos</option><option value="estoquecentral">📦 Estoque</option><option value="todospedidos">📋 Pedidos</option><option value="admin_usuarios">👥 Admins</option><option value="insumos">🧪 Insumos</option><option value="receitas">💰 Receitas</option></select></div>
-                <div class="form-group"><label>Usuário</label><input type="text" id="filtroAuditoriaUsuario" placeholder="E-mail..."></div>
+                <div class="form-group"><label>Ação</label><select id="filtroAuditoriaAcao"><option value="todos">Todos</option><option value="INSERT">Insert</option><option value="UPDATE">Update</option><option value="DELETE">Delete</option></select></div>
+                <div class="form-group"><label>Tabela</label><select id="filtroAuditoriaTabela"><option value="todos">Todas</option><option value="estoquecentral">Estoque</option><option value="todospedidos">Pedidos</option><option value="insumos">Insumos</option><option value="receitas">Receitas</option></select></div>
+                <div class="form-group"><label>Usuário</label><input type="text" id="filtroAuditoriaUsuario"></div>
                 <button class="btn btn-primary" onclick="aplicarFiltroAuditoria()">🔍 Filtrar</button>
                 <button class="btn btn-limpar" onclick="limparFiltroAuditoria()">🗑️ Limpar</button>
             </div>
@@ -548,6 +480,9 @@
         </div>
     </div>
         <script>
+        // ============================================================
+        // VALIDAÇÃO DE SEGURANÇA
+        // ============================================================
         const SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
 
@@ -555,22 +490,18 @@
             alert('🚨 ERRO CRÍTICO DE SEGURANÇA.');
             throw new Error('Chave secreta no cliente');
         }
-
         console.log('%c🔒 Segurança OK', 'color: #22c55e; font-weight: bold;');
 
+        // ============================================================
+        // SUPABASE CLIENT (ÚNICA VEZ)
+        // ============================================================
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
             auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storage: window.localStorage, flowType: 'pkce' }
         });
 
-        supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
-                const painel = document.getElementById('painelAdmin');
-                if (painel && painel.classList.contains('active')) {
-                    setTimeout(() => window.location.reload(), 2000);
-                }
-            }
-        });
-
+        // ============================================================
+        // ESTADO
+        // ============================================================
         const State = {
             user: null, adminData: null, session: null,
             pagination: { pedidos: { page: 1, limit: 10, total: 0 }, auditoria: { page: 1, limit: 10, total: 0 } },
@@ -582,17 +513,17 @@
             ingredientesTemporarios: []
         };
 
+        // ============================================================
+        // UTILITÁRIOS
+        // ============================================================
         const Utils = {
             validarTelefone: t => t && /^[0-9]{10,11}$/.test(t.replace(/\D/g, '')),
             validarPreco: v => { const n = parseFloat(v); return !isNaN(n) && n >= 0; },
-            validarQuantidade: v => { const n = parseInt(v); return Number.isInteger(n) && n >= 0; },
             validarEmail: e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e),
             mascararTelefone: v => {
                 const n = v.replace(/\D/g, '');
-                if (n.length <= 10) return n.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-                return n.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                return n.length <= 10 ? n.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3') : n.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
             },
-            getDataBrasil: () => new Date().toISOString(),
             formatarData: d => {
                 if (!d) return '';
                 try { const dt = new Date(d); if (isNaN(dt.getTime())) return '';
@@ -606,7 +537,6 @@
                 } catch { return ''; }
             },
             escapeHtml: t => { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; },
-            truncar: (t, n) => { if (!t) return ''; return t.length <= n ? t : t.substring(0, n) + '...'; },
             checkRateLimit: (key, max = 5, min = 15) => {
                 const now = Date.now(); const r = State.loginAttempts[key];
                 if (!r) { State.loginAttempts[key] = { attempts: 1, firstAttempt: now }; return { allowed: true }; }
@@ -623,7 +553,7 @@
             t.className = 'toast toast-' + tipo;
             t.innerHTML = `<span>${icons[tipo]}</span><span>${Utils.escapeHtml(msg)}</span><button onclick="this.parentElement.remove()" style="background:none;border:none;color:white;font-size:18px;cursor:pointer;margin-left:auto;">×</button>`;
             c.appendChild(t);
-            setTimeout(() => { t.remove(); }, 4500);
+            setTimeout(() => t.remove(), 4500);
         }
 
         function mostrarSkeleton(id, qtd = 3) {
@@ -645,6 +575,7 @@
             window._goto = page => cb && cb(page);
         }
 
+        // TEMA
         const THEME_KEY = 'theme_admin';
         function getTheme() { return localStorage.getItem(THEME_KEY) || 'dark'; }
         function setTheme(t) {
@@ -676,7 +607,9 @@
             }
         }
 
-        // ============ LOGIN ============
+        // ============================================================
+        // LOGIN
+        // ============================================================
         async function fazerLogin() {
             const email = document.getElementById('campoEmail').value.trim();
             const senha = document.getElementById('campoSenha').value;
@@ -684,15 +617,11 @@
             const btn = document.getElementById('btnLogin');
             const loading = document.getElementById('loginLoading');
             const bar = document.getElementById('loginProgressBar');
-            const emailErr = document.getElementById('emailError');
-            const senhaErr = document.getElementById('senhaError');
 
             erroEl.style.display = 'none';
-            emailErr.style.display = 'none';
-            senhaErr.style.display = 'none';
 
-            if (!email || !Utils.validarEmail(email)) { emailErr.textContent = 'E-mail inválido'; emailErr.style.display = 'block'; return; }
-            if (!senha || senha.length < 6) { senhaErr.textContent = 'Mínimo 6 caracteres'; senhaErr.style.display = 'block'; return; }
+            if (!email || !Utils.validarEmail(email)) { erroEl.textContent = 'E-mail inválido'; erroEl.style.display = 'block'; return; }
+            if (!senha || senha.length < 6) { erroEl.textContent = 'Senha mínima 6 caracteres'; erroEl.style.display = 'block'; return; }
 
             const rl = Utils.checkRateLimit(email);
             if (!rl.allowed) { erroEl.textContent = `Muitas tentativas. Aguarde ${rl.remaining}min`; erroEl.style.display = 'block'; return; }
@@ -774,7 +703,7 @@
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 const tab = btn.getAttribute('data-tab');
                 if (isMaster || ['dashboard', 'config'].includes(tab)) { btn.style.display = 'flex'; return; }
-                const map = { 'estoque': p.estoque, 'c1': p.cardapio1, 'c2': p.cardapio2, 'pedidos': p.pedidos, 'pagamentos': p.pagamentos, 'financeiro': p.financeiro, 'ranking': p.pedidos, 'historico': p.estoque, 'insumos': p.insumos, 'calculadora': p.calculadora, 'setores': p.setores, 'admins': p.admins, 'auditoria': p.auditoria || p.admins };
+                const map = { estoque: p.estoque, c1: p.cardapio1, c2: p.cardapio2, pedidos: p.pedidos, pagamentos: p.pagamentos, financeiro: p.financeiro, ranking: p.pedidos, historico: p.estoque, insumos: p.insumos, calculadora: p.calculadora, setores: p.setores, admins: p.admins, auditoria: p.auditoria || p.admins };
                 btn.style.display = map[tab] ? 'flex' : 'none';
             });
         }
@@ -819,13 +748,7 @@
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             const c = document.getElementById('conteudo-' + tab); if (c) c.classList.add('active');
             const t = document.querySelector(`.tab-btn[data-tab="${tab}"]`); if (t) t.classList.add('active');
-            const loaders = {
-                dashboard: carregarDashboard, estoque: carregarEstoque, c1: carregarC1, c2: carregarC2,
-                pedidos: carregarPedidos, pagamentos: carregarPagamentos, financeiro: carregarFinanceiro,
-                ranking: carregarRanking, historico: carregarHistorico, insumos: carregarInsumos,
-                calculadora: carregarReceitas, setores: carregarSetores, admins: carregarListaAdmins,
-                config: carregarConfig, auditoria: carregarAuditoria
-            };
+            const loaders = { dashboard: carregarDashboard, estoque: carregarEstoque, c1: carregarC1, c2: carregarC2, pedidos: carregarPedidos, pagamentos: carregarPagamentos, financeiro: carregarFinanceiro, ranking: carregarRanking, historico: carregarHistorico, insumos: carregarInsumos, calculadora: carregarReceitas, setores: carregarSetores, admins: carregarListaAdmins, config: carregarConfig, auditoria: carregarAuditoria };
             if (loaders[tab]) loaders[tab]();
         }
 
@@ -850,14 +773,7 @@
                 const email = document.getElementById('adminEmail').value.trim();
                 const senha = document.getElementById('adminSenha').value;
                 if (!nome || !email || !senha || senha.length < 8) { mostrarToast('Preencha tudo (senha 8+)', 'warning'); return; }
-                const perms = {
-                    estoque: document.getElementById('permEstoque').checked, cardapio1: document.getElementById('permC1').checked,
-                    cardapio2: document.getElementById('permC2').checked, pedidos: document.getElementById('permPedidos').checked,
-                    pagamentos: document.getElementById('permPagamentos').checked, financeiro: document.getElementById('permFinanceiro').checked,
-                    insumos: document.getElementById('permInsumos').checked, calculadora: document.getElementById('permCalculadora').checked,
-                    setores: document.getElementById('permSetores').checked, admins: document.getElementById('permAdmins').checked,
-                    auditoria: document.getElementById('permAuditoria').checked
-                };
+                const perms = { estoque: document.getElementById('permEstoque').checked, cardapio1: document.getElementById('permC1').checked, cardapio2: document.getElementById('permC2').checked, pedidos: document.getElementById('permPedidos').checked, pagamentos: document.getElementById('permPagamentos').checked, financeiro: document.getElementById('permFinanceiro').checked, insumos: document.getElementById('permInsumos').checked, calculadora: document.getElementById('permCalculadora').checked, setores: document.getElementById('permSetores').checked, admins: document.getElementById('permAdmins').checked, auditoria: document.getElementById('permAuditoria').checked };
                 await chamarEdgeFunction('create_user', { email, password: senha, nome, permissoes: perms });
                 ['adminNome', 'adminEmail', 'adminSenha'].forEach(i => document.getElementById(i).value = '');
                 carregarListaAdmins();
@@ -867,8 +783,7 @@
 
         async function carregarListaAdmins() {
             try {
-                const { data, error } = await supabase.from('admin_usuarios').select('*').order('criado_em', { ascending: false });
-                if (error) throw error;
+                const { data } = await supabase.from('admin_usuarios').select('*').order('criado_em', { ascending: false });
                 const l = document.getElementById('listaAdmins');
                 if (!data || data.length === 0) { l.innerHTML = '<div class="empty-state"><span class="empty-icon">👤</span><div>Nenhum admin</div></div>'; return; }
                 l.innerHTML = data.map(a => {
@@ -876,8 +791,7 @@
                     const perms = [];
                     if (p.estoque) perms.push('📦'); if (p.cardapio1) perms.push('📋'); if (p.cardapio2) perms.push('🔥');
                     if (p.pedidos) perms.push('📋P'); if (p.pagamentos) perms.push('💳'); if (p.financeiro) perms.push('💰');
-                    if (p.insumos) perms.push('🧪'); if (p.calculadora) perms.push('💰C');
-                    if (p.setores) perms.push('📍'); if (p.admins) perms.push('👥');
+                    if (p.insumos) perms.push('🧪'); if (p.calculadora) perms.push('💰C'); if (p.setores) perms.push('📍'); if (p.admins) perms.push('👥');
                     const isCurrent = a.user_id === State.user?.id;
                     return `<div class="card-item"><div class="card-item-info"><div><strong>👤 ${Utils.escapeHtml(a.nome)}</strong><br><small>${Utils.escapeHtml(a.email)} | ${a.ativo ? '✅' : '⛔'} ${isCurrent ? '(Você)' : ''}<br>Perm: ${perms.join(' ')}</small></div></div><div class="card-item-actions">${!isCurrent ? `<button class="btn btn-warning btn-sm" onclick="toggleAdminStatus('${a.user_id}')">🔒</button><button class="btn btn-danger btn-sm" onclick="excluirAdminSupabase('${a.user_id}')">🗑️</button>` : ''}</div></div>`;
                 }).join('');
@@ -914,24 +828,15 @@
                 ]);
                 const estoque = e.data || [], pedidos = p.data || [], insumos = i.data || [];
                 const totalEstoque = estoque.reduce((s, x) => s + (x.quantidadetotal || 0), 0);
-                const hoje = new Date();
-                const hojeStr = hoje.toDateString();
-                const ontem = new Date(hoje); ontem.setDate(ontem.getDate() - 1);
-                const ontemStr = ontem.toDateString();
-                const pedidosHoje = pedidos.filter(x => { try { return new Date(x.data).toDateString() === hojeStr; } catch { return false; } });
-                const pedidosOntem = pedidos.filter(x => { try { return new Date(x.data).toDateString() === ontemStr; } catch { return false; } });
+                const hoje = new Date().toDateString();
+                const pedidosHoje = pedidos.filter(x => { try { return new Date(x.data).toDateString() === hoje; } catch { return false; } });
                 const fatHoje = pedidosHoje.filter(x => x.pagamentostatus === 'pago').reduce((s, x) => s + (x.total || 0), 0);
-                const fatOntem = pedidosOntem.filter(x => x.pagamentostatus === 'pago').reduce((s, x) => s + (x.total || 0), 0);
-                const tPedidos = pedidosOntem.length > 0 ? ((pedidosHoje.length - pedidosOntem.length) / pedidosOntem.length * 100) : 0;
-                const tFat = fatOntem > 0 ? ((fatHoje - fatOntem) / fatOntem * 100) : 0;
                 const insumosCriticos = insumos.filter(x => (x.quantidade_estoque || 0) <= (x.quantidade_minima || 0)).length;
-
                 document.getElementById('dashboardCards').innerHTML = `
                     <div class="dash-card"><div class="icon">📦</div><div class="valor">${totalEstoque}</div><div class="label">Estoque</div></div>
                     <div class="dash-card"><div class="icon">📋</div><div class="valor">${pedidosHoje.length}</div><div class="label">Pedidos Hoje</div></div>
                     <div class="dash-card"><div class="icon">💰</div><div class="valor">R$ ${fatHoje.toFixed(2)}</div><div class="label">Faturamento</div></div>
-                    <div class="dash-card"><div class="icon">🧪</div><div class="valor">${insumosCriticos}</div><div class="label">Insumos Críticos</div></div>
-                `;
+                    <div class="dash-card"><div class="icon">🧪</div><div class="valor">${insumosCriticos}</div><div class="label">Insumos Críticos</div></div>`;
             } catch (e) { tratarErro(e); }
         }
 
@@ -941,7 +846,16 @@
                 const { data, error } = await supabase.from('estoquecentral').select('*').order('nome');
                 if (error) throw error;
                 State.cache.estoque = data || [];
-                renderizarEstoque(State.cache.estoque);
+                const l = document.getElementById('listaEstoque');
+                if (State.cache.estoque.length === 0) { l.innerHTML = '<div class="empty-state"><span class="empty-icon">📦</span><div>Estoque vazio</div></div>'; }
+                else {
+                    l.innerHTML = State.cache.estoque.map(i => {
+                        const d = (i.quantidadetotal || 0) - (i.alocadocardapio2 || 0);
+                        const b = d <= 5 ? 'badge-baixo' : 'badge-normal';
+                        const f = i.foto ? `<img src="${i.foto}" class="item-foto">` : `<div class="foto-placeholder">${i.emoji || '🍦'}</div>`;
+                        return `<div class="card-item"><div class="card-item-info">${f}<div><strong>${i.emoji || '🍦'} ${Utils.escapeHtml(i.nome)}</strong><br><small>R$ ${(i.preco || 0).toFixed(2)} | Total: ${i.quantidadetotal || 0} | C2: ${i.alocadocardapio2 || 0} | <span class="badge ${b}">Disp: ${d}</span></small></div></div><div class="card-item-actions"><button class="btn btn-warning btn-sm" onclick="editarItem(${i.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="excluirItem(${i.id})">🗑️</button></div></div>`;
+                    }).join('');
+                }
                 const sel = document.getElementById('alocarSabor');
                 if (sel) {
                     sel.innerHTML = '<option value="">Selecione...</option>';
@@ -951,17 +865,6 @@
                     });
                 }
             } catch (e) { tratarErro(e); }
-        }
-
-        function renderizarEstoque(data) {
-            const l = document.getElementById('listaEstoque');
-            if (data.length === 0) { l.innerHTML = '<div class="empty-state"><span class="empty-icon">📦</span><div>Estoque vazio</div></div>'; return; }
-            l.innerHTML = data.map(i => {
-                const d = (i.quantidadetotal || 0) - (i.alocadocardapio2 || 0);
-                const b = d <= 5 ? 'badge-baixo' : 'badge-normal';
-                const f = i.foto ? `<img src="${i.foto}" class="item-foto">` : `<div class="foto-placeholder">${i.emoji || '🍦'}</div>`;
-                return `<div class="card-item"><div class="card-item-info">${f}<div><strong>${i.emoji || '🍦'} ${Utils.escapeHtml(i.nome)}</strong><br><small>R$ ${(i.preco || 0).toFixed(2)} | Total: ${i.quantidadetotal || 0} | C2: ${i.alocadocardapio2 || 0} | <span class="badge ${b}">Disp: ${d}</span></small></div></div><div class="card-item-actions"><button class="btn btn-warning btn-sm" onclick="editarItem(${i.id})">✏️</button><button class="btn btn-danger btn-sm" onclick="excluirItem(${i.id})">🗑️</button></div></div>`;
-            }).join('');
         }
 
         async function cadastrarItem() {
@@ -1001,11 +904,7 @@
 
         async function excluirItem(id) {
             if (!confirm('Excluir?')) return;
-            try {
-                await supabase.from('estoquecentral').delete().eq('id', id);
-                carregarEstoque(); carregarC1(); carregarDashboard();
-                mostrarToast('Excluído!');
-            } catch (e) { tratarErro(e); }
+            try { await supabase.from('estoquecentral').delete().eq('id', id); carregarEstoque(); carregarC1(); carregarDashboard(); mostrarToast('Excluído!'); } catch (e) { tratarErro(e); }
         }
 
         async function carregarC1() {
@@ -1086,13 +985,12 @@
                 }
                 const sp = x.pagamentostatus === 'pago' ? '<span class="badge badge-pago">✅ PAGO</span>' : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
                 const st = (x.status || 'novo').toLowerCase();
-                let spd = '';
-                const map = { 'entregue': '<span class="badge badge-entregue">✅ Entregue</span>', 'entrega': '<span class="badge badge-entrega">🛵 Entrega</span>', 'preparo': '<span class="badge badge-preparo">👨‍🍳 Preparo</span>', 'cancelado': '<span class="badge badge-cancelado">❌ Cancelado</span>' };
-                spd = map[st] || '<span class="badge badge-novo">🆕 Novo</span>';
+                const map = { entregue: '<span class="badge badge-entregue">✅ Entregue</span>', entrega: '<span class="badge badge-entrega">🛵 Entrega</span>', preparo: '<span class="badge badge-preparo">👨‍🍳 Preparo</span>', cancelado: '<span class="badge badge-cancelado">❌ Cancelado</span>' };
+                const spd = map[st] || '<span class="badge badge-novo">🆕 Novo</span>';
                 let be = '';
                 if (st !== 'entregue' && st !== 'cancelado') be = `<button class="btn btn-deliver btn-sm" onclick="marcarEntregue(${x.id})">✅ Entregue</button>`;
                 else if (st === 'entregue') be = '<span style="color:#6ee7b7;font-weight:bold;background:#064e3b;padding:4px 14px;border-radius:20px;font-size:12px;">✔ Entregue</span>';
-                let bw = x.telefone ? `<button class="btn btn-whatsapp btn-sm" onclick="abrirWhatsapp('${x.telefone}','${Utils.escapeHtml(x.cliente)}',${x.total || 0})">📱</button>` : '';
+                const bw = x.telefone ? `<button class="btn btn-whatsapp btn-sm" onclick="abrirWhatsapp('${x.telefone}','${Utils.escapeHtml(x.cliente)}',${x.total || 0})">📱</button>` : '';
                 return `<div class="card-item" style="flex-direction:column;align-items:stretch;"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;"><div><strong style="color:var(--dourado);">👤 ${Utils.escapeHtml(x.cliente)}</strong><br><small>📱 ${x.telefone ? Utils.mascararTelefone(x.telefone) : 'N/A'} | 📅 ${Utils.formatarData(x.data)}</small></div><div style="text-align:right;"><strong style="color:var(--dourado);font-size:1.2em;">R$ ${(x.total || 0).toFixed(2)}</strong><br>${sp} ${spd}</div></div>${ih}<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">${be} ${bw} <button class="btn btn-danger btn-sm" onclick="excluirPedido(${x.id})">🗑️</button></div></div>`;
             }).join('');
         }
@@ -1144,13 +1042,9 @@
         function aplicarFiltroPagamentos() {
             const s = document.getElementById('filtroPagamentosStatus').value;
             const c = document.getElementById('filtroPagamentosCliente').value.toLowerCase().trim();
-            const i = document.getElementById('filtroPagamentosInicio').value;
-            const f = document.getElementById('filtroPagamentosFim').value;
             const filtered = State.cache.pedidos.filter(p => {
                 if (s !== 'todos' && (p.pagamentostatus || 'pendente') !== s) return false;
                 if (c && !p.cliente.toLowerCase().includes(c)) return false;
-                if (i && new Date(p.data) < new Date(i)) return false;
-                if (f && new Date(p.data) > new Date(f)) return false;
                 return true;
             });
             renderizarPagamentos(filtered);
@@ -1239,8 +1133,7 @@
                 let h = '<table><thead><tr><th>Data</th><th>Tipo</th><th>Item</th><th>Qtd</th><th>Obs</th></tr></thead><tbody>';
                 State.cache.historico.forEach(x => {
                     const b = x.tipo === 'entrada' ? 'badge-pago' : x.tipo === 'saida' ? 'badge-baixo' : 'badge-pendente';
-                    const t = x.tipo === 'entrada' ? '🟢' : x.tipo === 'saida' ? '🔴' : '📤';
-                    h += `<tr><td>${Utils.escapeHtml(x.data || '')}</td><td><span class="badge ${b}">${t}</span></td><td>${Utils.escapeHtml(x.item || '')}</td><td>${x.quantidade || 0}</td><td>${Utils.escapeHtml(x.obs || '')}</td></tr>`;
+                    h += `<tr><td>${Utils.escapeHtml(x.data || '')}</td><td><span class="badge ${b}">${x.tipo}</span></td><td>${Utils.escapeHtml(x.item || '')}</td><td>${x.quantidade || 0}</td><td>${Utils.escapeHtml(x.obs || '')}</td></tr>`;
                 });
                 h += '</tbody></table>';
                 l.innerHTML = h;
@@ -1334,15 +1227,7 @@
         async function salvarInsumo() {
             try {
                 const id = document.getElementById('insumoId').value;
-                const d = {
-                    nome: document.getElementById('insumoNome').value.trim(),
-                    unidade: document.getElementById('insumoUnidade').value,
-                    preco_por_unidade: parseFloat(document.getElementById('insumoPreco').value) || 0,
-                    quantidade_estoque: parseFloat(document.getElementById('insumoEstoque').value) || 0,
-                    quantidade_minima: parseFloat(document.getElementById('insumoMinimo').value) || 0,
-                    fornecedor: document.getElementById('insumoFornecedor').value.trim() || null,
-                    observacoes: document.getElementById('insumoObs').value.trim() || null
-                };
+                const d = { nome: document.getElementById('insumoNome').value.trim(), unidade: document.getElementById('insumoUnidade').value, preco_por_unidade: parseFloat(document.getElementById('insumoPreco').value) || 0, quantidade_estoque: parseFloat(document.getElementById('insumoEstoque').value) || 0, quantidade_minima: parseFloat(document.getElementById('insumoMinimo').value) || 0, fornecedor: document.getElementById('insumoFornecedor').value.trim() || null, observacoes: document.getElementById('insumoObs').value.trim() || null };
                 if (!d.nome) { mostrarToast('Digite o nome', 'warning'); return; }
                 if (id) await supabase.from('insumos').update(d).eq('id', id);
                 else await supabase.from('insumos').insert([d]);
@@ -1549,13 +1434,7 @@
 
         async function salvarConfig() {
             try {
-                const d = {
-                    whatsapp: document.getElementById('configWhatsapp').value.trim(),
-                    pix: document.getElementById('configPix').value.trim(),
-                    infinitePay: document.getElementById('configInfinitePay').value.trim(),
-                    endereco: document.getElementById('configEndereco').value.trim(),
-                    grupoWhatsapp: document.getElementById('configGrupoWhatsapp').value.trim()
-                };
+                const d = { whatsapp: document.getElementById('configWhatsapp').value.trim(), pix: document.getElementById('configPix').value.trim(), infinitePay: document.getElementById('configInfinitePay').value.trim(), endereco: document.getElementById('configEndereco').value.trim(), grupoWhatsapp: document.getElementById('configGrupoWhatsapp').value.trim() };
                 await supabase.from('config').upsert({ chave: 'admin', dados: d });
                 State.cache.config = d;
                 mostrarToast('Salvo!');
@@ -1619,12 +1498,8 @@
         }
 
         function carregarTudo() {
-            carregarDashboard();
-            carregarEstoque();
-            carregarC1();
-            carregarC2();
-            carregarSetores();
-            carregarInsumos();
+            carregarDashboard(); carregarEstoque(); carregarC1(); carregarC2();
+            carregarSetores(); carregarInsumos();
         }
 
         // EVENT LISTENERS
@@ -1632,9 +1507,7 @@
             verificarConexao();
             document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', function() { mudarTab(this.getAttribute('data-tab')); }));
             document.getElementById('campoEmail').focus();
-            document.addEventListener('keydown', e => {
-                if (e.key === 'Escape') { fecharModalTrocaSenha(); fecharModalInsumo(); fecharModalReceita(); }
-            });
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') { fecharModalTrocaSenha(); fecharModalInsumo(); fecharModalReceita(); } });
             document.getElementById('modalTrocaSenha').addEventListener('click', function(e) { if (e.target === this) fecharModalTrocaSenha(); });
             document.getElementById('modalInsumo').addEventListener('click', function(e) { if (e.target === this) fecharModalInsumo(); });
             document.getElementById('modalReceita').addEventListener('click', function(e) { if (e.target === this) fecharModalReceita(); });
@@ -1646,77 +1519,40 @@
         });
 
         // EXPOR GLOBAL
-        window.fazerLogin = fazerLogin;
-        window.sair = sair;
-        window.toggleTheme = toggleTheme;
-        window.abrirModalTrocaSenha = abrirModalTrocaSenha;
-        window.fecharModalTrocaSenha = fecharModalTrocaSenha;
-        window.trocarSenhaModal = trocarSenhaModal;
-        window.mudarTab = mudarTab;
-        window.previewFotoAdmin = previewFotoAdmin;
-        window.mostrarToast = mostrarToast;
-        window.esqueciSenha = esqueciSenha;
-        window.carregarEstoque = carregarEstoque;
-        window.cadastrarItem = cadastrarItem;
-        window.editarItem = editarItem;
-        window.excluirItem = excluirItem;
-        window.carregarC1 = carregarC1;
-        window.carregarC2 = carregarC2;
-        window.alocarC2 = alocarC2;
-        window.excluirC2 = excluirC2;
-        window.carregarPedidos = carregarPedidos;
-        window.marcarEntregue = marcarEntregue;
-        window.aplicarFiltroPedidos = aplicarFiltroPedidos;
-        window.limparFiltroPedidos = limparFiltroPedidos;
-        window.excluirPedido = excluirPedido;
-        window.abrirWhatsapp = abrirWhatsapp;
-        window.exportarPedidosCSV = exportarPedidosCSV;
-        window.carregarPagamentos = carregarPagamentos;
-        window.aplicarFiltroPagamentos = aplicarFiltroPagamentos;
-        window.limparFiltroPagamentos = limparFiltroPagamentos;
-        window.confirmarPag = confirmarPag;
-        window.lembrar = lembrar;
-        window.lembrarTodosPendentes = lembrarTodosPendentes;
-        window.carregarFinanceiro = carregarFinanceiro;
-        window.aplicarFiltroFinanceiro = aplicarFiltroFinanceiro;
-        window.limparFiltroFinanceiro = limparFiltroFinanceiro;
-        window.carregarRanking = carregarRanking;
-        window.aplicarFiltroRanking = aplicarFiltroRanking;
-        window.limparFiltroRanking = limparFiltroRanking;
-        window.carregarHistorico = carregarHistorico;
-        window.aplicarFiltroHistorico = aplicarFiltroHistorico;
-        window.limparFiltroHistorico = limparFiltroHistorico;
-        window.carregarInsumos = carregarInsumos;
-        window.abrirModalInsumo = abrirModalInsumo;
-        window.fecharModalInsumo = fecharModalInsumo;
-        window.salvarInsumo = salvarInsumo;
-        window.excluirInsumo = excluirInsumo;
-        window.filtrarInsumos = filtrarInsumos;
-        window.carregarReceitas = carregarReceitas;
-        window.abrirModalReceita = abrirModalReceita;
-        window.fecharModalReceita = fecharModalReceita;
-        window.salvarReceita = salvarReceita;
-        window.excluirReceita = excluirReceita;
-        window.recalcularReceita = recalcularReceita;
-        window.adicionarIngrediente = adicionarIngrediente;
-        window.atualizarIngrediente = atualizarIngrediente;
+        window.fazerLogin = fazerLogin; window.sair = sair; window.toggleTheme = toggleTheme;
+        window.abrirModalTrocaSenha = abrirModalTrocaSenha; window.fecharModalTrocaSenha = fecharModalTrocaSenha;
+        window.trocarSenhaModal = trocarSenhaModal; window.mudarTab = mudarTab;
+        window.previewFotoAdmin = previewFotoAdmin; window.mostrarToast = mostrarToast;
+        window.esqueciSenha = esqueciSenha; window.carregarEstoque = carregarEstoque;
+        window.cadastrarItem = cadastrarItem; window.editarItem = editarItem; window.excluirItem = excluirItem;
+        window.carregarC1 = carregarC1; window.carregarC2 = carregarC2; window.alocarC2 = alocarC2; window.excluirC2 = excluirC2;
+        window.carregarPedidos = carregarPedidos; window.marcarEntregue = marcarEntregue;
+        window.aplicarFiltroPedidos = aplicarFiltroPedidos; window.limparFiltroPedidos = limparFiltroPedidos;
+        window.excluirPedido = excluirPedido; window.abrirWhatsapp = abrirWhatsapp; window.exportarPedidosCSV = exportarPedidosCSV;
+        window.carregarPagamentos = carregarPagamentos; window.aplicarFiltroPagamentos = aplicarFiltroPagamentos;
+        window.limparFiltroPagamentos = limparFiltroPagamentos; window.confirmarPag = confirmarPag;
+        window.lembrar = lembrar; window.lembrarTodosPendentes = lembrarTodosPendentes;
+        window.carregarFinanceiro = carregarFinanceiro; window.aplicarFiltroFinanceiro = aplicarFiltroFinanceiro;
+        window.limparFiltroFinanceiro = limparFiltroFinanceiro; window.carregarRanking = carregarRanking;
+        window.aplicarFiltroRanking = aplicarFiltroRanking; window.limparFiltroRanking = limparFiltroRanking;
+        window.carregarHistorico = carregarHistorico; window.aplicarFiltroHistorico = aplicarFiltroHistorico;
+        window.limparFiltroHistorico = limparFiltroHistorico; window.carregarInsumos = carregarInsumos;
+        window.abrirModalInsumo = abrirModalInsumo; window.fecharModalInsumo = fecharModalInsumo;
+        window.salvarInsumo = salvarInsumo; window.excluirInsumo = excluirInsumo; window.filtrarInsumos = filtrarInsumos;
+        window.carregarReceitas = carregarReceitas; window.abrirModalReceita = abrirModalReceita;
+        window.fecharModalReceita = fecharModalReceita; window.salvarReceita = salvarReceita;
+        window.excluirReceita = excluirReceita; window.recalcularReceita = recalcularReceita;
+        window.adicionarIngrediente = adicionarIngrediente; window.atualizarIngrediente = atualizarIngrediente;
         window.removerIngrediente = removerIngrediente;
-        window.carregarSetores = carregarSetores;
-        window.cadastrarSetor = cadastrarSetor;
-        window.editarSetor = editarSetor;
-        window.excluirSetor = excluirSetor;
-        window.carregarListaAdmins = carregarListaAdmins;
-        window.cadastrarAdminSupabase = cadastrarAdminSupabase;
-        window.toggleAdminStatus = toggleAdminStatus;
-        window.excluirAdminSupabase = excluirAdminSupabase;
-        window.carregarConfig = carregarConfig;
-        window.salvarConfig = salvarConfig;
-        window.carregarDashboard = carregarDashboard;
-        window.carregarAuditoria = carregarAuditoria;
-        window.aplicarFiltroAuditoria = aplicarFiltroAuditoria;
-        window.limparFiltroAuditoria = limparFiltroAuditoria;
+        window.carregarSetores = carregarSetores; window.cadastrarSetor = cadastrarSetor;
+        window.editarSetor = editarSetor; window.excluirSetor = excluirSetor;
+        window.carregarListaAdmins = carregarListaAdmins; window.cadastrarAdminSupabase = cadastrarAdminSupabase;
+        window.toggleAdminStatus = toggleAdminStatus; window.excluirAdminSupabase = excluirAdminSupabase;
+        window.carregarConfig = carregarConfig; window.salvarConfig = salvarConfig;
+        window.carregarDashboard = carregarDashboard; window.carregarAuditoria = carregarAuditoria;
+        window.aplicarFiltroAuditoria = aplicarFiltroAuditoria; window.limparFiltroAuditoria = limparFiltroAuditoria;
 
-        console.log('✅ Admin v4.0 carregado!');
+        console.log('✅ Admin v5.0 carregado!');
         console.log('🔒 Tema:', getTheme());
     </script>
 </body>
