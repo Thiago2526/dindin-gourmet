@@ -778,6 +778,9 @@
             countSpan.textContent = `${totalItens} ${totalItens === 1 ? 'item' : 'itens'}`;
         }
 
+        // ═══════════════════════════════════════════════════════════
+        // ✅ FINALIZAR PEDIDO COM VALIDAÇÃO PRÉVIA + MENSAGEM AMIGÁVEL
+        // ═══════════════════════════════════════════════════════════
         async function finalizarPedidoCliente() {
             const cliente = document.getElementById('cliente').value.trim();
             const telefoneRaw = document.getElementById('telefone').value.trim();
@@ -789,37 +792,106 @@
             if (telefone.length < 10) { mostrarToast('❌ WhatsApp inválido.', 'error'); return; }
             if (Object.keys(carrinho).length === 0) { mostrarToast('❌ Carrinho vazio.', 'warning'); return; }
 
-            const itens = Object.keys(carrinho).map(id => {
-                const item = carrinho[id];
-                return { nome: item.nome, quantidade: item.quantidade, preco: item.preco };
-            });
-
-            const { subtotal, taxa, total } = calcularTotal();
-
-            let obs = 'Cardápio 1';
-            if (setorId) {
-                const setor = setores.find(s => s.id == setorId);
-                if (setor) obs += ` | Entrega: ${setor.nome} (taxa ${formatarPreco(taxa)})`;
-            } else {
-                obs += ' | Retirada no local';
-            }
-
-            // Formas de pagamento
-            const formasPagamento = {
-                'pix': '📱 PIX',
-                'cartao': '💳 Cartão (na entrega)',
-                'dinheiro': '💵 Dinheiro'
-            };
-            const formaTexto = formasPagamento[pagamento] || pagamento;
-            obs += ` | Pagamento: ${formaTexto}`;
-
-            const idempotencyKey = gerarIdempotencyKey();
             const overlay = document.getElementById('loadingOverlay');
             const btn = document.getElementById('btnFinalizar');
             overlay.classList.remove('hidden');
             btn.disabled = true;
 
             try {
+                // ═══════════════════════════════════════════════════
+                // ✅ VALIDAÇÃO PRÉVIA: checar estoque antes de enviar
+                // ═══════════════════════════════════════════════════
+                const idsItens = Object.keys(carrinho);
+                const { data: estoqueAtual, error: errEstoque } = await sb
+                    .from('estoquecentral')
+                    .select('id, nome, quantidadetotal, alocadocardapio2')
+                    .in('id', idsItens);
+
+                if (errEstoque) throw new Error('Erro ao validar estoque: ' + errEstoque.message);
+
+                let temProblema = false;
+                const itensComProblema = [];
+
+                for (const id of idsItens) {
+                    const itemCarrinho = carrinho[id];
+                    const itemBanco = estoqueAtual.find(p => p.id == id);
+
+                    if (!itemBanco) {
+                        itensComProblema.push({
+                            id: id,
+                            nome: itemCarrinho.nome,
+                            motivo: 'produto removido do catálogo'
+                        });
+                        temProblema = true;
+                        continue;
+                    }
+
+                    const disponivelBanco = (itemBanco.quantidadetotal || 0) - (itemBanco.alocadocardapio2 || 0);
+
+                    if (itemCarrinho.quantidade > disponivelBanco) {
+                        itensComProblema.push({
+                            id: id,
+                            nome: itemCarrinho.nome,
+                            motivo: `estoque insuficiente (disponível: ${disponivelBanco}, você quer: ${itemCarrinho.quantidade})`,
+                            disponivel: disponivelBanco
+                        });
+                        temProblema = true;
+                    }
+                }
+
+                if (temProblema) {
+                    overlay.classList.add('hidden');
+                    btn.disabled = false;
+
+                    itensComProblema.forEach(it => {
+                        if (it.disponivel !== undefined) {
+                            if (it.disponivel <= 0) {
+                                delete carrinho[it.id];
+                            } else {
+                                carrinho[it.id].quantidade = it.disponivel;
+                            }
+                        } else {
+                            delete carrinho[it.id];
+                        }
+                    });
+
+                    salvarCarrinho();
+                    await carregarCardapio();
+                    atualizarCarrinho();
+
+                    mostrarToast('😢 Ops! O carrinho foi ajustado. Confira antes de finalizar.', 'warning');
+                    console.warn('Ajustes no carrinho:', itensComProblema);
+                    return;
+                }
+
+                // ═══════════════════════════════════════════════════
+                // ENVIA O PEDIDO
+                // ═══════════════════════════════════════════════════
+                const itens = Object.keys(carrinho).map(id => {
+                    const item = carrinho[id];
+                    return { nome: item.nome, quantidade: item.quantidade, preco: item.preco };
+                });
+
+                const { subtotal, taxa, total } = calcularTotal();
+
+                let obs = 'Cardápio 1';
+                if (setorId) {
+                    const setor = setores.find(s => s.id == setorId);
+                    if (setor) obs += ` | Entrega: ${setor.nome} (taxa ${formatarPreco(taxa)})`;
+                } else {
+                    obs += ' | Retirada no local';
+                }
+
+                const formasPagamento = {
+                    'pix': '📱 PIX',
+                    'cartao': '💳 Cartão (na entrega)',
+                    'dinheiro': '💵 Dinheiro'
+                };
+                const formaTexto = formasPagamento[pagamento] || pagamento;
+                obs += ` | Pagamento: ${formaTexto}`;
+
+                const idempotencyKey = gerarIdempotencyKey();
+
                 const { data, error } = await sb.rpc('finalizar_pedido', {
                     p_cliente: cliente,
                     p_telefone: telefone,
@@ -870,8 +942,27 @@
             } catch (error) {
                 overlay.classList.add('hidden');
                 console.error('Erro:', error);
-                logErro(error, 'finalizarPedido_c1', { idempotencyKey, cliente });
-                mostrarToast('❌ ' + (error.message || 'Erro ao finalizar'), 'error');
+
+                // ═══════════════════════════════════════════════════
+                // ✅ MENSAGEM AMIGÁVEL
+                // ═══════════════════════════════════════════════════
+                const msgErro = error.message || '';
+
+                if (msgErro.includes('Estoque insuficiente') || msgErro.includes('não encontrado')) {
+                    mostrarToast('😢 Ops! Um item esgotou agora. Recarregando o cardápio...', 'warning');
+                    logErro(error, 'finalizarPedido_c1_conflito', {
+                        idempotencyKey: gerarIdempotencyKey(),
+                        cliente: cliente,
+                        erro: msgErro
+                    });
+                    setTimeout(async () => {
+                        await carregarCardapio();
+                        atualizarCarrinho();
+                    }, 1000);
+                } else {
+                    mostrarToast('❌ ' + (msgErro || 'Erro ao finalizar'), 'error');
+                    logErro(error, 'finalizarPedido_c1', { idempotencyKey: gerarIdempotencyKey(), cliente });
+                }
             } finally {
                 btn.disabled = false;
             }
@@ -953,7 +1044,7 @@
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🍦 Cardápio 1 - v6.0 (PIX/Cartão/Dinheiro) carregado!');
+        console.log('🍦 Cardápio 1 - v7.0 (validação + mensagem amigável) carregado!');
         console.log('🔒 Tema:', getTheme());
         console.log('📡 Realtime ativo.');
     })();
