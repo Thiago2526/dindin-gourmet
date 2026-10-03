@@ -1,5 +1,5 @@
 // ============================================================
-// PARTE 2 - FUNÇÕES RESTANTES (CORRIGIDO COM sb)
+// PARTE 2 - FUNÇÕES RESTANTES
 // ============================================================
 
 // ============================================================
@@ -514,6 +514,286 @@ function limparFiltroAuditoria() {
 }
 window.aplicarFiltroAuditoria = aplicarFiltroAuditoria;
 window.limparFiltroAuditoria = limparFiltroAuditoria;
+
+// ============================================================
+// PAGAMENTOS (COM LEMBRETES MELHORADOS)
+// ============================================================
+async function carregarPagamentos() {
+    try {
+        const { data } = await sb.from('todospedidos').select('*').order('id', { ascending: false });
+        State.cache.pedidos = data || [];
+        renderizarPagamentos(State.cache.pedidos);
+        document.getElementById('pagamentosCount').textContent = State.cache.pedidos.filter(p => p.pagamentostatus === 'pendente').length;
+    } catch (e) { tratarErro(e); }
+}
+window.carregarPagamentos = carregarPagamentos;
+
+function formatarItensPedido(itens) {
+    if (!itens || itens.length === 0) return 'Sem itens';
+    return itens.map(i => `${i.quantidade}x ${i.nome}`).join(', ');
+}
+
+function formatarPagamento(pagamento) {
+    const mapa = {
+        'pix': '📱 PIX',
+        'cartao': '💳 Cartão',
+        'dinheiro': '💵 Dinheiro',
+        'credito': '💳 Crédito (link)',
+        'pendente': '⏳ Pendente',
+        'pago': '✅ Pago'
+    };
+    return mapa[pagamento] || pagamento || '—';
+}
+
+function montarMensagemLembrete(pedidos) {
+    const nome = pedidos[0].cliente || 'Cliente';
+    const pix = State.cache.config?.pix || 'não configurado';
+
+    if (pedidos.length === 1) {
+        const p = pedidos[0];
+        const itensTexto = (p.itens || []).map(i => 
+            `• ${i.quantidade}x ${i.nome} — R$ ${((i.preco || 0) * (i.quantidade || 0)).toFixed(2)}`
+        ).join('\n') || 'Sem itens';
+        const pedidoId = p.pedido_id || `#${p.id}`;
+        const dataFormatada = Utils.formatarData(p.data);
+        const formaPgto = formatarPagamento(p.pagamento);
+
+        return `💳 *LEMBRETE DE PAGAMENTO*\n\n` +
+            `Olá *${nome}*!\n\n` +
+            `📦 *Pedido:* ${pedidoId}\n` +
+            `🕐 ${dataFormatada}\n\n` +
+            `📋 *Itens:*\n${itensTexto}\n\n` +
+            `💳 *Forma:* ${formaPgto}\n` +
+            `💰 *Total:* R$ ${(p.total || 0).toFixed(2)}\n\n` +
+            `📱 *PIX:* ${pix}\n\n` +
+            `_Por favor, envie o comprovante após o pagamento._`;
+    }
+
+    let msg = `💳 *LEMBRETE DE PAGAMENTO*\n\n` +
+        `Olá *${nome}*!\n\n` +
+        `Você tem *${pedidos.length} pedidos* aguardando pagamento:\n\n`;
+
+    let totalGeral = 0;
+    pedidos.forEach((p) => {
+        const itensTexto = (p.itens || []).map(it => 
+            `  • ${it.quantidade}x ${it.nome}`
+        ).join('\n') || '  (sem itens)';
+        const pedidoId = p.pedido_id || `#${p.id}`;
+        const dataFormatada = Utils.formatarData(p.data);
+        const formaPgto = formatarPagamento(p.pagamento);
+        totalGeral += p.total || 0;
+
+        msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+        msg += `📦 *${pedidoId}*\n`;
+        msg += `🕐 ${dataFormatada}\n`;
+        msg += `${itensTexto}\n`;
+        msg += `💳 ${formaPgto}\n`;
+        msg += `💰 R$ ${(p.total || 0).toFixed(2)}\n`;
+    });
+
+    msg += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    msg += `💵 *TOTAL GERAL: R$ ${totalGeral.toFixed(2)}*\n\n`;
+    msg += `📱 *PIX:* ${pix}\n\n`;
+    msg += `_Por favor, envie o comprovante após o pagamento._`;
+
+    return msg;
+}
+
+function renderizarPagamentos(p) {
+    const l = document.getElementById('listaPagamentos');
+    if (p.length === 0) {
+        l.innerHTML = '<div class="empty-state"><span class="empty-icon">💳</span><div>Nenhum pagamento</div></div>';
+        return;
+    }
+    l.innerHTML = p.map(x => {
+        const s = x.pagamentostatus === 'pago'
+            ? '<span class="badge badge-pago">✅ PAGO</span>'
+            : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
+        const b = x.pagamentostatus !== 'pago'
+            ? `<button class="btn btn-success btn-sm" onclick="confirmarPag(${x.id})" title="Confirmar pagamento">✅</button>`
+            : '';
+        const lem = x.pagamentostatus !== 'pago' && x.telefone
+            ? `<button class="btn btn-whatsapp btn-sm" onclick="lembrarIndividual(${x.id})" title="Enviar lembrete">📱</button>`
+            : '';
+        const itensTexto = formatarItensPedido(x.itens);
+        const dataFormatada = Utils.formatarData(x.data);
+        const pedidoId = x.pedido_id || `#${x.id}`;
+        const formaPgto = formatarPagamento(x.pagamento);
+
+        return `<div class="card-item" style="flex-direction:column;align-items:stretch;">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                <div>
+                    <strong style="color:var(--dourado);">👤 ${Utils.escapeHtml(x.cliente)}</strong> ${s}
+                    <br>
+                    <small>📱 ${x.telefone ? Utils.mascararTelefone(x.telefone) : 'N/A'}</small>
+                </div>
+                <div style="text-align:right;">
+                    <strong style="color:var(--dourado);font-size:1.15em;">R$ ${(x.total || 0).toFixed(2)}</strong>
+                    <br>
+                    <small>💳 ${formaPgto}</small>
+                </div>
+            </div>
+            <div style="background:var(--bg-secondary);padding:8px 12px;border-radius:8px;margin-top:8px;font-size:0.85em;">
+                <strong>📦 ${pedidoId}</strong> — <small style="color:var(--text-secondary);">${dataFormatada}</small>
+                <br>
+                <span style="color:var(--text-secondary);">${Utils.escapeHtml(itensTexto)}</span>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+                ${b} ${lem}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function lembrarIndividual(id) {
+    const pedido = State.cache.pedidos.find(p => p.id === id);
+    if (!pedido) { mostrarToast('Pedido não encontrado', 'error'); return; }
+
+    const tel = (pedido.telefone || '').replace(/\D/g, '');
+    if (!tel) { mostrarToast('Cliente sem telefone', 'warning'); return; }
+
+    const outrosPendentes = State.cache.pedidos.filter(p =>
+        p.pagamentostatus === 'pendente' &&
+        (p.telefone || '').replace(/\D/g, '') === tel
+    );
+
+    let pedidosParaLembrar = [pedido];
+
+    if (outrosPendentes.length > 1) {
+        const totalTodos = outrosPendentes.reduce((s, p) => s + (p.total || 0), 0);
+        const incluirTodos = confirm(
+            `📱 ${pedido.cliente} tem ${outrosPendentes.length} pedidos pendentes.\n\n` +
+            `OK = Enviar lembrete de TODOS os ${outrosPendentes.length} pedidos (Total: R$ ${totalTodos.toFixed(2)})\n` +
+            `Cancelar = Enviar apenas deste pedido (R$ ${(pedido.total || 0).toFixed(2)})`
+        );
+        if (incluirTodos) {
+            pedidosParaLembrar = outrosPendentes.sort((a, b) => a.id - b.id);
+        }
+    }
+
+    const msg = montarMensagemLembrete(pedidosParaLembrar);
+    window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+    mostrarToast(`📱 WhatsApp aberto com o lembrete`, 'success');
+}
+window.lembrarIndividual = lembrarIndividual;
+
+function aplicarFiltroPagamentos() {
+    const s = document.getElementById('filtroPagamentosStatus').value;
+    const c = document.getElementById('filtroPagamentosCliente').value.toLowerCase().trim();
+    const filtered = State.cache.pedidos.filter(p => {
+        if (s !== 'todos' && (p.pagamentostatus || 'pendente') !== s) return false;
+        if (c && !p.cliente.toLowerCase().includes(c)) return false;
+        return true;
+    });
+    renderizarPagamentos(filtered);
+}
+
+function limparFiltroPagamentos() {
+    ['filtroPagamentosStatus', 'filtroPagamentosCliente', 'filtroPagamentosInicio', 'filtroPagamentosFim'].forEach(i => document.getElementById(i).value = i === 'filtroPagamentosStatus' ? 'todos' : '');
+    renderizarPagamentos(State.cache.pedidos);
+}
+window.aplicarFiltroPagamentos = aplicarFiltroPagamentos;
+window.limparFiltroPagamentos = limparFiltroPagamentos;
+
+async function confirmarPag(id) {
+    try {
+        await sb.from('todospedidos').update({ pagamentostatus: 'pago' }).eq('id', id);
+        await carregarPagamentos();
+        await carregarDashboard();
+        mostrarToast('✅ Pagamento confirmado!', 'success');
+    } catch (e) { tratarErro(e); }
+}
+window.confirmarPag = confirmarPag;
+
+async function lembrarTodosPendentes() {
+    try {
+        const { data, error } = await sb
+            .from('todospedidos')
+            .select('*')
+            .eq('pagamentostatus', 'pendente')
+            .order('cliente');
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            mostrarToast('✅ Não há pagamentos pendentes!', 'success');
+            return;
+        }
+
+        const clientes = {};
+        data.forEach(p => {
+            const tel = (p.telefone || '').replace(/\D/g, '');
+            if (!tel) return;
+            const chave = `${p.cliente}|${tel}`;
+            if (!clientes[chave]) {
+                clientes[chave] = { nome: p.cliente, tel: tel, pedidos: [], total: 0 };
+            }
+            clientes[chave].pedidos.push(p);
+            clientes[chave].total += p.total || 0;
+        });
+
+        const lista = Object.values(clientes).sort((a, b) => b.pedidos.length - a.pedidos.length);
+
+        if (lista.length === 0) {
+            mostrarToast('Nenhum cliente com telefone válido', 'warning');
+            return;
+        }
+
+        State.clientesPendentes = lista;
+
+        const container = document.getElementById('listaClientesPendentes');
+        container.innerHTML = lista.map((c, i) => `
+            <div class="card-item" style="flex-direction:column;align-items:stretch;margin-bottom:12px;">
+                <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                    <div>
+                        <strong style="color:var(--dourado);font-size:1.05em;">👤 ${Utils.escapeHtml(c.nome)}</strong>
+                        <br>
+                        <small>📱 ${Utils.mascararTelefone(c.tel)}</small>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="badge badge-pendente">${c.pedidos.length} pedido(s)</span>
+                        <br>
+                        <strong style="color:var(--dourado);font-size:1.15em;">R$ ${c.total.toFixed(2)}</strong>
+                    </div>
+                </div>
+                <div style="background:var(--bg-secondary);padding:8px 12px;border-radius:8px;margin-top:8px;font-size:0.85em;max-height:150px;overflow-y:auto;">
+                    ${c.pedidos.map(p => {
+                        const pid = p.pedido_id || `#${p.id}`;
+                        const itensTexto = formatarItensPedido(p.itens);
+                        const formaPgto = formatarPagamento(p.pagamento);
+                        return `<div style="padding:4px 0;border-bottom:1px solid var(--border-color);">
+                            <strong>${pid}</strong> — ${formaPgto} — <strong>R$ ${(p.total || 0).toFixed(2)}</strong>
+                            <br>
+                            <small style="color:var(--text-secondary);">${Utils.escapeHtml(itensTexto)}</small>
+                        </div>`;
+                    }).join('')}
+                </div>
+                <div style="display:flex;gap:6px;margin-top:8px;">
+                    <button class="btn btn-whatsapp btn-sm" onclick="enviarLembreteCliente(${i})" style="flex:1;">
+                        📱 Enviar Lembrete (${c.pedidos.length} ${c.pedidos.length === 1 ? 'pedido' : 'pedidos'})
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('modalLembretePendentes').classList.add('active');
+    } catch (e) { tratarErro(e, 'Erro ao carregar pendentes'); }
+}
+window.lembrarTodosPendentes = lembrarTodosPendentes;
+
+function enviarLembreteCliente(idx) {
+    const cliente = State.clientesPendentes?.[idx];
+    if (!cliente) { mostrarToast('Cliente não encontrado', 'error'); return; }
+
+    const msg = montarMensagemLembrete(cliente.pedidos);
+    window.open(`https://wa.me/55${cliente.tel}?text=${encodeURIComponent(msg)}`, '_blank');
+    mostrarToast(`✅ WhatsApp aberto para ${cliente.nome}`, 'success');
+}
+window.enviarLembreteCliente = enviarLembreteCliente;
+
+function fecharModalLembrete() {
+    document.getElementById('modalLembretePendentes').classList.remove('active');
+}
+window.fecharModalLembrete = fecharModalLembrete;
 
 console.log('✅ Admin parte 2 carregada!');
 console.log('🎉 Sistema completo!');
