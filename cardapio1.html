@@ -421,8 +421,9 @@
                 <div class="form-group">
                     <label for="pagamento">Forma de pagamento</label>
                     <select id="pagamento">
-                        <option value="pendente">Pendente (pagar na entrega/retirada)</option>
-                        <option value="pago">Pago via PIX</option>
+                        <option value="pix">📱 Chave PIX</option>
+                        <option value="cartao">💳 Cartão (na entrega)</option>
+                        <option value="dinheiro">💵 Dinheiro</option>
                     </select>
                 </div>
                 <div class="form-group" style="flex:0 0 auto;display:flex;align-items:flex-end;">
@@ -803,6 +804,15 @@
                 obs += ' | Retirada no local';
             }
 
+            // Formas de pagamento
+            const formasPagamento = {
+                'pix': '📱 PIX',
+                'cartao': '💳 Cartão (na entrega)',
+                'dinheiro': '💵 Dinheiro'
+            };
+            const formaTexto = formasPagamento[pagamento] || pagamento;
+            obs += ` | Pagamento: ${formaTexto}`;
+
             const idempotencyKey = gerarIdempotencyKey();
             const overlay = document.getElementById('loadingOverlay');
             const btn = document.getElementById('btnFinalizar');
@@ -811,9 +821,14 @@
 
             try {
                 const { data, error } = await sb.rpc('finalizar_pedido', {
-                    p_cliente: cliente, p_telefone: telefone, p_itens: itens,
-                    p_total: total, p_pagamento: pagamento, p_obs: obs,
-                    p_origem: 'c1', p_idempotency_key: idempotencyKey
+                    p_cliente: cliente,
+                    p_telefone: telefone,
+                    p_itens: itens,
+                    p_total: total,
+                    p_pagamento: pagamento,
+                    p_obs: obs,
+                    p_origem: 'c1',
+                    p_idempotency_key: idempotencyKey
                 });
 
                 if (error) throw new Error(error.message);
@@ -831,10 +846,11 @@
                 if (whatsNum) {
                     setTimeout(() => {
                         const msg = `🍦 *NOVO PEDIDO ${data.pedido_id}*\n\n` +
-                            `👤 ${cliente}\n📱 ${telefoneRaw}\n📍 ${obs.split('|')[1] || 'Retirada'}\n\n` +
+                            `👤 ${cliente}\n📱 ${telefoneRaw}\n📍 ${obs.split('|')[1] || 'Retirada'}\n` +
+                            `💳 Pagamento: ${formaTexto}\n\n` +
                             `📋 *Itens:*\n${itens.map(i => `• ${i.quantidade}x ${i.nome} - ${formatarPreco(i.preco * i.quantidade)}`).join('\n')}\n\n` +
                             `💰 Subtotal: ${formatarPreco(subtotal)}\n🚚 Taxa: ${formatarPreco(taxa)}\n` +
-                            `💵 *TOTAL: ${formatarPreco(total)}*\n\nForma: ${pagamento === 'pago' ? '✅ PIX' : '⏳ Pendente'}`;
+                            `💵 *TOTAL: ${formatarPreco(total)}*`;
                         window.open(`https://wa.me/55${whatsNum}?text=${encodeURIComponent(msg)}`, '_blank');
                     }, 800);
                 } else {
@@ -847,7 +863,7 @@
                 document.getElementById('cliente').value = '';
                 document.getElementById('telefone').value = '';
                 document.getElementById('setor').value = '';
-                document.getElementById('pagamento').value = 'pendente';
+                document.getElementById('pagamento').value = 'pix';
                 atualizarCarrinho();
                 setTimeout(carregarCardapio, 1500);
 
@@ -937,7 +953,7 @@
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🍦 Cardápio 1 - v4.0 carregado!');
+        console.log('🍦 Cardápio 1 - v6.0 (PIX/Cartão/Dinheiro) carregado!');
         console.log('🔒 Tema:', getTheme());
         console.log('📡 Realtime ativo.');
     })();
