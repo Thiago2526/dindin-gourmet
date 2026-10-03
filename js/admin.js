@@ -1,3 +1,6 @@
+(function() {
+'use strict';
+
 // ============================================================
 // SUPABASE CLIENT
 // ============================================================
@@ -10,7 +13,7 @@ if (SUPABASE_KEY.startsWith('eyJ') || SUPABASE_KEY.startsWith('sb_secret_')) {
 }
 console.log('%c🔒 Segurança OK', 'color: #22c55e; font-weight: bold;');
 
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storage: window.localStorage, flowType: 'pkce' }
 });
 
@@ -922,23 +925,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
             fecharModalTrocaSenha();
-            fecharModalInsumo();
-            fecharModalReceita();
+            if (typeof fecharModalInsumo === 'function') fecharModalInsumo();
+            if (typeof fecharModalReceita === 'function') fecharModalReceita();
             fecharModalEditarEstoque();
         }
     });
 
     document.getElementById('modalTrocaSenha').addEventListener('click', function(e) { if (e.target === this) fecharModalTrocaSenha(); });
-    document.getElementById('modalInsumo').addEventListener('click', function(e) { if (e.target === this) fecharModalInsumo(); });
-    document.getElementById('modalReceita').addEventListener('click', function(e) { if (e.target === this) fecharModalReceita(); });
     document.getElementById('modalEditarEstoque').addEventListener('click', function(e) { if (e.target === this) fecharModalEditarEstoque(); });
 
     document.getElementById('modalNovaSenha').addEventListener('input', function() { verificarForcaSenhaModal(this.value); });
-    document.getElementById('receitaRendimento').addEventListener('input', calcularReceitaPreview);
-    document.getElementById('receitaMargem').addEventListener('input', calcularReceitaPreview);
     document.getElementById('campoSenha').addEventListener('keypress', e => { if (e.key === 'Enter') fazerLogin(); });
 
     verificarSessao();
 });
 
 console.log('✅ Admin parte 1 carregado!');
+
+})();
