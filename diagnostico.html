@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico - Dindins Gourmet FX</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #0a0604, #1a0f0a);
+            color: #f0e0d0;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #DAA520; text-align: center; margin-bottom: 8px; font-size: 2em; }
+        .subtitle { text-align: center; color: #c4b0a0; margin-bottom: 30px; }
+        .check {
+            background: #24140c;
+            border: 1px solid #4a3020;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+        .check:hover { border-color: #6a4a30; transform: translateY(-2px); }
+        .check.ok { border-left: 4px solid #22c55e; }
+        .check.warning { border-left: 4px solid #f59e0b; }
+        .check.error { border-left: 4px solid #ef4444; }
+        .check.info { border-left: 4px solid #3b82f6; }
+        .check h3 { margin: 0 0 8px; font-size: 1.1em; display: flex; align-items: center; gap: 10px; }
+        .check p { margin: 4px 0; color: #c4b0a0; font-size: 0.9em; padding-left: 32px; }
+        .check code { background: #1a0f0a; padding: 2px 8px; border-radius: 6px; font-family: 'Courier New', monospace; color: #DAA520; font-size: 0.85em; }
+        .icon { font-size: 1.5em; }
+        .summary {
+            background: linear-gradient(135deg, #5C3317, #CC5500);
+            color: white;
+            padding: 30px;
+            border-radius: 14px;
+            margin-top: 30px;
+            text-align: center;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+        }
+        .summary h2 { margin: 0 0 12px; font-size: 1.4em; }
+        .summary .big { font-size: 4em; font-weight: 900; line-height: 1; margin: 12px 0; }
+        .summary .info { display: flex; justify-content: center; gap: 30px; margin-top: 20px; flex-wrap: wrap; }
+        .summary .info-item { text-align: center; }
+        .summary .info-item .num { font-size: 2em; font-weight: 700; }
+        .summary .info-item .lbl { font-size: 0.85em; opacity: 0.9; }
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: #CC5500;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover { background: #E0551F; transform: scale(1.05); }
+        .loading { text-align: center; padding: 60px 20px; color: #c4b0a0; }
+        .spinner {
+            width: 60px; height: 60px;
+            border: 6px solid rgba(204,85,0,0.3);
+            border-top: 6px solid #CC5500;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnóstico de Segurança</h1>
+        <p class="subtitle">Verificação automática do sistema</p>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Analisando segurança...</p>
+        </div>
+
+        <div id="resultados"></div>
+        <div id="resumo"></div>
+
+        <div style="text-align:center; margin-top:30px;">
+            <button class="btn" onclick="location.reload()">🔄 Reexecutar Diagnóstico</button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
+
+        const resultados = [];
+
+        function adicionarCheck(tipo, titulo, descricao, detalhes) {
+            resultados.push({ tipo, titulo, descricao, detalhes });
+        }
+
+        async function executarDiagnostico() {
+            // 1. HTTPS
+            if (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:') {
+                adicionarCheck('ok', '🔒 Conexão Segura', 'HTTPS ou ambiente local detectado.');
+            } else {
+                adicionarCheck('warning', '⚠️ HTTPS', 'Recomendado usar HTTPS em produção.');
+            }
+
+            // 2. Verificar chave exposta
+            try {
+                const response = await fetch(window.location.href);
+                const html = await response.text();
+
+                const temChaveSecreta = html.includes('sb_secret_') || /service_role_key/i.test(html);
+                const temChavePublica = html.includes('sb_publishable_');
+                const temJWT = /eyJ[A-Za-z0-9-_]{20,}\.[A-Za-z0-9-_]{20,}\.[A-Za-z0-9-_]{20,}/.test(html);
+
+                if (temChaveSecreta) {
+                    adicionarCheck('error', '🚨 CHAVE SECRETA EXPOSTA', 'service_role_key encontrada no HTML. REMOVA IMEDIATAMENTE!');
+                } else if (temChavePublica) {
+                    adicionarCheck('ok', '✅ Chave Pública Correta', 'Apenas a chave "publishable" está no cliente (correto).');
+                } else if (temJWT) {
+                    adicionarCheck('error', '🚨 JWT EXPOSTO', 'Token JWT detectado no HTML. Perigoso.');
+                } else {
+                    adicionarCheck('info', 'ℹ️ Chave não Detectada', 'Não foi possível identificar a chave.');
+                }
+            } catch (e) {
+                adicionarCheck('warning', '⚠️ Verificação Limitada', 'Não foi possível analisar o HTML.');
+            }
+
+            // 3. localStorage
+            const keys = Object.keys(localStorage);
+            const keysSensiveis = keys.filter(k => /password|senha|master|admin_plain|service_role/i.test(k));
+
+            if (keysSensiveis.length > 0) {
+                adicionarCheck('error', '🚨 Dados Sensíveis', `Chaves: ${keysSensiveis.join(', ')}`);
+            } else {
+                adicionarCheck('ok', '✅ localStorage Limpo', `${keys.length} chaves, nenhuma sensível.`, keys.length > 0 ? keys.join(', ') : 'Vazio');
+            }
+
+            // 4. Sessão
+            const temSessao = keys.some(k => k.includes('sb-') && k.includes('auth-token'));
+            if (temSessao) {
+                adicionarCheck('ok', '✅ Sessão Ativa', 'Sessão Supabase armazenada corretamente.');
+            } else {
+                adicionarCheck('info', 'ℹ️ Sem Sessão', 'Você não está logado.');
+            }
+
+            // 5. Temas separados
+            const temTemaAdmin = keys.includes('theme_admin');
+            const temTemaC1 = keys.includes('theme_c1');
+            const temTemaC2 = keys.includes('theme_c2');
+            const temTemaAntigo = keys.includes('theme');
+
+            if (temTemaAdmin || temTemaC1 || temTemaC2) {
+                adicionarCheck('ok', '✅ Temas Separados', 'Cada módulo tem seu próprio tema.');
+            } else if (temTemaAntigo) {
+                adicionarCheck('warning', '⚠️ Tema Compartilhado', 'Tema antigo em uso.');
+            } else {
+                adicionarCheck('info', 'ℹ️ Sem Tema', 'Nenhum tema salvo.');
+            }
+
+            // 6. Carrinho
+            const temCarrinho = keys.includes('carrinho_cardapio1') || keys.includes('carrinho_cardapio2');
+            if (temCarrinho) {
+                adicionarCheck('ok', '✅ Carrinho Persistente', 'Carrinho salvo no localStorage.');
+            } else {
+                adicionarCheck('info', 'ℹ️ Sem Carrinho', 'Nenhum carrinho ativo.');
+            }
+
+            // 7. Supabase
+            try {
+                const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                const { error } = await supabase.from('estoquecentral').select('*').limit(1);
+
+                if (error) {
+                    adicionarCheck('error', '🚨 Erro de Conexão', error.message);
+                } else {
+                    adicionarCheck('ok', '✅ Supabase Conectado', 'Conexão com o banco estabelecida.');
+                }
+
+                const { data: adminData, error: adminErr } = await supabase
+                    .from('admin_usuarios')
+                    .select('*')
+                    .limit(1);
+
+                if (adminErr && adminErr.code === '42501') {
+                    adicionarCheck('ok', '✅ RLS Ativo', 'Tabelas protegidas bloqueiam acesso não autorizado.');
+                } else if (!adminErr && adminData && adminData.length > 0) {
+                    adicionarCheck('warning', '⚠️ RLS Pode Estar Aberto', 'admin_usuarios retornou dados sem autenticação.');
+                } else {
+                    adicionarCheck('ok', '✅ RLS Ativo', 'Tabelas protegidas.');
+                }
+            } catch (e) {
+                adicionarCheck('error', '🚨 Erro Supabase', e.message);
+            }
+
+            renderizarResultados();
+        }
+
+        function renderizarResultados() {
+            document.getElementById('loading').style.display = 'none';
+            const container = document.getElementById('resultados');
+
+            container.innerHTML = resultados.map(r => {
+                const icons = { 'ok': '✅', 'warning': '⚠️', 'error': '❌', 'info': 'ℹ️' };
+                return `
+                    <div class="check ${r.tipo}">
+                        <h3><span class="icon">${icons[r.tipo]}</span>${r.titulo}</h3>
+                        <p>${r.descricao}</p>
+                        ${r.detalhes ? `<p style="margin-top:8px;"><code>${r.detalhes}</code></p>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            const erros = resultados.filter(r => r.tipo === 'error').length;
+            const warns = resultados.filter(r => r.tipo === 'warning').length;
+            const oks = resultados.filter(r => r.tipo === 'ok').length;
+
+            let nota = 'A+', cor = '#22c55e', emoji = '🏆', msg = 'Sistema Excelente!';
+            if (erros > 0) { nota = 'F'; cor = '#ef4444'; emoji = '🚨'; msg = 'Erros Críticos!'; }
+            else if (warns > 2) { nota = 'C'; cor = '#f59e0b'; emoji = '⚠️'; msg = 'Melhorias Necessárias'; }
+            else if (warns > 0) { nota = 'B+'; cor = '#3b82f6'; emoji = '👍'; msg = 'Sistema Bom!'; }
+
+            document.getElementById('resumo').innerHTML = `
+                <div class="summary">
+                    <h2>${emoji} ${msg}</h2>
+                    <div class="big" style="color: ${cor}">${nota}</div>
+                    <div class="info">
+                        <div class="info-item"><div class="num" style="color:#22c55e">${oks}</div><div class="lbl">✅ Aprovados</div></div>
+                        <div class="info-item"><div class="num" style="color:#f59e0b">${warns}</div><div class="lbl">⚠️ Avisos</div></div>
+                        <div class="info-item"><div class="num" style="color:#ef4444">${erros}</div><div class="lbl">❌ Erros</div></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.addEventListener('DOMContentLoaded', executarDiagnostico);
+    </script>
+</body>
+</html>
