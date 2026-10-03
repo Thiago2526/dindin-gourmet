@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cardápio 2 - Dindins Gourmet FX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6LfMeN0tAAAAAASDYqMp8YKrLZJI3myvbPUKEZBD"></script>
     <style>
         :root { --laranja:#CC5500; --dourado:#DAA520; --amarelo:#FFD700; --danger:#ef4444; --success:#22c55e; --info:#3b82f6; --radius:14px; --transition:all 0.3s cubic-bezier(0.4,0,0.2,1); }
         [data-theme="dark"] { --bg-primary:#0a0604; --bg-secondary:#160c08; --bg-card:#24140c; --bg-card-hover:#341c12; --bg-input:#1a0f0a; --text-primary:#f0e0d0; --text-secondary:#c4b0a0; --text-muted:#8a7a6a; --border-color:#4a3020; --border-hover:#6a4a30; --shadow:0 8px 32px rgba(0,0,0,0.8); --shadow-hover:0 12px 48px rgba(0,0,0,0.9); }
@@ -159,6 +160,8 @@
 
         const SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
+        const RECAPTCHA_SITE_KEY = '6LfMeN0tAAAAAASDYqMp8YKrLZJI3myvbPUKEZBD';
+        const RECAPTCHA_ACTION = 'finalizar_pedido';
 
         if (SUPABASE_KEY.startsWith('eyJ') || SUPABASE_KEY.startsWith('sb_secret_')) {
             console.error('🚨 CHAVE SECRETA NO FRONTEND! 🚨');
@@ -187,6 +190,29 @@
         }
 
         function formatarPreco(v) { return 'R$ ' + (v || 0).toFixed(2); }
+
+        // ═══════════════════════════════════════════════════
+        // VALIDAÇÃO reCAPTCHA v3
+        // ═══════════════════════════════════════════════════
+        async function validarCaptcha() {
+            if (typeof grecaptcha === 'undefined') {
+                throw new Error('reCAPTCHA não carregado');
+            }
+            const token = await grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: RECAPTCHA_ACTION });
+            const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-captcha`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${SUPABASE_KEY}`
+                },
+                body: JSON.stringify({ token, action: RECAPTCHA_ACTION })
+            });
+            const data = await res.json();
+            if (!data.success) {
+                throw new Error(`CAPTCHA falhou (score: ${data.score ?? 'n/a'})`);
+            }
+            return data;
+        }
 
         function abrirModalGrupo(mensagem) {
             ultimaMensagemPedido = mensagem;
@@ -402,6 +428,13 @@
             btn.disabled = true;
 
             try {
+                // ═══════════════════════════════════════════════════
+                // VALIDAÇÃO reCAPTCHA v3
+                // ═══════════════════════════════════════════════════
+                mostrarToast('🔐 Verificando segurança...', 'info');
+                await validarCaptcha();
+                // ═══════════════════════════════════════════════════
+
                 const idsItens = Object.keys(carrinho);
                 const { data: estoqueAtual, error: errEstoque } = await sb.from('estoquecentral').select('id, nome, alocadocardapio2').in('id', idsItens);
                 if (errEstoque) throw new Error('Erro ao validar estoque: ' + errEstoque.message);
@@ -498,7 +531,10 @@ ${itens.map(i => `• ${i.quantidade}x ${i.nome} — ${formatarPreco(i.preco * i
                 overlay.classList.add('hidden');
                 console.error('Erro:', error);
                 const msgErro = error.message || '';
-                if (msgErro.includes('Estoque insuficiente') || msgErro.includes('não encontrado')) {
+                if (msgErro.includes('CAPTCHA')) {
+                    mostrarToast('🚫 Verificação de segurança falhou. Recarregue e tente novamente.', 'error');
+                    logErro(error, 'captcha_c2');
+                } else if (msgErro.includes('Estoque insuficiente') || msgErro.includes('não encontrado')) {
                     mostrarToast('😢 Ops! Um item esgotou agora. Recarregando...', 'warning');
                     logErro(error, 'finalizarPedido_c2_conflito', { idempotencyKey: gerarIdempotencyKey(), cliente });
                     setTimeout(async () => { await carregarCardapio(); atualizarCarrinho(); }, 1000);
@@ -566,7 +602,7 @@ ${itens.map(i => `• ${i.quantidade}x ${i.nome} — ${formatarPreco(i.preco * i
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🔥 Cardápio 2 - v8.0 (grupo WhatsApp) carregado!');
+        console.log('🔥 Cardápio 2 - v8.1 (reCAPTCHA v3) carregado!');
     })();
     </script>
 </body>
