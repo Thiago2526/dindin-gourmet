@@ -1,5 +1,5 @@
 // ============================================================
-// PARTE 2 - FUNÇÕES RESTANTES
+// PARTE 2 - FUNÇÕES RESTANTES (CORRIGIDO COM sb)
 // ============================================================
 
 // ============================================================
@@ -7,7 +7,7 @@
 // ============================================================
 async function carregarFinanceiro() {
     try {
-        const { data } = await supabase.from('todospedidos').select('*');
+        const { data } = await sb.from('todospedidos').select('*');
         State.cache.pedidos = data || [];
         const total = State.cache.pedidos.filter(x => x.pagamentostatus === 'pago').reduce((s, x) => s + (x.total || 0), 0);
         const pend = State.cache.pedidos.filter(x => x.pagamentostatus !== 'pago').reduce((s, x) => s + (x.total || 0), 0);
@@ -35,7 +35,7 @@ window.limparFiltroFinanceiro = limparFiltroFinanceiro;
 // ============================================================
 async function carregarRanking() {
     try {
-        const { data } = await supabase.from('todospedidos').select('*');
+        const { data } = await sb.from('todospedidos').select('*');
         const cnt = {};
         (data || []).forEach(x => (x.itens || []).forEach(i => { cnt[i.nome] = (cnt[i.nome] || 0) + (i.quantidade || 0); }));
         const rk = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
@@ -81,7 +81,7 @@ function renderizarTabelaHistorico(dados) {
 async function carregarHistorico() {
     try {
         mostrarSkeleton('listaHistorico', 5);
-        const { data } = await supabase.from('historicoestoque').select('*').order('id', { ascending: false }).limit(200);
+        const { data } = await sb.from('historicoestoque').select('*').order('id', { ascending: false }).limit(200);
         State.cache.historico = data || [];
         renderizarTabelaHistorico(State.cache.historico);
     } catch (e) { tratarErro(e); }
@@ -112,7 +112,7 @@ window.limparFiltroHistorico = limparFiltroHistorico;
 async function carregarInsumos() {
     try {
         mostrarSkeleton('listaInsumos', 3);
-        const { data } = await supabase.from('insumos').select('*').order('nome');
+        const { data } = await sb.from('insumos').select('*').order('nome');
         State.cache.insumos = data || [];
         renderizarInsumos(State.cache.insumos);
         document.getElementById('insumosCount').textContent = State.cache.insumos.length;
@@ -188,8 +188,8 @@ async function salvarInsumo() {
             observacoes: document.getElementById('insumoObs').value.trim() || null
         };
         if (!d.nome) { mostrarToast('Digite o nome', 'warning'); return; }
-        if (id) await supabase.from('insumos').update(d).eq('id', id);
-        else await supabase.from('insumos').insert([d]);
+        if (id) await sb.from('insumos').update(d).eq('id', id);
+        else await sb.from('insumos').insert([d]);
         fecharModalInsumo();
         await carregarInsumos();
         mostrarToast('✅ Salvo!', 'success');
@@ -200,7 +200,7 @@ window.salvarInsumo = salvarInsumo;
 async function excluirInsumo(id) {
     if (!confirm('Excluir?')) return;
     try {
-        await supabase.from('insumos').delete().eq('id', id);
+        await sb.from('insumos').delete().eq('id', id);
         await carregarInsumos();
         mostrarToast('Excluído!');
     } catch (e) { tratarErro(e); }
@@ -212,7 +212,7 @@ window.excluirInsumo = excluirInsumo;
 // ============================================================
 async function carregarReceitas() {
     try {
-        const { data } = await supabase.from('receitas').select('*').order('nome_produto');
+        const { data } = await sb.from('receitas').select('*').order('nome_produto');
         State.cache.receitas = data || [];
         renderizarReceitas(State.cache.receitas);
     } catch (e) { tratarErro(e); }
@@ -240,7 +240,7 @@ async function abrirModalReceita(id) {
         document.getElementById('receitaRendimento').value = r.rendimento || 10;
         document.getElementById('receitaMargem').value = r.margem_lucro || 150;
         document.getElementById('receitaDescricao').value = r.descricao || '';
-        const { data } = await supabase.from('receita_ingredientes').select('*').eq('receita_id', id);
+        const { data } = await sb.from('receita_ingredientes').select('*').eq('receita_id', id);
         State.ingredientesTemporarios = (data || []).map(i => ({ insumo_id: i.insumo_id, quantidade: i.quantidade }));
     } else {
         document.getElementById('modalReceitaTitulo').textContent = '💰 Nova Receita';
@@ -348,13 +348,13 @@ async function salvarReceita() {
         };
         let rid = id;
         if (id) {
-            await supabase.from('receitas').update(d).eq('id', id);
-            await supabase.from('receita_ingredientes').delete().eq('receita_id', id);
+            await sb.from('receitas').update(d).eq('id', id);
+            await sb.from('receita_ingredientes').delete().eq('receita_id', id);
         } else {
-            const { data } = await supabase.from('receitas').insert([d]).select().single();
+            const { data } = await sb.from('receitas').insert([d]).select().single();
             rid = data.id;
         }
-        await supabase.from('receita_ingredientes').insert(State.ingredientesTemporarios.map(i => ({ receita_id: rid, insumo_id: i.insumo_id, quantidade: i.quantidade })));
+        await sb.from('receita_ingredientes').insert(State.ingredientesTemporarios.map(i => ({ receita_id: rid, insumo_id: i.insumo_id, quantidade: i.quantidade })));
         fecharModalReceita();
         await carregarReceitas();
         mostrarToast(`✅ Salvo! Venda: R$ ${pv.toFixed(2)}`, 'success');
@@ -364,7 +364,7 @@ window.salvarReceita = salvarReceita;
 
 async function recalcularReceita(id) {
     try {
-        await supabase.rpc('calcular_custo_receita', { p_receita_id: id });
+        await sb.rpc('calcular_custo_receita', { p_receita_id: id });
         await carregarReceitas();
         mostrarToast('Recalculado');
     } catch (e) { tratarErro(e); }
@@ -374,7 +374,7 @@ window.recalcularReceita = recalcularReceita;
 async function excluirReceita(id) {
     if (!confirm('Excluir?')) return;
     try {
-        await supabase.from('receitas').delete().eq('id', id);
+        await sb.from('receitas').delete().eq('id', id);
         await carregarReceitas();
         mostrarToast('Excluído');
     } catch (e) { tratarErro(e); }
@@ -386,7 +386,7 @@ window.excluirReceita = excluirReceita;
 // ============================================================
 async function carregarSetores() {
     try {
-        const { data } = await supabase.from('setores').select('*').order('nome');
+        const { data } = await sb.from('setores').select('*').order('nome');
         State.cache.setores = data || [];
         const l = document.getElementById('listaSetores');
         if (State.cache.setores.length === 0) {
@@ -404,9 +404,9 @@ async function cadastrarSetor() {
         const nome = document.getElementById('setorNome').value.trim();
         const taxa = parseFloat(document.getElementById('setorTaxa').value) || 0;
         if (!nome) { mostrarToast('Digite o nome', 'warning'); return; }
-        const { data: ex } = await supabase.from('setores').select('*').eq('nome', nome).maybeSingle();
+        const { data: ex } = await sb.from('setores').select('*').eq('nome', nome).maybeSingle();
         if (ex) { mostrarToast('Já existe', 'warning'); return; }
-        await supabase.from('setores').insert([{ nome, taxa_entrega: taxa, ativo: true }]);
+        await sb.from('setores').insert([{ nome, taxa_entrega: taxa, ativo: true }]);
         document.getElementById('setorNome').value = '';
         await carregarSetores();
         mostrarToast('✅ Cadastrado!');
@@ -423,7 +423,7 @@ async function editarSetor(id) {
         const t = parseFloat(prompt('Taxa:', s.taxa_entrega || 0));
         if (isNaN(t)) return;
         const a = confirm('Ativo?');
-        await supabase.from('setores').update({ nome: n, taxa_entrega: t, ativo: a }).eq('id', id);
+        await sb.from('setores').update({ nome: n, taxa_entrega: t, ativo: a }).eq('id', id);
         await carregarSetores();
         mostrarToast('Atualizado');
     } catch (e) { tratarErro(e); }
@@ -433,7 +433,7 @@ window.editarSetor = editarSetor;
 async function excluirSetor(id) {
     if (!confirm('Excluir?')) return;
     try {
-        await supabase.from('setores').delete().eq('id', id);
+        await sb.from('setores').delete().eq('id', id);
         await carregarSetores();
         mostrarToast('Excluído');
     } catch (e) { tratarErro(e); }
@@ -445,7 +445,7 @@ window.excluirSetor = excluirSetor;
 // ============================================================
 async function carregarConfig() {
     try {
-        const { data } = await supabase.from('config').select('*').eq('chave', 'admin').maybeSingle();
+        const { data } = await sb.from('config').select('*').eq('chave', 'admin').maybeSingle();
         State.cache.config = data ? (data.dados || {}) : {};
         document.getElementById('configWhatsapp').value = State.cache.config.whatsapp || '';
         document.getElementById('configPix').value = State.cache.config.pix || '';
@@ -466,7 +466,7 @@ async function salvarConfig() {
             endereco: document.getElementById('configEndereco').value.trim(),
             grupoWhatsapp: document.getElementById('configGrupoWhatsapp').value.trim()
         };
-        await supabase.from('config').upsert({ chave: 'admin', dados: d });
+        await sb.from('config').upsert({ chave: 'admin', dados: d });
         State.cache.config = d;
         mostrarToast('✅ Salvo!', 'success');
     });
@@ -481,7 +481,7 @@ async function carregarAuditoria(page = 1) {
         State.pagination.auditoria.page = page;
         const limit = 10, from = (page - 1) * limit, to = from + limit - 1;
         mostrarSkeleton('listaAuditoria', 3);
-        let q = supabase.from('audit_log').select('*', { count: 'exact' }).order('criado_em', { ascending: false }).range(from, to);
+        let q = sb.from('audit_log').select('*', { count: 'exact' }).order('criado_em', { ascending: false }).range(from, to);
         const a = document.getElementById('filtroAuditoriaAcao')?.value;
         const t = document.getElementById('filtroAuditoriaTabela')?.value;
         const u = document.getElementById('filtroAuditoriaUsuario')?.value?.trim();
