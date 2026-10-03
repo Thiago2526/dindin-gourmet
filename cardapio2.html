@@ -460,6 +460,9 @@
     </div>
 
     <script>
+    (function() {
+        'use strict';
+
         // ================================================================
         // VALIDAÇÃO DE SEGURANÇA
         // ================================================================
@@ -467,18 +470,16 @@
         const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
 
         if (SUPABASE_KEY.startsWith('eyJ') || SUPABASE_KEY.startsWith('sb_secret_')) {
-            console.error('🚨🚨🚨 CHAVE SECRETA NO FRONTEND! 🚨🚨🚨');
+            console.error('🚨 CHAVE SECRETA NO FRONTEND! 🚨');
             alert('🚨 ERRO CRÍTICO DE SEGURANÇA. Contate o desenvolvedor.');
-            document.body.innerHTML = '<div style="padding:40px;text-align:center;background:#7f1d1d;color:white;min-height:100vh;"><h1>🚨 ERRO CRÍTICO</h1><p>Chave secreta detectada no cliente.</p></div>';
             throw new Error('Chave secreta no cliente');
         }
-
         console.log('%c🔒 Segurança OK', 'color: #22c55e; font-weight: bold;');
 
         // ================================================================
-        // SUPABASE
+        // SUPABASE (usa "sb" para evitar conflito)
         // ================================================================
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ================================================================
         // ESTADO
@@ -506,19 +507,17 @@
         function formatarPreco(v) { return 'R$ ' + (v || 0).toFixed(2); }
 
         // ================================================================
-        // TEMA SEPARADO DO CARDÁPIO 2
+        // TEMA
         // ================================================================
         const THEME_KEY = 'theme_c2';
-
         function getTheme() { return localStorage.getItem(THEME_KEY) || 'dark'; }
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem(THEME_KEY, theme);
-            document.getElementById('themeIcon').textContent = theme === 'dark' ? '🌙' : '☀️';
+            const i = document.getElementById('themeIcon');
+            if (i) i.textContent = theme === 'dark' ? '🌙' : '☀️';
         }
-        function toggleTheme() {
-            setTheme(getTheme() === 'dark' ? 'light' : 'dark');
-        }
+        function toggleTheme() { setTheme(getTheme() === 'dark' ? 'light' : 'dark'); }
         setTheme(getTheme());
 
         function mascararTelefone(input) {
@@ -533,14 +532,11 @@
         }
 
         // ================================================================
-        // CARRINHO COM LIMPEZA AUTOMÁTICA (7 DIAS)
+        // CARRINHO
         // ================================================================
         function salvarCarrinho() {
             try {
-                const data = {
-                    itens: carrinho,
-                    timestamp: Date.now()
-                };
+                const data = { itens: carrinho, timestamp: Date.now() };
                 localStorage.setItem('carrinho_cardapio2', JSON.stringify(data));
             } catch (e) {}
         }
@@ -549,34 +545,20 @@
             try {
                 const salvo = localStorage.getItem('carrinho_cardapio2');
                 if (!salvo) return;
-
                 const data = JSON.parse(salvo);
-
-                if (!data.itens) {
-                    carrinho = data;
-                    return;
-                }
-
+                if (!data.itens) { carrinho = data; return; }
                 const diasDecorridos = (Date.now() - data.timestamp) / (1000 * 60 * 60 * 24);
                 if (diasDecorridos > CART_EXPIRY_DAYS) {
-                    console.log('🗑️ Carrinho expirado (>7 dias). Removendo...');
                     localStorage.removeItem('carrinho_cardapio2');
                     carrinho = {};
                     return;
                 }
-
                 carrinho = data.itens || {};
-            } catch (e) {
-                carrinho = {};
-            }
+            } catch (e) { carrinho = {}; }
         }
 
-        // ================================================================
-        // AVISO DE CARRINHO AO VOLTAR
-        // ================================================================
         function verificarCarrinhoSalvo() {
             const totalItens = Object.values(carrinho).reduce((acc, item) => acc + item.quantidade, 0);
-
             if (totalItens > 0) {
                 setTimeout(() => {
                     mostrarToast(`🛒 Você tem ${totalItens} ${totalItens === 1 ? 'item' : 'itens'} no carrinho.`, 'info');
@@ -585,11 +567,11 @@
         }
 
         // ================================================================
-        // LOG DE ERROS NO SUPABASE
+        // LOG DE ERROS
         // ================================================================
         async function logErro(erro, contexto, extras = {}) {
             try {
-                await supabase.from('error_logs').insert([{
+                await sb.from('error_logs').insert([{
                     contexto,
                     mensagem: erro.message || String(erro),
                     stack: erro.stack || null,
@@ -597,7 +579,7 @@
                     url: window.location.href,
                     dados_extras: extras
                 }]);
-            } catch (e) { /* silencioso */ }
+            } catch (e) {}
         }
 
         // ================================================================
@@ -621,22 +603,14 @@
         // ================================================================
         async function carregarConfig() {
             try {
-                const { data } = await supabase
-                    .from('config')
-                    .select('*')
-                    .eq('chave', 'admin')
-                    .maybeSingle();
+                const { data } = await sb.from('config').select('*').eq('chave', 'admin').maybeSingle();
                 if (data && data.dados) config = data.dados;
             } catch (e) { console.warn('Config não carregada:', e); }
         }
 
         async function carregarSetores() {
             try {
-                const { data, error } = await supabase
-                    .from('setores')
-                    .select('*')
-                    .eq('ativo', true)
-                    .order('nome');
+                const { data, error } = await sb.from('setores').select('*').eq('ativo', true).order('nome');
                 if (error) throw error;
                 setores = data || [];
                 const sel = document.getElementById('setor');
@@ -647,15 +621,9 @@
             } catch (e) { console.warn('Setores não carregados:', e); }
         }
 
-        // ✅ CORRIGIDO - Busca do estoquecentral filtrando alocadocardapio2 > 0
         async function carregarCardapio() {
             try {
-                const { data, error } = await supabase
-                    .from('estoquecentral')
-                    .select('*')
-                    .gt('alocadocardapio2', 0)
-                    .order('nome');
-
+                const { data, error } = await sb.from('estoquecentral').select('*').gt('alocadocardapio2', 0).order('nome');
                 if (error) throw error;
 
                 produtos = (data || []).map(i => ({
@@ -696,9 +664,7 @@
                     alterou = true;
                 } else if (carrinho[id].quantidade > prod.disponivel) {
                     carrinho[id].quantidade = prod.disponivel;
-                    if (prod.disponivel === 0) {
-                        delete carrinho[id];
-                    }
+                    if (prod.disponivel === 0) { delete carrinho[id]; }
                     alterou = true;
                     mostrarToast(`⚠️ Quantidade de "${prod.nome}" ajustada para ${prod.disponivel}.`, 'warning');
                 }
@@ -707,7 +673,6 @@
             if (itensRemovidos.length > 0) {
                 mostrarToast(`⚠️ Itens removidos (indisponíveis): ${itensRemovidos.join(', ')}`, 'warning');
             }
-
             if (alterou) salvarCarrinho();
         }
 
@@ -754,7 +719,7 @@
         }
 
         // ================================================================
-        // CARRINHO
+        // CARRINHO (ações)
         // ================================================================
         function alterarQuantidade(id, delta) {
             const item = produtos.find(p => p.id == id);
@@ -766,7 +731,6 @@
                 mostrarToast(`⚠️ Máximo de ${MAX_POR_ITEM} unidades por item.`, 'warning');
                 return;
             }
-
             if (novaQtd > item.disponivel) {
                 mostrarToast('⚠️ Não há estoque suficiente.', 'warning');
                 return;
@@ -874,7 +838,7 @@
         }
 
         // ================================================================
-        // FINALIZAR PEDIDO (ORIGEM C2)
+        // FINALIZAR PEDIDO
         // ================================================================
         async function finalizarPedidoCliente() {
             const cliente = document.getElementById('cliente').value.trim();
@@ -903,14 +867,13 @@
             }
 
             const idempotencyKey = gerarIdempotencyKey();
-
             const overlay = document.getElementById('loadingOverlay');
             const btn = document.getElementById('btnFinalizar');
             overlay.classList.remove('hidden');
             btn.disabled = true;
 
             try {
-                const { data, error } = await supabase.rpc('finalizar_pedido', {
+                const { data, error } = await sb.rpc('finalizar_pedido', {
                     p_cliente: cliente,
                     p_telefone: telefone,
                     p_itens: itens,
@@ -967,15 +930,12 @@
         }
 
         // ================================================================
-        // REALTIME - ATUALIZAÇÃO AUTOMÁTICA
+        // REALTIME
         // ================================================================
         function iniciarRealtime() {
-            if (realtimeChannel) {
-                supabase.removeChannel(realtimeChannel);
-            }
+            if (realtimeChannel) { sb.removeChannel(realtimeChannel); }
 
-            realtimeChannel = supabase
-                .channel('estoque-c2-changes')
+            realtimeChannel = sb.channel('estoque-c2-changes')
                 .on('postgres_changes',
                     { event: '*', schema: 'public', table: 'estoquecentral' },
                     (payload) => {
@@ -998,12 +958,8 @@
                                 existente.foto = novo.foto || existente.foto;
                             } else if (alocado > 0) {
                                 produtos.push({
-                                    id: novo.id,
-                                    nome: novo.nome,
-                                    emoji: novo.emoji || '🔥',
-                                    preco: novo.preco || 0,
-                                    foto: novo.foto,
-                                    disponivel: alocado
+                                    id: novo.id, nome: novo.nome, emoji: novo.emoji || '🔥',
+                                    preco: novo.preco || 0, foto: novo.foto, disponivel: alocado
                                 });
                             }
                         }
@@ -1058,9 +1014,10 @@
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🔥 Cardápio 2 - v3.0 carregado!');
+        console.log('🔥 Cardápio 2 - v4.0 carregado!');
         console.log('🔒 Tema:', getTheme());
         console.log('📡 Realtime ativo.');
+    })();
     </script>
 </body>
 </html>
