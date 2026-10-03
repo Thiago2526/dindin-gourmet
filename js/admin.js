@@ -10,7 +10,7 @@ if (SUPABASE_KEY.startsWith('eyJ') || SUPABASE_KEY.startsWith('sb_secret_')) {
 }
 console.log('%c🔒 Segurança OK', 'color: #22c55e; font-weight: bold;');
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storage: window.localStorage, flowType: 'pkce' }
 });
 
