@@ -839,14 +839,80 @@ function limparFiltroPedidos() {
 window.aplicarFiltroPedidos = aplicarFiltroPedidos;
 window.limparFiltroPedidos = limparFiltroPedidos;
 
+// ============================================================
+// EXCLUIR PEDIDO (COM OPÇÃO DE DEVOLVER ESTOQUE)
+// ============================================================
 async function excluirPedido(id) {
-    if (!confirm('Excluir?')) return;
+    const pedido = State.cache.pedidos.find(p => p.id === id);
+    if (!pedido) { mostrarToast('Pedido não encontrado', 'error'); return; }
+
+    if (!confirm('🗑️ Excluir este pedido?')) return;
+
+    // Perguntar se quer devolver estoque
+    let devolverEstoque = false;
+    if (pedido.itens && pedido.itens.length > 0) {
+        const listaItens = pedido.itens.map(i => `• ${i.quantidade}x ${i.nome}`).join('\n');
+        devolverEstoque = confirm(
+            `📦 DEVOLVER ITENS AO ESTOQUE?\n\n` +
+            `Itens do pedido ${pedido.pedido_id || '#' + id}:\n${listaItens}\n\n` +
+            `✅ OK = Devolver ao estoque\n` +
+            `❌ Cancelar = NÃO devolver`
+        );
+    }
+
     try {
-        await sb.from('todospedidos').delete().eq('id', id);
+        // Se for devolver, percorre os itens e soma de volta
+        if (devolverEstoque && pedido.itens) {
+            for (const item of pedido.itens) {
+                const nome = item.nome;
+                const qtd = item.quantidade || 0;
+                if (!nome || qtd <= 0) continue;
+
+                // Buscar produto pelo nome
+                const { data: prod } = await sb
+                    .from('estoquecentral')
+                    .select('*')
+                    .ilike('nome', nome)
+                    .maybeSingle();
+
+                if (prod) {
+                    const novoTotal = (prod.quantidadetotal || 0) + qtd;
+                    await sb
+                        .from('estoquecentral')
+                        .update({ quantidadetotal: novoTotal })
+                        .eq('id', prod.id);
+
+                    // Registrar no histórico
+                    try {
+                        await sb.from('historicoestoque').insert([{
+                            data: new Date().toLocaleString('pt-BR'),
+                            tipo: 'entrada',
+                            item: nome,
+                            quantidade: qtd,
+                            obs: `Devolução - Pedido ${pedido.pedido_id || '#' + id} excluído`
+                        }]);
+                    } catch (e) { /* silencioso */ }
+                }
+            }
+        }
+
+        // Excluir o pedido
+        const { error } = await sb.from('todospedidos').delete().eq('id', id);
+        if (error) throw error;
+
         await carregarPedidos(State.pagination.pedidos.page);
         await carregarDashboard();
-        mostrarToast('Excluído!');
-    } catch (e) { tratarErro(e); }
+
+        if (devolverEstoque) {
+            await carregarEstoque();
+            await carregarC1();
+            await carregarC2();
+            mostrarToast('🗑️ Pedido excluído e estoque devolvido!', 'success');
+        } else {
+            mostrarToast('🗑️ Pedido excluído!', 'success');
+        }
+
+    } catch (e) { tratarErro(e, 'Erro ao excluir pedido'); }
 }
 window.excluirPedido = excluirPedido;
 
@@ -938,3 +1004,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 console.log('✅ Admin parte 1 carregado!');
 console.log('📦 Estoque detalhado v3.0');
+console.log('🗑️ Exclusão com opção de devolver estoque');
