@@ -151,6 +151,7 @@
         <div class="header-painel">
             <h2>🍦 Dindins Gourmet FX</h2>
             <div class="header-actions">
+                <button class="btn btn-primary btn-sm" onclick="carregarTudo()" title="Atualizar todos os dados">🔄 Tudo</button>
                 <button class="btn btn-theme" onclick="toggleTheme()"><span id="themeIcon">🌙</span></button>
                 <span class="user-info" id="userLogado">👤 Carregando...</span>
                 <button class="btn btn-info btn-sm" onclick="abrirModalTrocaSenha()">🔒 Trocar Senha</button>
@@ -178,13 +179,21 @@
 
         <!-- DASHBOARD -->
         <div class="conteudo active" id="conteudo-dashboard">
-            <h3>📊 Dashboard</h3>
+            <h3>📊 Dashboard
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarDashboard()">🔄 Atualizar</button>
+                </div>
+            </h3>
             <div class="dashboard-cards" id="dashboardCards"></div>
         </div>
 
         <!-- ESTOQUE -->
         <div class="conteudo" id="conteudo-estoque">
-            <h3>📦 Estoque Geral</h3>
+            <h3>📦 Estoque Geral
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarEstoque()">🔄 Atualizar</button>
+                </div>
+            </h3>
             <div class="form-row">
                 <div class="form-group"><label>Nome</label><input type="text" id="estoqueNome"></div>
                 <div class="form-group" style="flex:0.3;"><label>Emoji</label><input type="text" id="estoqueEmoji" maxlength="2" value="🍦"></div>
@@ -198,20 +207,28 @@
             </div>
             <div class="flex gap-8 flex-wrap">
                 <button class="btn btn-primary" onclick="cadastrarItem()">💾 Cadastrar</button>
-                <button class="btn btn-success" onclick="carregarEstoque()">🔄 Atualizar</button>
+                <button class="btn btn-success" onclick="carregarEstoque()">🔄 Atualizar Lista</button>
             </div>
             <div id="listaEstoque" class="mt-16"></div>
         </div>
 
         <!-- CARDÁPIO 1 -->
         <div class="conteudo" id="conteudo-c1">
-            <h3>📋 Cardápio 1</h3>
+            <h3>📋 Cardápio 1
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarC1()">🔄 Atualizar</button>
+                </div>
+            </h3>
             <div id="listaC1"></div>
         </div>
 
         <!-- CARDÁPIO 2 -->
         <div class="conteudo" id="conteudo-c2">
-            <h3>🔥 Cardápio 2</h3>
+            <h3>🔥 Cardápio 2
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarC2()">🔄 Atualizar</button>
+                </div>
+            </h3>
             <div class="form-row">
                 <div class="form-group"><label>Sabor</label><select id="alocarSabor"><option value="">Selecione...</option></select></div>
                 <div class="form-group" style="flex:0.4;"><label>Qtd</label><input type="number" id="alocarQtd" value="10" min="1"></div>
@@ -223,7 +240,10 @@
         <!-- PEDIDOS -->
         <div class="conteudo" id="conteudo-pedidos">
             <h3>📋 Pedidos <span class="badge-count" id="pedidosCount">0</span>
-                <div class="btn-group"><button class="btn btn-success btn-sm" onclick="exportarPedidosCSV()">📥 CSV</button></div>
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarPedidos(1)">🔄 Atualizar</button>
+                    <button class="btn btn-success btn-sm" onclick="exportarPedidosCSV()">📥 CSV</button>
+                </div>
             </h3>
             <div class="filtros-container">
                 <div class="form-group"><label>Status</label><select id="filtroPedidosStatus">
@@ -241,7 +261,11 @@
 
         <!-- PAGAMENTOS -->
         <div class="conteudo" id="conteudo-pagamentos">
-            <h3>💳 Pagamentos <span class="badge-count" id="pagamentosCount">0</span></h3>
+            <h3>💳 Pagamentos <span class="badge-count" id="pagamentosCount">0</span>
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarPagamentos()">🔄 Atualizar</button>
+                </div>
+            </h3>
             <div class="filtros-container">
                 <div class="form-group"><label>Status</label><select id="filtroPagamentosStatus">
                     <option value="todos">Todos</option><option value="pago">Pago</option><option value="pendente">Pendente</option>
@@ -258,7 +282,11 @@
 
         <!-- FINANCEIRO -->
         <div class="conteudo" id="conteudo-financeiro">
-            <h3>💰 Financeiro</h3>
+            <h3>💰 Financeiro
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarFinanceiro()">🔄 Atualizar</button>
+                </div>
+            </h3>
             <div class="filtros-container">
                 <div class="form-group"><label>Início</label><input type="date" id="filtroFinanceiroInicio"></div>
                 <div class="form-group"><label>Fim</label><input type="date" id="filtroFinanceiroFim"></div>
@@ -271,7 +299,11 @@
 
         <!-- RANKING -->
         <div class="conteudo" id="conteudo-ranking">
-            <h3>🏆 Mais Vendidos</h3>
+            <h3>🏆 Mais Vendidos
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarRanking()">🔄 Atualizar</button>
+                </div>
+            </h3>
             <div class="filtros-container">
                 <div class="form-group"><label>Início</label><input type="date" id="filtroRankingInicio"></div>
                 <div class="form-group"><label>Fim</label><input type="date" id="filtroRankingFim"></div>
@@ -283,7 +315,11 @@
 
         <!-- HISTÓRICO -->
         <div class="conteudo" id="conteudo-historico">
-            <h3>📜 Histórico de Estoque</h3>
+            <h3>📜 Histórico de Estoque
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarHistorico()">🔄 Atualizar</button>
+                </div>
+            </h3>
             <div class="filtros-container">
                 <div class="form-group"><label>Tipo</label><select id="filtroHistoricoTipo">
                     <option value="todos">Todos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="alocacao">Alocação</option>
@@ -298,7 +334,10 @@
         <!-- INSUMOS -->
         <div class="conteudo" id="conteudo-insumos">
             <h3>🧪 Insumos <span class="badge-count" id="insumosCount">0</span>
-                <div class="btn-group"><button class="btn btn-success btn-sm" onclick="abrirModalInsumo()">➕ Novo</button></div>
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarInsumos()">🔄 Atualizar</button>
+                    <button class="btn btn-success btn-sm" onclick="abrirModalInsumo()">➕ Novo</button>
+                </div>
             </h3>
             <div class="filtros-container">
                 <div class="form-group"><label>Buscar</label><input type="text" id="filtroInsumos" oninput="filtrarInsumos()"></div>
@@ -312,14 +351,21 @@
         <!-- CALCULADORA -->
         <div class="conteudo" id="conteudo-calculadora">
             <h3>💰 Calculadora
-                <div class="btn-group"><button class="btn btn-success btn-sm" onclick="abrirModalReceita()">➕ Nova Receita</button></div>
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarReceitas()">🔄 Atualizar</button>
+                    <button class="btn btn-success btn-sm" onclick="abrirModalReceita()">➕ Nova Receita</button>
+                </div>
             </h3>
             <div id="listaReceitas"></div>
         </div>
 
         <!-- SETORES -->
         <div class="conteudo" id="conteudo-setores">
-            <h3>📍 Setores</h3>
+            <h3>📍 Setores
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarSetores()">🔄 Atualizar</button>
+                </div>
+            </h3>
             <div style="background:var(--bg-secondary);padding:16px;border-radius:var(--radius);margin-bottom:16px;">
                 <div class="form-row">
                     <div class="form-group" style="flex:2;"><label>Nome</label><input type="text" id="setorNome"></div>
@@ -334,7 +380,11 @@
 
         <!-- ADMINS -->
         <div class="conteudo" id="conteudo-admins">
-            <h3>👥 Admins</h3>
+            <h3>👥 Admins
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarListaAdmins()">🔄 Atualizar</button>
+                </div>
+            </h3>
             <div class="card-item" style="flex-direction:column;align-items:stretch;">
                 <div class="form-row">
                     <div class="form-group"><label>Nome</label><input type="text" id="adminNome"></div>
@@ -364,7 +414,11 @@
 
         <!-- CONFIG -->
         <div class="conteudo" id="conteudo-config">
-            <h3>⚙️ Configurações</h3>
+            <h3>⚙️ Configurações
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarConfig()">🔄 Atualizar</button>
+                </div>
+            </h3>
             <div class="form-group"><label>WhatsApp</label><input type="text" id="configWhatsapp" maxlength="15"></div>
             <div class="form-group"><label>PIX</label><input type="text" id="configPix" maxlength="200"></div>
             <div class="form-group"><label>InfinitePay</label><input type="text" id="configInfinitePay" maxlength="500"></div>
@@ -375,7 +429,11 @@
 
         <!-- AUDITORIA -->
         <div class="conteudo" id="conteudo-auditoria">
-            <h3>📋 Auditoria</h3>
+            <h3>📋 Auditoria
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarAuditoria(1)">🔄 Atualizar</button>
+                </div>
+            </h3>
             <div class="filtros-container">
                 <div class="form-group"><label>Ação</label><select id="filtroAuditoriaAcao">
                     <option value="todos">Todos</option><option value="INSERT">Insert</option><option value="UPDATE">Update</option><option value="DELETE">Delete</option>
@@ -393,7 +451,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/admin.js?v=10"></script>
-    <script src="js/admin-part2.js?v=10"></script>
+    <script src="js/admin.js?v=11"></script>
+    <script src="js/admin-part2.js?v=11"></script>
 </body>
 </html>
