@@ -110,6 +110,19 @@
         </div>
     </div>
 
+    <!-- MODAL LEMBRETE PENDENTES -->
+    <div class="modal-overlay" id="modalLembretePendentes">
+        <div class="modal-box modal-large">
+            <button class="close-btn" onclick="fecharModalLembrete()">✕</button>
+            <h3>💳 Lembretes Pendentes</h3>
+            <p style="color:var(--text-secondary);margin-bottom:16px;">Clientes com pagamentos em aberto — clique em <strong>📱 Enviar Lembrete</strong> para cobrar</p>
+            <div id="listaClientesPendentes" style="max-height:60vh;overflow-y:auto;"></div>
+            <div class="btn-row" style="margin-top:16px;">
+                <button class="btn btn-danger" onclick="fecharModalLembrete()">❌ Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- TELA DE LOGIN -->
     <div id="telaLogin" class="login-container">
         <div class="login-box">
@@ -163,11 +176,13 @@
             <button class="tab-btn" data-tab="auditoria">📋 Auditoria</button>
         </div>
 
+        <!-- DASHBOARD -->
         <div class="conteudo active" id="conteudo-dashboard">
             <h3>📊 Dashboard</h3>
             <div class="dashboard-cards" id="dashboardCards"></div>
         </div>
 
+        <!-- ESTOQUE -->
         <div class="conteudo" id="conteudo-estoque">
             <h3>📦 Estoque Geral</h3>
             <div class="form-row">
@@ -188,11 +203,13 @@
             <div id="listaEstoque" class="mt-16"></div>
         </div>
 
+        <!-- CARDÁPIO 1 -->
         <div class="conteudo" id="conteudo-c1">
             <h3>📋 Cardápio 1</h3>
             <div id="listaC1"></div>
         </div>
 
+        <!-- CARDÁPIO 2 -->
         <div class="conteudo" id="conteudo-c2">
             <h3>🔥 Cardápio 2</h3>
             <div class="form-row">
@@ -203,6 +220,7 @@
             <div id="listaC2" class="mt-16"></div>
         </div>
 
+        <!-- PEDIDOS -->
         <div class="conteudo" id="conteudo-pedidos">
             <h3>📋 Pedidos <span class="badge-count" id="pedidosCount">0</span>
                 <div class="btn-group"><button class="btn btn-success btn-sm" onclick="exportarPedidosCSV()">📥 CSV</button></div>
@@ -221,6 +239,7 @@
             <div id="paginacaoPedidos" class="pagination"></div>
         </div>
 
+        <!-- PAGAMENTOS -->
         <div class="conteudo" id="conteudo-pagamentos">
             <h3>💳 Pagamentos <span class="badge-count" id="pagamentosCount">0</span></h3>
             <div class="filtros-container">
@@ -233,10 +252,11 @@
                 <button class="btn btn-primary" onclick="aplicarFiltroPagamentos()">🔍 Filtrar</button>
                 <button class="btn btn-limpar" onclick="limparFiltroPagamentos()">🗑️ Limpar</button>
             </div>
-            <button class="btn btn-whatsapp" onclick="lembrarTodosPendentes()" style="margin-bottom:16px;">📱 Lembrar Pendentes</button>
+            <button class="btn btn-whatsapp" onclick="lembrarTodosPendentes()" style="margin-bottom:16px;">📱 Lembrar Todos Pendentes</button>
             <div id="listaPagamentos"></div>
         </div>
 
+        <!-- FINANCEIRO -->
         <div class="conteudo" id="conteudo-financeiro">
             <h3>💰 Financeiro</h3>
             <div class="filtros-container">
@@ -249,6 +269,7 @@
             <div id="listaFinanceiro"></div>
         </div>
 
+        <!-- RANKING -->
         <div class="conteudo" id="conteudo-ranking">
             <h3>🏆 Mais Vendidos</h3>
             <div class="filtros-container">
@@ -260,6 +281,7 @@
             <div id="listaRanking"></div>
         </div>
 
+        <!-- HISTÓRICO -->
         <div class="conteudo" id="conteudo-historico">
             <h3>📜 Histórico de Estoque</h3>
             <div class="filtros-container">
@@ -273,6 +295,7 @@
             <div id="listaHistorico"></div>
         </div>
 
+        <!-- INSUMOS -->
         <div class="conteudo" id="conteudo-insumos">
             <h3>🧪 Insumos <span class="badge-count" id="insumosCount">0</span>
                 <div class="btn-group"><button class="btn btn-success btn-sm" onclick="abrirModalInsumo()">➕ Novo</button></div>
@@ -286,6 +309,7 @@
             <div id="listaInsumos"></div>
         </div>
 
+        <!-- CALCULADORA -->
         <div class="conteudo" id="conteudo-calculadora">
             <h3>💰 Calculadora
                 <div class="btn-group"><button class="btn btn-success btn-sm" onclick="abrirModalReceita()">➕ Nova Receita</button></div>
@@ -293,6 +317,7 @@
             <div id="listaReceitas"></div>
         </div>
 
+        <!-- SETORES -->
         <div class="conteudo" id="conteudo-setores">
             <h3>📍 Setores</h3>
             <div style="background:var(--bg-secondary);padding:16px;border-radius:var(--radius);margin-bottom:16px;">
@@ -307,6 +332,7 @@
             <div id="listaSetores"></div>
         </div>
 
+        <!-- ADMINS -->
         <div class="conteudo" id="conteudo-admins">
             <h3>👥 Admins</h3>
             <div class="card-item" style="flex-direction:column;align-items:stretch;">
@@ -336,6 +362,7 @@
             <div id="listaAdmins"></div>
         </div>
 
+        <!-- CONFIG -->
         <div class="conteudo" id="conteudo-config">
             <h3>⚙️ Configurações</h3>
             <div class="form-group"><label>WhatsApp</label><input type="text" id="configWhatsapp" maxlength="15"></div>
@@ -346,6 +373,7 @@
             <button class="btn btn-success" onclick="salvarConfig()">💾 Salvar</button>
         </div>
 
+        <!-- AUDITORIA -->
         <div class="conteudo" id="conteudo-auditoria">
             <h3>📋 Auditoria</h3>
             <div class="filtros-container">
@@ -365,7 +393,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/admin.js?v=3"></script>
-    <script src="js/admin-part2.js?v=3"></script>
+    <script src="js/admin.js?v=10"></script>
+    <script src="js/admin-part2.js?v=10"></script>
 </body>
 </html>
