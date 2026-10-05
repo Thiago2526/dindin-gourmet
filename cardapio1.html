@@ -6,7 +6,6 @@
     <meta name="theme-color" content="#0a0604">
     <title>Cardápio 1 - Dindins Gourmet FX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://www.google.com/recaptcha/api.js?render=6LfMeN0tAAAAAASDYqMp8YKrLZJI3myvbPUKEZBD"></script>
     <style>
         :root { --laranja:#CC5500; --dourado:#DAA520; --amarelo:#FFD700; --danger:#ef4444; --success:#22c55e; --info:#3b82f6; --roxo:#8b5cf6; --radius:14px; --transition:all 0.3s cubic-bezier(0.4,0,0.2,1); }
         [data-theme="dark"] { --bg-primary:#0a0604; --bg-secondary:#160c08; --bg-card:#24140c; --bg-card-hover:#341c12; --bg-input:#1a0f0a; --text-primary:#f0e0d0; --text-secondary:#c4b0a0; --text-muted:#8a7a6a; --border-color:#4a3020; --border-hover:#6a4a30; --shadow:0 8px 32px rgba(0,0,0,0.8); --shadow-hover:0 12px 48px rgba(0,0,0,0.9); }
@@ -84,15 +83,16 @@
         .loading-overlay p { color:white; font-size:1.2em; font-weight:600; }
         .realtime-indicator { position:fixed; bottom:20px; left:20px; padding:6px 12px; border-radius:20px; font-size:0.75em; font-weight:600; z-index:99997; background:rgba(34,197,94,0.15); color:var(--success); border:1px solid rgba(34,197,94,0.3); }
         .realtime-indicator.offline { background:rgba(239,68,68,0.15); color:var(--danger); border-color:rgba(239,68,68,0.3); }
-        .modal-grupo { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:999999; padding:20px; backdrop-filter:blur(4px); }
-        .modal-grupo.ativo { display:flex; }
-        .modal-grupo-content { background:var(--bg-card); border-radius:24px; padding:32px; max-width:420px; width:100%; text-align:center; border:1px solid var(--border-color); box-shadow:var(--shadow); }
-        .modal-grupo-content h2 { color:var(--dourado); margin-bottom:8px; font-size:1.4em; }
-        .modal-grupo-content p { color:var(--text-secondary); margin-bottom:24px; font-size:0.95em; }
-        .btn-grupo { width:100%; padding:14px; background:linear-gradient(135deg,#25D366,#128C7E); color:white; border:none; border-radius:var(--radius); font-weight:700; font-size:16px; cursor:pointer; margin-bottom:10px; transition:var(--transition); min-height:50px; }
-        .btn-grupo:hover { transform:scale(1.02); box-shadow:0 4px 20px rgba(37,211,102,0.3); }
-        .btn-fechar { width:100%; padding:14px; background:transparent; color:var(--text-secondary); border:2px solid var(--border-color); border-radius:var(--radius); font-weight:600; font-size:14px; cursor:pointer; transition:var(--transition); min-height:44px; }
-        .btn-fechar:hover { background:var(--border-color); }
+        .pix-box { background:linear-gradient(135deg,rgba(34,197,94,0.1),rgba(22,163,74,0.05)); border:2px solid var(--success); border-radius:var(--radius); padding:14px; margin-top:12px; }
+        .pix-box .titulo { color:var(--success); font-weight:700; font-size:0.9em; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+        .pix-box .chave { background:var(--bg-input); padding:12px; border-radius:10px; font-size:1em; text-align:center; word-break:break-all; font-family:monospace; color:var(--text-primary); margin-bottom:8px; border:1px solid var(--border-color); }
+        .pix-box .btn-copiar { width:100%; padding:10px; background:linear-gradient(135deg,var(--success),#16a34a); color:white; border:none; border-radius:10px; font-weight:700; cursor:pointer; transition:var(--transition); }
+        .pix-box .btn-copiar:hover { transform:scale(1.02); }
+        .sucesso-msg { display:none; background:linear-gradient(135deg,#064e3b,#065f46); color:#d1fae5; border:2px solid var(--success); padding:24px; border-radius:var(--radius); text-align:center; margin-top:15px; }
+        .sucesso-msg .icon { font-size:3em; margin-bottom:8px; }
+        .sucesso-msg h3 { color:#6ee7b7; margin-bottom:8px; font-size:1.3em; }
+        .sucesso-msg p { color:#a7f3d0; margin-bottom:6px; }
+        .sucesso-msg .pedido-num { font-size:1.6em; font-weight:800; color:#6ee7b7; margin:12px 0; font-family:monospace; }
         .offline-banner { display:none; background:var(--danger); color:white; text-align:center; padding:10px; font-weight:700; margin-bottom:15px; border-radius:var(--radius); }
         .offline-banner.ativo { display:block; }
         .hidden { display:none !important; }
@@ -109,9 +109,7 @@
         <p>Processando seu pedido...</p>
     </div>
 
-    <div id="realtimeIndicator" class="realtime-indicator">
-        🟢 Conectado em tempo real
-    </div>
+    <div id="realtimeIndicator" class="realtime-indicator">🟢 Conectado em tempo real</div>
 
     <div class="container">
         <div id="offlineBanner" class="offline-banner">📡 Você está sem internet</div>
@@ -120,48 +118,25 @@
             <h1>🍦 Cardápio 1 - Dindins Gourmet FX</h1>
             <div class="header-actions">
                 <button class="btn btn-cadeado" id="btnCadeado" onclick="toggleModoRevendedor()" title="Modo Revendedor">🔒</button>
-                <button class="btn btn-theme" onclick="toggleTheme()" title="Alternar tema">
-                    <span id="themeIcon">🌙</span>
-                </button>
+                <button class="btn btn-theme" onclick="toggleTheme()" title="Alternar tema"><span id="themeIcon">🌙</span></button>
                 <button class="btn btn-primary" onclick="recarregarTudo()">🔄 Atualizar</button>
             </div>
         </div>
 
         <div id="menuList" class="menu-grid">
-            <div class="empty-state">
-                <span class="icon">🍦</span>
-                <div>Carregando cardápio...</div>
-            </div>
+            <div class="empty-state"><span class="icon">🍦</span><div>Carregando cardápio...</div></div>
         </div>
 
         <div class="carrinho" id="carrinho">
-            <h3>
-                🛒 Carrinho
-                <span class="badge badge-ok" id="carrinhoCount">0 itens</span>
-            </h3>
+            <h3>🛒 Carrinho <span class="badge badge-ok" id="carrinhoCount">0 itens</span></h3>
             <div id="carrinhoItens">
-                <div class="empty-state" style="padding:20px;">
-                    <span class="icon">🛒</span>
-                    <div>Seu carrinho está vazio</div>
-                </div>
+                <div class="empty-state" style="padding:20px;"><span class="icon">🛒</span><div>Seu carrinho está vazio</div></div>
             </div>
 
-            <div class="carrinho-total hidden" id="linhaSubtotal">
-                <span>Subtotal:</span>
-                <span id="subtotalValor">R$ 0,00</span>
-            </div>
-            <div class="carrinho-total hidden" id="linhaTaxa">
-                <span>Taxa de entrega:</span>
-                <span id="taxaValor">R$ 0,00</span>
-            </div>
-            <div class="carrinho-total desconto hidden" id="linhaDesconto">
-                <span>🎁 Desconto:</span>
-                <span class="valor" id="descontoValor">- R$ 0,00</span>
-            </div>
-            <div class="carrinho-total principal hidden" id="linhaTotal">
-                <span>Total:</span>
-                <span class="valor" id="totalValor">R$ 0,00</span>
-            </div>
+            <div class="carrinho-total hidden" id="linhaSubtotal"><span>Subtotal:</span><span id="subtotalValor">R$ 0,00</span></div>
+            <div class="carrinho-total hidden" id="linhaTaxa"><span>Taxa de entrega:</span><span id="taxaValor">R$ 0,00</span></div>
+            <div class="carrinho-total desconto hidden" id="linhaDesconto"><span>🎁 Desconto:</span><span class="valor" id="descontoValor">- R$ 0,00</span></div>
+            <div class="carrinho-total principal hidden" id="linhaTotal"><span>Total:</span><span class="valor" id="totalValor">R$ 0,00</span></div>
 
             <div class="campo-desconto hidden" id="campoDesconto">
                 <div style="flex:1;">
@@ -189,7 +164,7 @@
                 </div>
                 <div class="form-group">
                     <label for="pagamento">Forma de pagamento</label>
-                    <select id="pagamento">
+                    <select id="pagamento" onchange="atualizarPix()">
                         <option value="pix">📱 Chave PIX</option>
                         <option value="cartao">💳 Cartão (na entrega)</option>
                         <option value="dinheiro">💵 Dinheiro</option>
@@ -199,16 +174,12 @@
                     <button class="btn-finalizar" id="btnFinalizar" onclick="finalizarPedidoCliente()">✅ Finalizar Pedido</button>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="modal-grupo" id="modalGrupo">
-        <div class="modal-grupo-content">
-            <div style="font-size:4em; margin-bottom:16px;">✅</div>
-            <h2>Pedido Enviado!</h2>
-            <p>Deseja enviar o pedido para o grupo do WhatsApp?</p>
-            <button class="btn-grupo" onclick="enviarProGrupo()">📤 Enviar pro Grupo</button>
-            <button class="btn-fechar" onclick="fecharModalGrupo()">❌ Fechar</button>
+            <div class="pix-box hidden" id="pixBox">
+                <div class="titulo">📱 CHAVE PIX PARA PAGAMENTO</div>
+                <div class="chave" id="pixChaveDisplay">carregando...</div>
+                <button class="btn-copiar" onclick="copiarPix()">📋 Copiar Chave PIX</button>
+            </div>
         </div>
     </div>
 
@@ -219,8 +190,6 @@
         const SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
         const SENHA_REVENDEDOR = 'dindinsmaster';
-        const RECAPTCHA_SITE_KEY = '6LfMeN0tAAAAAASDYqMp8YKrLZJI3myvbPUKEZBD';
-        const RECAPTCHA_ACTION = 'finalizar_pedido';
         const COOLDOWN_MS = 3000;
 
         if (SUPABASE_KEY.startsWith('eyJ') || SUPABASE_KEY.startsWith('sb_secret_')) {
@@ -237,7 +206,6 @@
         let carrinho = {};
         let config = { whatsapp: '', pix: '', grupoWhatsapp: '' };
         let realtimeChannel = null;
-        let ultimaMensagemPedido = '';
         let descontoAplicado = 0;
         let descontoTexto = '';
         let modoRevendedor = false;
@@ -287,38 +255,6 @@
         }
 
         // ═══════════════════════════════════════════════════
-        // reCAPTCHA v3 (com ready + timeout)
-        // ═══════════════════════════════════════════════════
-        async function validarCaptcha() {
-            if (typeof grecaptcha === 'undefined') {
-                throw new Error('reCAPTCHA não carregado');
-            }
-            await new Promise((resolve) => {
-                if (typeof grecaptcha.ready === 'function') grecaptcha.ready(resolve);
-                else resolve();
-            });
-            const tokenPromise = grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: RECAPTCHA_ACTION });
-            const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('CAPTCHA timeout')), 10000);
-            });
-            const token = await Promise.race([tokenPromise, timeoutPromise]);
-
-            const res = await fetch(SUPABASE_URL + '/functions/v1/verify-captcha', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + SUPABASE_KEY
-                },
-                body: JSON.stringify({ token, action: RECAPTCHA_ACTION })
-            });
-            const data = await res.json();
-            if (!data.success) {
-                throw new Error('CAPTCHA falhou (score: ' + (data.score != null ? data.score : 'n/a') + ')');
-            }
-            return data;
-        }
-
-        // ═══════════════════════════════════════════════════
         // MODO REVENDEDOR
         // ═══════════════════════════════════════════════════
         function toggleModoRevendedor() {
@@ -335,7 +271,7 @@
                 modoRevendedor = true;
                 sessionStorage.setItem('modo_revendedor_c1', 'ativo');
                 atualizarUIModoRevendedor();
-                mostrarToast('🎁 Modo Revendedor ATIVADO! Campo de desconto liberado.', 'success');
+                mostrarToast('🎁 Modo Revendedor ATIVADO!', 'success');
             } else {
                 mostrarToast('❌ Senha incorreta.', 'error');
             }
@@ -360,38 +296,20 @@
             if (!modoRevendedor) return;
             const input = document.getElementById('inputDesconto');
             const valor = (input.value || '').trim();
-
-            if (!valor) {
-                descontoAplicado = 0;
-                descontoTexto = '';
-                atualizarCarrinho();
-                return;
-            }
-
+            if (!valor) { descontoAplicado = 0; descontoTexto = ''; atualizarCarrinho(); return; }
             const { subtotal, taxa } = calcularTotalSemDesconto();
             const totalBruto = subtotal + taxa;
             let desc = 0;
-
             if (valor.includes('%')) {
                 const pct = parseFloat(valor.replace('%', '').replace(',', '.'));
-                if (isNaN(pct) || pct < 0 || pct > 100) {
-                    mostrarToast('⚠️ Porcentagem inválida (0 a 100).', 'warning');
-                    return;
-                }
+                if (isNaN(pct) || pct < 0 || pct > 100) { mostrarToast('⚠️ Porcentagem inválida (0 a 100).', 'warning'); return; }
                 desc = (totalBruto * pct) / 100;
             } else {
                 const num = parseFloat(valor.replace(',', '.'));
-                if (isNaN(num) || num < 0) {
-                    mostrarToast('⚠️ Valor inválido.', 'warning');
-                    return;
-                }
-                if (num > totalBruto) {
-                    mostrarToast('⚠️ Desconto maior que o total.', 'warning');
-                    return;
-                }
+                if (isNaN(num) || num < 0) { mostrarToast('⚠️ Valor inválido.', 'warning'); return; }
+                if (num > totalBruto) { mostrarToast('⚠️ Desconto maior que o total.', 'warning'); return; }
                 desc = num;
             }
-
             descontoAplicado = Math.round(desc * 100) / 100;
             descontoTexto = valor;
             atualizarCarrinho();
@@ -408,42 +326,6 @@
         window.toggleModoRevendedor = toggleModoRevendedor;
         window.aplicarDesconto = aplicarDesconto;
         window.limparDesconto = limparDesconto;
-
-        // ═══════════════════════════════════════════════════
-        // MODAL GRUPO
-        // ═══════════════════════════════════════════════════
-        function abrirModalGrupo(mensagem) {
-            ultimaMensagemPedido = mensagem;
-            document.getElementById('modalGrupo').classList.add('ativo');
-        }
-
-        function fecharModalGrupo() {
-            document.getElementById('modalGrupo').classList.remove('ativo');
-        }
-
-        async function enviarProGrupo() {
-            try {
-                await navigator.clipboard.writeText(ultimaMensagemPedido);
-                mostrarToast('📋 Mensagem copiada! Cole no grupo (Ctrl+V).', 'success');
-            } catch (e) {
-                const ta = document.createElement('textarea');
-                ta.value = ultimaMensagemPedido;
-                ta.style.position = 'fixed';
-                ta.style.opacity = '0';
-                document.body.appendChild(ta);
-                ta.select();
-                try { document.execCommand('copy'); mostrarToast('📋 Mensagem copiada!', 'success'); }
-                catch (e2) { mostrarToast('⚠️ Não foi possível copiar.', 'warning'); }
-                document.body.removeChild(ta);
-            }
-            const grupoLink = (config.grupoWhatsapp || '').trim();
-            if (!grupoLink) { mostrarToast('⚠️ Link do grupo não configurado.', 'warning'); return; }
-            setTimeout(() => { window.open(grupoLink, '_blank'); fecharModalGrupo(); }, 500);
-        }
-
-        window.abrirModalGrupo = abrirModalGrupo;
-        window.fecharModalGrupo = fecharModalGrupo;
-        window.enviarProGrupo = enviarProGrupo;
 
         // ═══════════════════════════════════════════════════
         // TEMA
@@ -502,6 +384,8 @@
             try {
                 const { data } = await sb.from('config').select('*').eq('chave', 'admin').maybeSingle();
                 if (data && data.dados) config = data.dados;
+                const el = document.getElementById('pixChaveDisplay');
+                if (el) el.textContent = config.pix || 'Chave PIX não configurada';
             } catch (e) { console.warn('Config não carregada:', e); }
         }
 
@@ -529,7 +413,7 @@
                 console.error('Erro ao carregar cardápio:', error);
                 logErro(error, 'carregarCardapio_c1');
                 mostrarToast('❌ Erro ao carregar cardápio.', 'error');
-                document.getElementById('menuList').innerHTML = `<div class="empty-state"><span class="icon">⚠️</span><div>Erro ao carregar</div><div style="font-size:0.85em;">${error.message}</div></div>`;
+                document.getElementById('menuList').innerHTML = `<div class="empty-state"><span class="icon">⚠️</span><div>Erro ao carregar</div></div>`;
             }
         }
 
@@ -553,7 +437,7 @@
         function renderizarCardapio() {
             const container = document.getElementById('menuList');
             if (produtos.length === 0) {
-                container.innerHTML = `<div class="empty-state"><span class="icon">📭</span><div>Nenhum item disponível</div><div style="font-size:0.85em;">Volte mais tarde!</div></div>`;
+                container.innerHTML = `<div class="empty-state"><span class="icon">📭</span><div>Nenhum item disponível</div></div>`;
                 return;
             }
             container.innerHTML = produtos.map(p => {
@@ -596,6 +480,30 @@
         function removerDoCarrinho(id) { delete carrinho[id]; salvarCarrinho(); atualizarCarrinho(); renderizarCardapio(); }
         function atualizarTaxa() { atualizarCarrinho(); }
 
+        function atualizarPix() {
+            const pag = document.getElementById('pagamento').value;
+            const box = document.getElementById('pixBox');
+            if (pag === 'pix') box.classList.remove('hidden');
+            else box.classList.add('hidden');
+        }
+        window.atualizarPix = atualizarPix;
+
+        function copiarPix() {
+            const chave = config.pix || '';
+            if (!chave) { mostrarToast('⚠️ Chave PIX não configurada.', 'warning'); return; }
+            navigator.clipboard.writeText(chave).then(() => {
+                mostrarToast('📋 Chave PIX copiada!', 'success');
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = chave;
+                ta.style.position = 'fixed'; ta.style.opacity = '0';
+                document.body.appendChild(ta); ta.select();
+                try { document.execCommand('copy'); mostrarToast('📋 Chave PIX copiada!', 'success'); } catch (e) { mostrarToast('⚠️ Não foi possível copiar.', 'warning'); }
+                document.body.removeChild(ta);
+            });
+        }
+        window.copiarPix = copiarPix;
+
         function calcularTotalSemDesconto() {
             let subtotal = 0;
             Object.keys(carrinho).forEach(id => { subtotal += carrinho[id].preco * carrinho[id].quantidade; });
@@ -624,6 +532,7 @@
             const countSpan = document.getElementById('carrinhoCount');
             const formPedido = document.getElementById('formPedido');
             const campoDesconto = document.getElementById('campoDesconto');
+            const pixBox = document.getElementById('pixBox');
 
             const itens = Object.keys(carrinho);
             const totalItens = itens.reduce((a, id) => a + carrinho[id].quantidade, 0);
@@ -633,6 +542,7 @@
                 linhaSubtotal.classList.add('hidden'); linhaTaxa.classList.add('hidden');
                 linhaDesconto.classList.add('hidden'); linhaTotal.classList.add('hidden');
                 formPedido.classList.add('hidden'); campoDesconto.classList.add('hidden');
+                pixBox.classList.add('hidden');
                 countSpan.textContent = '0 itens';
                 return;
             }
@@ -645,7 +555,7 @@
             });
             container.innerHTML = html;
 
-            const { subtotal, taxa, total, totalBruto, desconto } = calcularTotal();
+            const { subtotal, taxa, total, desconto } = calcularTotal();
             subtotalValor.textContent = formatarPreco(subtotal);
             taxaValor.textContent = formatarPreco(taxa);
             totalValor.textContent = formatarPreco(total);
@@ -665,6 +575,11 @@
 
             if (modoRevendedor) campoDesconto.classList.remove('hidden');
             else campoDesconto.classList.add('hidden');
+
+            // PIX visível se estiver selecionado
+            const pag = document.getElementById('pagamento').value;
+            if (pag === 'pix') pixBox.classList.remove('hidden');
+            else pixBox.classList.add('hidden');
         }
 
         async function finalizarPedidoCliente() {
@@ -687,12 +602,6 @@
             btn.disabled = true;
 
             try {
-                // ═══════════════════════════════════════════════
-                // VALIDAR reCAPTCHA
-                // ═══════════════════════════════════════════════
-                mostrarToast('🔐 Verificando segurança...', 'info');
-                await validarCaptcha();
-
                 const idsItens = Object.keys(carrinho);
                 const { data: estoqueAtual, error: errEstoque } = await sb.from('estoquecentral').select('id, nome, quantidadetotal, alocadocardapio2').in('id', idsItens);
                 if (errEstoque) throw new Error('Erro ao validar estoque: ' + errEstoque.message);
@@ -702,10 +611,10 @@
                 for (const id of idsItens) {
                     const itemCarrinho = carrinho[id];
                     const itemBanco = estoqueAtual.find(p => p.id == id);
-                    if (!itemBanco) { itensComProblema.push({ id, nome: itemCarrinho.nome, motivo: 'produto removido' }); temProblema = true; continue; }
+                    if (!itemBanco) { itensComProblema.push({ id, nome: itemCarrinho.nome, disponivel: 0 }); temProblema = true; continue; }
                     const dispBanco = (itemBanco.quantidadetotal || 0) - (itemBanco.alocadocardapio2 || 0);
                     if (itemCarrinho.quantidade > dispBanco) {
-                        itensComProblema.push({ id, nome: itemCarrinho.nome, motivo: `estoque insuficiente (disponível: ${dispBanco}, você quer: ${itemCarrinho.quantidade})`, disponivel: dispBanco });
+                        itensComProblema.push({ id, nome: itemCarrinho.nome, disponivel: dispBanco });
                         temProblema = true;
                     }
                 }
@@ -713,10 +622,8 @@
                 if (temProblema) {
                     overlay.classList.add('hidden'); btn.disabled = false;
                     itensComProblema.forEach(it => {
-                        if (it.disponivel !== undefined) {
-                            if (it.disponivel <= 0) delete carrinho[it.id];
-                            else carrinho[it.id].quantidade = it.disponivel;
-                        } else delete carrinho[it.id];
+                        if (it.disponivel <= 0) delete carrinho[it.id];
+                        else carrinho[it.id].quantidade = it.disponivel;
                     });
                     salvarCarrinho(); await carregarCardapio(); atualizarCarrinho();
                     mostrarToast('😢 Ops! O carrinho foi ajustado. Confira antes de finalizar.', 'warning');
@@ -724,17 +631,15 @@
                 }
 
                 const itens = Object.keys(carrinho).map(id => ({ nome: carrinho[id].nome, quantidade: carrinho[id].quantidade, preco: carrinho[id].preco }));
-                const { subtotal, taxa, total, totalBruto, desconto } = calcularTotal();
+                const { subtotal, taxa, total, desconto } = calcularTotal();
 
                 let obs = 'Cardápio 1';
                 let localTexto = 'Retirada no local';
-                let setorIdStr = 'null';
                 if (setorId) {
                     const setor = setores.find(s => s.id == setorId);
                     if (setor) {
                         obs += ` | setor_id=${setorId} | taxa=${taxa} | Entrega: ${setor.nome}`;
                         localTexto = `Entrega - ${setor.nome}`;
-                        setorIdStr = setorId;
                     }
                 } else {
                     obs += ' | setor_id=null | taxa=0 | Retirada no local';
@@ -759,44 +664,28 @@
 
                 overlay.classList.add('hidden');
 
-                if (data.ja_processado) mostrarToast(`ℹ️ Pedido ${data.pedido_id} já havia sido processado.`, 'info');
-                else mostrarToast(`✅ Pedido ${data.pedido_id} enviado!`, 'success');
+                // ═══════════════════════════════════════════════════
+                // TELA DE SUCESSO LIMPA (sem WhatsApp, sem modal)
+                // ═══════════════════════════════════════════════════
+                const pedidoId = data.pedido_id;
+                let msgSucesso = `<div class="icon">✅</div><h3>Pedido Recebido!</h3><div class="pedido-num">${pedidoId}</div>`;
+                if (pagamento === 'pix' && config.pix) {
+                    msgSucesso += `<p>📱 <strong>Chave PIX:</strong></p><div class="chave" style="background:var(--bg-input);padding:10px;border-radius:8px;font-family:monospace;margin:8px 0;word-break:break-all;font-size:0.9em;">${config.pix}</div><button class="btn btn-primary" onclick="copiarPix()" style="width:100%;">📋 Copiar Chave PIX</button><p style="margin-top:12px;">Após o pagamento, envie o comprovante pelo WhatsApp do restaurante.</p>`;
+                } else {
+                    msgSucesso += `<p>Aguarde o contato do restaurante para confirmar seu pedido.</p>`;
+                }
+                msgSucesso += `<p style="font-size:0.85em;margin-top:12px;">📱 O restaurante entrará em contato pelo seu WhatsApp.</p>`;
 
-                const agora = new Date();
-                const dataHora = agora.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
-
-                let msgFormatada =
-`🔔 *NOVO PEDIDO* 🔔
-━━━━━━━━━━━━━━━━━━━━
-📦 Pedido: ${data.pedido_id}
-🕐 ${dataHora}
-
-👤 ${cliente}
-📱 ${telefoneRaw}
-📍 ${localTexto}
-💳 ${formaTexto}
-
-━━━━━━━━━━━━━━━━━━━━
-📋 *ITENS*
-${itens.map(i => `• ${i.quantidade}x ${i.nome} — ${formatarPreco(i.preco * i.quantidade)}`).join('\n')}
-
-💰 Subtotal: ${formatarPreco(subtotal)}`;
-
-                if (taxa > 0) msgFormatada += `\n🚚 Taxa: ${formatarPreco(taxa)}`;
-                if (desconto > 0) msgFormatada += `\n🎁 *DESCONTO REVENDEDOR:* -${formatarPreco(desconto)} (${descontoTexto})`;
-
-                msgFormatada += `\n💵 *TOTAL: ${formatarPreco(total)}*\n━━━━━━━━━━━━━━━━━━━━`;
-
-                ultimaMensagemPedido = msgFormatada;
-
-                const whatsNum = (config.whatsapp || '').replace(/\D/g, '');
-                if (whatsNum) {
-                    setTimeout(() => {
-                        window.open(`https://wa.me/55${whatsNum}?text=${encodeURIComponent(msgFormatada)}`, '_blank');
-                    }, 800);
+                const sucesso = document.getElementById('sucesso-msg');
+                if (sucesso) {
+                    sucesso.innerHTML = msgSucesso;
+                    sucesso.style.display = 'block';
+                } else {
+                    // Se não tiver elemento de sucesso, cria um toast
+                    mostrarToast(`✅ Pedido ${pedidoId} recebido!`, 'success');
                 }
 
-                setTimeout(() => { abrirModalGrupo(msgFormatada); }, 2000);
+                btn.style.display = 'none';
 
                 carrinho = {};
                 salvarCarrinho();
@@ -817,10 +706,7 @@ ${itens.map(i => `• ${i.quantidade}x ${i.nome} — ${formatarPreco(i.preco * i
                 overlay.classList.add('hidden');
                 console.error('Erro:', error);
                 const msgErro = error.message || '';
-                if (msgErro.includes('CAPTCHA')) {
-                    mostrarToast('🚫 Verificação de segurança falhou. Recarregue e tente novamente.', 'error');
-                    logErro(error, 'captcha_c1');
-                } else if (msgErro.includes('Estoque insuficiente') || msgErro.includes('não encontrado')) {
+                if (msgErro.includes('Estoque insuficiente') || msgErro.includes('não encontrado')) {
                     mostrarToast('😢 Ops! Um item esgotou agora. Recarregando...', 'warning');
                     logErro(error, 'finalizarPedido_c1_conflito', { idempotencyKey: gerarIdempotencyKey(), cliente });
                     setTimeout(async () => { await carregarCardapio(); atualizarCarrinho(); }, 1000);
@@ -837,7 +723,6 @@ ${itens.map(i => `• ${i.quantidade}x ${i.nome} — ${formatarPreco(i.preco * i
             if (realtimeChannel) sb.removeChannel(realtimeChannel);
             realtimeChannel = sb.channel('estoque-c1-changes')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'estoquecentral' }, (payload) => {
-                    console.log('🔄 Realtime update:', payload.eventType);
                     if (payload.eventType === 'DELETE') {
                         produtos = produtos.filter(p => p.id !== payload.old.id);
                         delete carrinho[payload.old.id];
@@ -872,9 +757,6 @@ ${itens.map(i => `• ${i.quantidade}x ${i.nome} — ${formatarPreco(i.preco * i
             mostrarToast('🔄 Cardápio atualizado!', 'info');
         }
 
-        // ═══════════════════════════════════════════════════
-        // OFFLINE / ONLINE
-        // ═══════════════════════════════════════════════════
         function atualizarOfflineBanner() {
             const b = document.getElementById('offlineBanner');
             if (!b) return;
@@ -886,11 +768,7 @@ ${itens.map(i => `• ${i.quantidade}x ${i.nome} — ${formatarPreco(i.preco * i
 
         document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('telefone').addEventListener('input', function() { mascararTelefone(this); });
-
-            if (sessionStorage.getItem('modo_revendedor_c1') === 'ativo') {
-                modoRevendedor = true;
-            }
-
+            if (sessionStorage.getItem('modo_revendedor_c1') === 'ativo') modoRevendedor = true;
             atualizarOfflineBanner();
             carregarCarrinhoSalvo();
             await carregarConfig();
@@ -899,6 +777,7 @@ ${itens.map(i => `• ${i.quantidade}x ${i.nome} — ${formatarPreco(i.preco * i
             iniciarRealtime();
             verificarCarrinhoSalvo();
             atualizarUIModoRevendedor();
+            atualizarPix();
         });
 
         window.alterarQuantidade = alterarQuantidade;
@@ -909,7 +788,7 @@ ${itens.map(i => `• ${i.quantidade}x ${i.nome} — ${formatarPreco(i.preco * i
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🍦 Cardápio 1 - v9.2 (reCAPTCHA + melhorias) carregado!');
+        console.log('🍦 Cardápio 1 - v11.0 (PIX visível, sem WhatsApp, Telegram ativo) carregado!');
     })();
     </script>
 </body>
