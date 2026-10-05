@@ -223,9 +223,6 @@
             } catch (e) {}
         }
 
-        // ═══════════════════════════════════════════════════
-        // TEMA
-        // ═══════════════════════════════════════════════════
         const THEME_KEY = 'theme_c1';
         function getTheme() { return localStorage.getItem(THEME_KEY) || 'dark'; }
         function setTheme(theme) {
@@ -545,10 +542,10 @@
                 const pedidoId = data.pedido_id;
                 let msgSucesso = `<div class="icon">✅</div><h3>Pedido Recebido!</h3><div class="pedido-num">${pedidoId}</div>`;
                 if (pagamento === 'pix' && config.pix) {
-                    msgSucesso += `<p>📱 <strong>Chave PIX:</strong></p><div style="background:var(--bg-input);padding:10px;border-radius:8px;font-family:monospace;margin:8px 0;word-break:break-all;font-size:0.9em;">${config.pix}</div><button class="btn btn-primary" onclick="copiarPix()" style="width:100%;">📋 Copiar Chave PIX</button><p style="margin-top:12px;">Após o pagamento, envie o comprovante pelo WhatsApp do restaurante.</p>`;
+                    msgSucesso += `<p>📱 <strong>Chave PIX:</strong></p><div style="background:var(--bg-input);padding:10px;border-radius:8px;font-family:monospace;margin:8px 0;word-break:break-all;font-size:0.9em;">${config.pix}</div><button class="btn btn-primary" onclick="copiarPix()" style="width:100%;">📋 Copiar Chave PIX</button><p style="margin-top:12px;">Após o pagamento, envie o comprovante no WhatsApp <strong>(61) 98647-1897</strong>.</p>`;
                 } else {
-    msgSucesso += `<p>Obrigado pelo seu pedido! Agradecemos a preferência. 🍦</p>`;
-}
+                    msgSucesso += `<p>Obrigado pelo seu pedido! Agradecemos a preferência. 🍦</p>`;
+                }
 
                 const sucesso = document.getElementById('sucesso-msg');
                 if (sucesso) {
@@ -656,7 +653,7 @@
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🍦 Cardápio 1 - v12.0 (sem desconto cliente, com PIX) carregado!');
+        console.log('🍦 Cardápio 1 - v14.0 (final) carregado!');
     })();
     </script>
 </body>
