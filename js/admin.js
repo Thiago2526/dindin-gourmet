@@ -765,7 +765,7 @@ async function excluirC2(id) {
 window.excluirC2 = excluirC2;
 
 // ============================================================
-// PEDIDOS
+// PEDIDOS (COM FILTRO DE TELEFONE)
 // ============================================================
 async function carregarPedidos(page = 1) {
     try {
@@ -775,10 +775,15 @@ async function carregarPedidos(page = 1) {
         let q = sb.from('todospedidos').select('*', { count: 'exact' }).order('id', { ascending: false }).range(from, to);
         const s = document.getElementById('filtroPedidosStatus')?.value;
         const c = document.getElementById('filtroPedidosCliente')?.value?.trim();
+        const tel = document.getElementById('filtroPedidosTelefone')?.value?.trim();
         const i = document.getElementById('filtroPedidosInicio')?.value;
         const f = document.getElementById('filtroPedidosFim')?.value;
         if (s && s !== 'todos') q = q.eq('status', s);
         if (c) q = q.ilike('cliente', `%${c}%`);
+        if (tel) {
+            const telLimpo = tel.replace(/\D/g, '');
+            if (telLimpo) q = q.ilike('telefone', `%${telLimpo}%`);
+        }
         if (i) q = q.gte('data', i);
         if (f) q = q.lte('data', f);
         const { data, count } = await q;
@@ -833,7 +838,7 @@ window.marcarEntregue = marcarEntregue;
 
 function aplicarFiltroPedidos() { carregarPedidos(1); }
 function limparFiltroPedidos() {
-    ['filtroPedidosStatus', 'filtroPedidosCliente', 'filtroPedidosInicio', 'filtroPedidosFim'].forEach(i => document.getElementById(i).value = i === 'filtroPedidosStatus' ? 'todos' : '');
+    ['filtroPedidosStatus', 'filtroPedidosCliente', 'filtroPedidosTelefone', 'filtroPedidosInicio', 'filtroPedidosFim'].forEach(i => document.getElementById(i).value = i === 'filtroPedidosStatus' ? 'todos' : '');
     carregarPedidos(1);
 }
 window.aplicarFiltroPedidos = aplicarFiltroPedidos;
@@ -849,16 +854,12 @@ async function excluirPedido(id) {
     if (!confirm('🗑️ Excluir este pedido?\n\nO estoque dos itens será DEVOLVIDO automaticamente.')) return;
 
     try {
-        // ═══════════════════════════════════════════════════
-        // DEVOLVER ESTOQUE DOS ITENS
-        // ═══════════════════════════════════════════════════
         if (pedido.itens && pedido.itens.length > 0) {
             for (const item of pedido.itens) {
                 const nome = item.nome;
                 const qtd = item.quantidade || 0;
                 if (!nome || qtd <= 0) continue;
 
-                // Buscar produto pelo nome (case-insensitive)
                 const { data: prod } = await sb
                     .from('estoquecentral')
                     .select('*')
@@ -872,7 +873,6 @@ async function excluirPedido(id) {
                         .update({ quantidadetotal: novoTotal })
                         .eq('id', prod.id);
 
-                    // Registrar no histórico
                     try {
                         await sb.from('historicoestoque').insert([{
                             data: new Date().toLocaleString('pt-BR'),
@@ -886,15 +886,9 @@ async function excluirPedido(id) {
             }
         }
 
-        // ═══════════════════════════════════════════════════
-        // EXCLUIR O PEDIDO
-        // ═══════════════════════════════════════════════════
         const { error } = await sb.from('todospedidos').delete().eq('id', id);
         if (error) throw error;
 
-        // ═══════════════════════════════════════════════════
-        // RECARREGAR TUDO
-        // ═══════════════════════════════════════════════════
         await carregarPedidos(State.pagination.pedidos.page);
         await carregarDashboard();
         await carregarEstoque();
@@ -966,6 +960,17 @@ function carregarTudo() {
 document.addEventListener('DOMContentLoaded', () => {
     verificarConexao();
 
+    // Máscara de telefone nos filtros
+    ['filtroPedidosTelefone', 'filtroPagamentosTelefone'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', function() {
+            let v = this.value.replace(/\D/g, '').slice(0, 11);
+            if (v.length > 2) v = '(' + v.slice(0, 2) + ') ' + v.slice(2);
+            if (v.length > 10) v = v.slice(0, 10) + '-' + v.slice(10);
+            this.value = v;
+        });
+    });
+
     document.querySelectorAll('.tab-btn').forEach(b => {
         b.addEventListener('click', function() {
             mudarTab(this.getAttribute('data-tab'));
@@ -981,6 +986,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof fecharModalReceita === 'function') fecharModalReceita();
             fecharModalEditarEstoque();
             if (typeof fecharModalLembrete === 'function') fecharModalLembrete();
+            if (typeof fecharModalDesconto === 'function') fecharModalDesconto();
         }
     });
 
@@ -993,6 +999,7 @@ document.addEventListener('DOMContentLoaded', () => {
     verificarSessao();
 });
 
-console.log('✅ Admin parte 1 carregado!');
+console.log('✅ Admin parte 1 carregado! v14.0');
 console.log('📦 Estoque detalhado v3.0');
 console.log('🗑️ Exclusão com DEVOLUÇÃO AUTOMÁTICA de estoque');
+console.log('📞 Filtro por telefone em Pedidos e Pagamentos');
