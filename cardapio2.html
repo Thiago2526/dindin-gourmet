@@ -503,10 +503,8 @@
                 } else if (pagamento === 'credito') {
                     msgSucesso += `<p>💳 Você solicitou pagamento no crédito.</p><p>O restaurante enviará o link de pagamento pelo WhatsApp.</p>`;
                 } else {
-                    msgSucesso += `<p>Aguarde o contato do restaurante para confirmar seu pedido.</p>`;
-                }
-                msgSucesso += `<p style="font-size:0.85em;margin-top:12px;">📱 O restaurante entrará em contato pelo seu WhatsApp.</p>`;
-
+    msgSucesso += `<p>Obrigado pelo seu pedido! Agradecemos a preferência. 🍦</p>`;
+}
                 const sucesso = document.getElementById('sucesso-msg');
                 if (sucesso) {
                     sucesso.innerHTML = msgSucesso;
