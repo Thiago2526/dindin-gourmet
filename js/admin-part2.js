@@ -818,6 +818,129 @@ function fecharModalLembrete() {
 }
 window.fecharModalLembrete = fecharModalLembrete;
 
+// ============================================================
+// DESCONTO EM PEDIDOS (aplicado pelo admin)
+// ============================================================
+window.abrirModalDesconto = function(id) {
+    const pedido = State.cache.pedidos.find(p => p.id === id);
+    if (!pedido) { mostrarToast('Pedido não encontrado', 'error'); return; }
+
+    document.getElementById('descontoPedidoId').value = id;
+    document.getElementById('descontoPedidoInfo').value = `${pedido.pedido_id || '#' + pedido.id} — ${pedido.cliente} — R$ ${(pedido.total || 0).toFixed(2)}`;
+    document.getElementById('descontoValorAtual').value = `R$ ${(pedido.total || 0).toFixed(2)}`;
+    document.getElementById('descontoTipo').value = 'valor';
+    document.getElementById('descontoInput').value = '';
+    document.getElementById('descontoPreview').style.display = 'none';
+    document.getElementById('modalDesconto').classList.add('active');
+    setTimeout(() => document.getElementById('descontoInput').focus(), 200);
+};
+
+window.fecharModalDesconto = function() {
+    document.getElementById('modalDesconto').classList.remove('active');
+};
+
+window.atualizarPreviewDesconto = function() {
+    const id = document.getElementById('descontoPedidoId').value;
+    const pedido = State.cache.pedidos.find(p => p.id == id);
+    if (!pedido) return;
+
+    const tipo = document.getElementById('descontoTipo').value;
+    const valorInput = document.getElementById('descontoInput').value.trim();
+    const totalOriginal = pedido.total || 0;
+
+    if (!valorInput) {
+        document.getElementById('descontoPreview').style.display = 'none';
+        return;
+    }
+
+    let descValor = 0;
+    const num = parseFloat(valorInput.replace('%', '').replace(',', '.'));
+
+    if (isNaN(num) || num < 0) {
+        document.getElementById('descontoPreview').style.display = 'none';
+        return;
+    }
+
+    if (tipo === 'porcentagem') {
+        if (num > 100) { document.getElementById('descontoPreview').style.display = 'none'; return; }
+        descValor = (totalOriginal * num) / 100;
+    } else {
+        if (num > totalOriginal) { document.getElementById('descontoPreview').style.display = 'none'; return; }
+        descValor = num;
+    }
+
+    descValor = Math.round(descValor * 100) / 100;
+    const novoTotal = Math.max(0, totalOriginal - descValor);
+
+    document.getElementById('descOriginal').textContent = `R$ ${totalOriginal.toFixed(2)}`;
+    document.getElementById('descValor').textContent = `- R$ ${descValor.toFixed(2)}`;
+    document.getElementById('descNovoTotal').textContent = `R$ ${novoTotal.toFixed(2)}`;
+    document.getElementById('descontoPreview').style.display = 'block';
+};
+
+window.aplicarDescontoPedido = async function() {
+    const id = document.getElementById('descontoPedidoId').value;
+    const pedido = State.cache.pedidos.find(p => p.id == id);
+    if (!pedido) { mostrarToast('Pedido não encontrado', 'error'); return; }
+
+    const tipo = document.getElementById('descontoTipo').value;
+    const valorInput = document.getElementById('descontoInput').value.trim();
+
+    if (!valorInput) { mostrarToast('Digite o valor do desconto', 'warning'); return; }
+
+    const num = parseFloat(valorInput.replace('%', '').replace(',', '.'));
+    if (isNaN(num) || num < 0) { mostrarToast('Valor inválido', 'warning'); return; }
+
+    const totalOriginal = pedido.total || 0;
+    let descValor = 0;
+    let descTexto = '';
+
+    if (tipo === 'porcentagem') {
+        if (num > 100) { mostrarToast('Porcentagem deve ser até 100%', 'warning'); return; }
+        descValor = (totalOriginal * num) / 100;
+        descTexto = `${num}%`;
+    } else {
+        if (num > totalOriginal) { mostrarToast('Desconto maior que o total', 'warning'); return; }
+        descValor = num;
+        descTexto = `R$ ${num.toFixed(2)}`;
+    }
+
+    descValor = Math.round(descValor * 100) / 100;
+    const novoTotal = Math.max(0, totalOriginal - descValor);
+
+    if (!confirm(`Aplicar desconto de ${descTexto}?\n\nValor original: R$ ${totalOriginal.toFixed(2)}\nDesconto: -R$ ${descValor.toFixed(2)}\nNovo total: R$ ${novoTotal.toFixed(2)}`)) return;
+
+    const btn = document.querySelector('#modalDesconto .btn-success');
+    await executarComLoading(btn, '⏳ Aplicando...', async () => {
+        try {
+            const obsAtual = pedido.obs || '';
+            const novaObs = obsAtual.includes('Desconto:') 
+                ? obsAtual 
+                : `${obsAtual} | 🎁 Desconto: ${descTexto}`;
+
+            const { error } = await sb.from('todospedidos')
+                .update({
+                    total: novoTotal,
+                    desconto: descTexto,
+                    obs: novaObs
+                })
+                .eq('id', id);
+
+            if (error) throw error;
+
+            fecharModalDesconto();
+            await carregarPagamentos();
+            await carregarPedidos(1);
+            await carregarDashboard();
+
+            mostrarToast(`✅ Desconto de ${descTexto} aplicado! Novo total: R$ ${novoTotal.toFixed(2)}`, 'success');
+        } catch (e) {
+            console.error('Erro ao aplicar desconto:', e);
+            mostrarToast('❌ Erro: ' + e.message, 'error');
+        }
+    });
+};
+
 console.log('✅ Admin parte 2 carregada!');
 console.log('🎉 Sistema completo!');
 console.log('🔧 Config save: UPDATE primeiro, INSERT se não existir');
