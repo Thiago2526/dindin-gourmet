@@ -1,281 +1,74 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redefinir Senha - Dindins Gourmet FX</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Dindins Gourmet FX</title>
     <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: #0a0604;
-            color: #f0e0d0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #5C3317, #8B4513, #A0522D);
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            margin: 0;
+            padding: 20px;
         }
-        .reset-box {
-            max-width: 420px;
-            width: 100%;
-            background: #24140c;
-            padding: 40px 32px;
+        .container {
+            background: #FFF8DC;
             border-radius: 24px;
-            border: 1px solid #4a3020;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+            padding: 40px 30px;
+            max-width: 500px;
+            width: 100%;
             text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            border: 3px solid #DAA520;
         }
-        .reset-box h2 { color: #DAA520; margin-bottom: 10px; }
-        .reset-box p { color: #c4b0a0; margin-bottom: 24px; }
-        .reset-box .subtitle { font-size: 0.9em; color: #8a7a6a; margin-bottom: 20px; }
-        input {
-            width: 100%;
-            padding: 12px 16px;
-            margin-bottom: 12px;
-            border: 2px solid #4a3020;
-            border-radius: 14px;
-            background: #1a0f0a;
-            color: #f0e0d0;
-            font-size: 15px;
-            box-sizing: border-box;
-        }
-        input:focus {
-            border-color: #CC5500;
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(204,85,0,0.15);
-        }
-        .btn {
-            width: 100%;
-            padding: 14px;
+        .logo { font-size: 5em; margin-bottom: 10px; }
+        h1 { color: #CC5500; font-size: 1.8em; margin-bottom: 6px; font-weight: 800; }
+        .sub { color: #8B4513; font-size: 1em; margin-bottom: 30px; }
+        .menu-item {
+            display: block;
             background: linear-gradient(135deg, #CC5500, #E0551F);
             color: white;
-            border: none;
-            border-radius: 14px;
+            text-decoration: none;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 14px;
+            font-size: 1.2em;
             font-weight: 700;
-            font-size: 17px;
-            cursor: pointer;
             transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(204,85,0,0.3);
         }
-        .btn:hover:not(:disabled) { transform: scale(1.02); box-shadow: 0 4px 20px rgba(204,85,0,0.3); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-secondary {
-            background: transparent;
-            color: #DAA520;
-            border: 2px solid #4a3020;
-            margin-top: 10px;
+        .menu-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(204,85,0,0.5);
         }
-        .btn-secondary:hover:not(:disabled) {
-            background: #4a3020;
-            color: white;
-        }
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 14px 20px;
-            border-radius: 14px;
-            color: white;
-            font-weight: 600;
-            z-index: 99999;
-            display: none;
-            max-width: 400px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        }
-        .toast.success { background: #22c55e; }
-        .toast.error { background: #ef4444; }
-        .toast.warning { background: #f59e0b; }
-        .toast.info { background: #3b82f6; }
-        .password-strength {
-            height: 4px;
-            background: #2a1a10;
-            border-radius: 4px;
-            margin-top: -6px;
-            margin-bottom: 12px;
-            overflow: hidden;
-        }
-        .password-strength .bar {
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s;
-            border-radius: 4px;
-        }
-        .password-strength .bar.weak { width: 25%; background: #ef4444; }
-        .password-strength .bar.medium { width: 50%; background: #f59e0b; }
-        .password-strength .bar.strong { width: 75%; background: #3b82f6; }
-        .password-strength .bar.very-strong { width: 100%; background: #22c55e; }
-        .strength-text {
-            font-size: 0.75em;
-            color: #8a7a6a;
-            text-align: left;
-            margin-top: -8px;
-            margin-bottom: 12px;
-        }
+        .menu-item .emoji { font-size: 1.5em; margin-right: 10px; }
+        .menu-item .desc { display: block; font-size: 0.75em; font-weight: 400; margin-top: 4px; opacity: 0.9; }
+        .footer { margin-top: 24px; color: #8B4513; font-size: 0.85em; }
     </style>
 </head>
 <body>
-    <div class="reset-box">
-        <h2>🔑 Redefinir Senha</h2>
-        <p class="subtitle">Digite sua nova senha abaixo.</p>
+    <div class="container">
+        <div class="logo">🍦</div>
+        <h1>Dindins Gourmet FX</h1>
+        <p class="sub">Escolha o seu cardápio</p>
 
-        <div id="statusMessage" style="margin-bottom:12px;font-size:0.9em;"></div>
+        <a href="cardapio1.html" class="menu-item">
+            <span class="emoji">🍦</span> Cardápio 1
+            <span class="desc">Açaís, sorvetes e sobremesas</span>
+        </a>
 
-        <input type="password" id="novaSenha" placeholder="Nova senha (mín. 8 caracteres)" autocomplete="new-password">
-        <div class="password-strength"><div class="bar" id="strengthBar"></div></div>
-        <div class="strength-text" id="strengthText">Digite uma senha forte</div>
+        <a href="cardapio2.html" class="menu-item">
+            <span class="emoji">🔥</span> Cardápio 2 - Especial
+            <span class="desc">Seleção especial da casa</span>
+        </a>
 
-        <input type="password" id="confirmaSenha" placeholder="Confirme a nova senha" autocomplete="new-password">
-
-        <button class="btn" id="btnReset" onclick="redefinirSenha()">✅ Redefinir Senha</button>
-
-        <button class="btn btn-secondary" onclick="window.location.href='index.html'">← Voltar ao Login</button>
-
-        <div id="mensagem" style="margin-top:12px;color:#c4b0a0;font-size:0.9em;"></div>
+        <div class="footer">
+            📱 Dindins Gourmet FX © 2026
+        </div>
     </div>
-
-    <div id="toast" class="toast"></div>
-
-    <script>
-    (function() {
-        'use strict';
-
-        // Usa "sb" para evitar conflito com window.supabase
-        const sb = window.supabase.createClient(
-            'https://khgkneegpxcgufslupby.supabase.co',
-            'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G',
-            { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
-        );
-
-        function mostrarToast(msg, tipo) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.className = 'toast ' + tipo;
-            t.style.display = 'block';
-            clearTimeout(t._timeout);
-            t._timeout = setTimeout(() => { t.style.display = 'none'; }, 4000);
-        }
-
-        function verificarForcaSenha(senha) {
-            const bar = document.getElementById('strengthBar');
-            const text = document.getElementById('strengthText');
-
-            if (!senha || senha.length === 0) {
-                bar.className = 'bar';
-                bar.style.width = '0%';
-                text.textContent = 'Digite uma senha forte';
-                return;
-            }
-
-            let score = 0;
-            if (senha.length >= 8) score++;
-            if (senha.length >= 12) score++;
-            if (/[a-z]/.test(senha) && /[A-Z]/.test(senha)) score++;
-            if (/\d/.test(senha)) score++;
-            if (/[^a-zA-Z0-9]/.test(senha)) score++;
-
-            const levels = [
-                { min: 0, class: '', text: 'Digite uma senha forte' },
-                { min: 1, class: 'weak', text: 'Senha fraca' },
-                { min: 2, class: 'weak', text: 'Senha fraca' },
-                { min: 3, class: 'medium', text: 'Senha média' },
-                { min: 4, class: 'strong', text: 'Senha forte' },
-                { min: 5, class: 'very-strong', text: 'Senha muito forte!' }
-            ];
-
-            const level = levels.reduce((prev, curr) => score >= curr.min ? curr : prev, levels[0]);
-            bar.className = 'bar ' + level.class;
-            bar.style.width = (score / 5 * 100) + '%';
-            text.textContent = level.text;
-        }
-
-        document.getElementById('novaSenha').addEventListener('input', function() {
-            verificarForcaSenha(this.value);
-        });
-
-        async function redefinirSenha() {
-            const nova = document.getElementById('novaSenha').value;
-            const confirma = document.getElementById('confirmaSenha').value;
-            const btn = document.getElementById('btnReset');
-            const statusMsg = document.getElementById('statusMessage');
-
-            statusMsg.textContent = '';
-            statusMsg.style.color = '';
-
-            if (!nova || nova.length < 8) {
-                mostrarToast('A senha deve ter no mínimo 8 caracteres.', 'warning');
-                document.getElementById('novaSenha').focus();
-                return;
-            }
-
-            if (nova !== confirma) {
-                mostrarToast('As senhas não coincidem.', 'error');
-                document.getElementById('confirmaSenha').focus();
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = '⏳ Processando...';
-            statusMsg.textContent = '⏳ Atualizando senha...';
-            statusMsg.style.color = '#3b82f6';
-
-            try {
-                const { data, error } = await sb.auth.updateUser({ password: nova });
-
-                if (error) throw error;
-
-                statusMsg.textContent = '✅ Senha redefinida com sucesso!';
-                statusMsg.style.color = '#22c55e';
-                mostrarToast('✅ Senha redefinida com sucesso!', 'success');
-
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 2000);
-
-            } catch (error) {
-                console.error('Erro ao redefinir senha:', error);
-                statusMsg.textContent = '❌ ' + (error.message || 'Erro ao redefinir senha');
-                statusMsg.style.color = '#ef4444';
-                mostrarToast('❌ ' + (error.message || 'Erro ao redefinir senha'), 'error');
-                btn.disabled = false;
-                btn.textContent = '✅ Redefinir Senha';
-            }
-        }
-
-        async function verificarSessao() {
-            try {
-                const { data: { session }, error } = await sb.auth.getSession();
-                if (error) throw error;
-
-                if (!session) {
-                    document.querySelector('.reset-box').innerHTML = `
-                        <h2>🔒 Sessão inválida</h2>
-                        <p style="color:#c4b0a0;">O link de redefinição expirou ou é inválido.</p>
-                        <p style="color:#8a7a6a;font-size:0.9em;margin:12px 0;">
-                            Solicite um novo link de recuperação na tela de login.
-                        </p>
-                        <button class="btn btn-secondary" onclick="window.location.href='index.html'">
-                            ← Voltar ao Login
-                        </button>
-                    `;
-                }
-            } catch (error) {
-                console.error('Erro ao verificar sessão:', error);
-            }
-        }
-
-        document.getElementById('confirmaSenha').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') redefinirSenha();
-        });
-
-        document.getElementById('novaSenha').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') document.getElementById('confirmaSenha').focus();
-        });
-
-        verificarSessao();
-
-        // Expõe globalmente
-        window.redefinirSenha = redefinirSenha;
-    })();
-    </script>
 </body>
 </html>
