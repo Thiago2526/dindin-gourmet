@@ -422,6 +422,8 @@
             const countSpan = document.getElementById('carrinhoCount');
             const formPedido = document.getElementById('formPedido');
             const pixBox = document.getElementById('pixBox');
+            const btn = document.getElementById('btnFinalizar');
+            const sucesso = document.getElementById('sucesso-msg');
 
             const itens = Object.keys(carrinho);
             const totalItens = itens.reduce((a, id) => a + carrinho[id].quantidade, 0);
@@ -432,6 +434,9 @@
                 linhaTotal.classList.add('hidden'); formPedido.classList.add('hidden');
                 pixBox.classList.add('hidden');
                 countSpan.textContent = '0 itens';
+                // Reexibe botão e esconde sucesso (para quando esvaziar o carrinho após um pedido)
+                if (btn) btn.style.display = 'block';
+                if (sucesso) sucesso.style.display = 'none';
                 return;
             }
 
@@ -453,6 +458,10 @@
             linhaTotal.classList.remove('hidden');
             formPedido.classList.remove('hidden');
             countSpan.textContent = `${totalItens} ${totalItens === 1 ? 'item' : 'itens'}`;
+
+            // ⚡ Reexibe botão de finalizar e esconde tela de sucesso antiga
+            if (btn) btn.style.display = 'block';
+            if (sucesso) sucesso.style.display = 'none';
 
             const pag = document.getElementById('pagamento').value;
             if (pag === 'pix') pixBox.classList.remove('hidden');
@@ -653,7 +662,7 @@
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🍦 Cardápio 1 - v14.0 (final) carregado!');
+        console.log('🍦 Cardápio 1 - v14.1 (corrigido botão) carregado!');
     })();
     </script>
 </body>
