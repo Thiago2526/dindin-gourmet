@@ -533,7 +533,7 @@ window.aplicarFiltroAuditoria = aplicarFiltroAuditoria;
 window.limparFiltroAuditoria = limparFiltroAuditoria;
 
 // ============================================================
-// PAGAMENTOS
+// PAGAMENTOS (COM FILTRO DE TELEFONE)
 // ============================================================
 async function carregarPagamentos() {
     try {
@@ -701,16 +701,21 @@ window.lembrarIndividual = lembrarIndividual;
 function aplicarFiltroPagamentos() {
     const s = document.getElementById('filtroPagamentosStatus').value;
     const c = document.getElementById('filtroPagamentosCliente').value.toLowerCase().trim();
+    const tel = document.getElementById('filtroPagamentosTelefone')?.value?.replace(/\D/g, '') || '';
     const filtered = State.cache.pedidos.filter(p => {
         if (s !== 'todos' && (p.pagamentostatus || 'pendente') !== s) return false;
         if (c && !p.cliente.toLowerCase().includes(c)) return false;
+        if (tel) {
+            const telPedido = (p.telefone || '').replace(/\D/g, '');
+            if (!telPedido.includes(tel)) return false;
+        }
         return true;
     });
     renderizarPagamentos(filtered);
 }
 
 function limparFiltroPagamentos() {
-    ['filtroPagamentosStatus', 'filtroPagamentosCliente', 'filtroPagamentosInicio', 'filtroPagamentosFim'].forEach(i => document.getElementById(i).value = i === 'filtroPagamentosStatus' ? 'todos' : '');
+    ['filtroPagamentosStatus', 'filtroPagamentosCliente', 'filtroPagamentosTelefone', 'filtroPagamentosInicio', 'filtroPagamentosFim'].forEach(i => document.getElementById(i).value = i === 'filtroPagamentosStatus' ? 'todos' : '');
     renderizarPagamentos(State.cache.pedidos);
 }
 window.aplicarFiltroPagamentos = aplicarFiltroPagamentos;
@@ -1182,6 +1187,7 @@ window.aplicarDescontoPedido = async function() {
     });
 };
 
-console.log('✅ Admin parte 2 carregada! v13.0');
+console.log('✅ Admin parte 2 carregada! v14.0');
 console.log('📥 Exportação CSV/PDF de estoque e insumos');
 console.log('🎁 Desconto em pedidos via aba Pagamentos');
+console.log('📞 Filtro por telefone em Pagamentos');
