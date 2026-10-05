@@ -84,7 +84,7 @@
         .realtime-indicator { position:fixed; bottom:20px; left:20px; padding:6px 12px; border-radius:20px; font-size:0.75em; font-weight:600; z-index:99997; background:rgba(34,197,94,0.15); color:var(--success); border:1px solid rgba(34,197,94,0.3); }
         .realtime-indicator.offline { background:rgba(239,68,68,0.15); color:var(--danger); border-color:rgba(239,68,68,0.3); }
         .pix-box { background:linear-gradient(135deg,rgba(34,197,94,0.1),rgba(22,163,74,0.05)); border:2px solid var(--success); border-radius:var(--radius); padding:14px; margin-top:12px; }
-        .pix-box .titulo { color:var(--success); font-weight:700; font-size:0.9em; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+        .pix-box .titulo { color:var(--success); font-weight:700; font-size:0.9em; margin-bottom:8px; }
         .pix-box .chave { background:var(--bg-input); padding:12px; border-radius:10px; font-size:1em; text-align:center; word-break:break-all; font-family:monospace; color:var(--text-primary); margin-bottom:8px; border:1px solid var(--border-color); }
         .pix-box .btn-copiar { width:100%; padding:10px; background:linear-gradient(135deg,var(--success),#16a34a); color:white; border:none; border-radius:10px; font-weight:700; cursor:pointer; transition:var(--transition); }
         .pix-box .btn-copiar:hover { transform:scale(1.02); }
@@ -180,6 +180,8 @@
                 <div class="chave" id="pixChaveDisplay">carregando...</div>
                 <button class="btn-copiar" onclick="copiarPix()">📋 Copiar Chave PIX</button>
             </div>
+
+            <div class="sucesso-msg" id="sucesso-msg"></div>
         </div>
     </div>
 
@@ -223,14 +225,6 @@
         }
 
         function formatarPreco(v) { return 'R$ ' + (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-
-        function estaOffline() {
-            if (!navigator.onLine) {
-                mostrarToast('📡 Você está sem internet. Verifique sua conexão.', 'error');
-                return true;
-            }
-            return false;
-        }
 
         function cooldownAtivo() {
             const restante = COOLDOWN_MS - (Date.now() - ultimoEnvio);
@@ -382,11 +376,16 @@
 
         async function carregarConfig() {
             try {
-                const { data } = await sb.from('config').select('*').eq('chave', 'admin').maybeSingle();
+                const { data, error } = await sb.from('config').select('*').eq('chave', 'admin').maybeSingle();
+                if (error) throw error;
                 if (data && data.dados) config = data.dados;
                 const el = document.getElementById('pixChaveDisplay');
                 if (el) el.textContent = config.pix || 'Chave PIX não configurada';
-            } catch (e) { console.warn('Config não carregada:', e); }
+            } catch (e) {
+                console.warn('Config não carregada:', e);
+                const el = document.getElementById('pixChaveDisplay');
+                if (el) el.textContent = 'Erro ao carregar chave PIX';
+            }
         }
 
         async function carregarSetores() {
@@ -576,14 +575,12 @@
             if (modoRevendedor) campoDesconto.classList.remove('hidden');
             else campoDesconto.classList.add('hidden');
 
-            // PIX visível se estiver selecionado
             const pag = document.getElementById('pagamento').value;
             if (pag === 'pix') pixBox.classList.remove('hidden');
             else pixBox.classList.add('hidden');
         }
 
         async function finalizarPedidoCliente() {
-            if (estaOffline()) return;
             if (cooldownAtivo()) return;
 
             const cliente = document.getElementById('cliente').value.trim();
@@ -664,13 +661,10 @@
 
                 overlay.classList.add('hidden');
 
-                // ═══════════════════════════════════════════════════
-                // TELA DE SUCESSO LIMPA (sem WhatsApp, sem modal)
-                // ═══════════════════════════════════════════════════
                 const pedidoId = data.pedido_id;
                 let msgSucesso = `<div class="icon">✅</div><h3>Pedido Recebido!</h3><div class="pedido-num">${pedidoId}</div>`;
                 if (pagamento === 'pix' && config.pix) {
-                    msgSucesso += `<p>📱 <strong>Chave PIX:</strong></p><div class="chave" style="background:var(--bg-input);padding:10px;border-radius:8px;font-family:monospace;margin:8px 0;word-break:break-all;font-size:0.9em;">${config.pix}</div><button class="btn btn-primary" onclick="copiarPix()" style="width:100%;">📋 Copiar Chave PIX</button><p style="margin-top:12px;">Após o pagamento, envie o comprovante pelo WhatsApp do restaurante.</p>`;
+                    msgSucesso += `<p>📱 <strong>Chave PIX:</strong></p><div style="background:var(--bg-input);padding:10px;border-radius:8px;font-family:monospace;margin:8px 0;word-break:break-all;font-size:0.9em;">${config.pix}</div><button class="btn btn-primary" onclick="copiarPix()" style="width:100%;">📋 Copiar Chave PIX</button><p style="margin-top:12px;">Após o pagamento, envie o comprovante pelo WhatsApp do restaurante.</p>`;
                 } else {
                     msgSucesso += `<p>Aguarde o contato do restaurante para confirmar seu pedido.</p>`;
                 }
@@ -681,7 +675,6 @@
                     sucesso.innerHTML = msgSucesso;
                     sucesso.style.display = 'block';
                 } else {
-                    // Se não tiver elemento de sucesso, cria um toast
                     mostrarToast(`✅ Pedido ${pedidoId} recebido!`, 'success');
                 }
 
@@ -760,11 +753,12 @@
         function atualizarOfflineBanner() {
             const b = document.getElementById('offlineBanner');
             if (!b) return;
-            if (navigator.onLine) b.classList.remove('ativo');
-            else b.classList.add('ativo');
+            if (navigator.onLine === false) b.classList.add('ativo');
+            else b.classList.remove('ativo');
         }
         window.addEventListener('offline', atualizarOfflineBanner);
         window.addEventListener('online', atualizarOfflineBanner);
+        setTimeout(atualizarOfflineBanner, 2000);
 
         document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('telefone').addEventListener('input', function() { mascararTelefone(this); });
@@ -788,7 +782,7 @@
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🍦 Cardápio 1 - v11.0 (PIX visível, sem WhatsApp, Telegram ativo) carregado!');
+        console.log('🍦 Cardápio 1 - v11.1 (corrigido, CAPTCHA off, PIX visível) carregado!');
     })();
     </script>
 </body>
