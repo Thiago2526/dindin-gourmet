@@ -21,9 +21,6 @@
         .btn-primary:hover { transform:scale(1.02); box-shadow:0 4px 20px rgba(204,85,0,0.3); }
         .btn-theme { background:transparent; border:2px solid var(--border-color); color:var(--text-primary); min-height:40px; }
         .btn-theme:hover { background:var(--border-color); }
-        .btn-cadeado { background:transparent; border:2px solid var(--border-color); color:var(--text-muted); min-height:40px; font-size:14px; }
-        .btn-cadeado:hover { background:var(--border-color); }
-        .btn-cadeado.ativo { background:linear-gradient(135deg,var(--roxo),#6d28d9); color:white; border-color:var(--roxo); }
         .menu-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px; margin-bottom:30px; }
         .menu-item { background:var(--bg-card); border-radius:var(--radius); border:1px solid var(--border-color); padding:16px; text-align:center; transition:var(--transition); }
         .menu-item:hover { border-color:var(--border-hover); transform:translateY(-4px); box-shadow:var(--shadow-hover); }
@@ -54,13 +51,6 @@
         .carrinho-total { display:flex; justify-content:space-between; padding-top:6px; margin-top:6px; font-size:1em; }
         .carrinho-total.principal { font-size:1.3em; font-weight:700; border-top:2px solid var(--border-color); padding-top:12px; margin-top:12px; }
         .carrinho-total .valor { color:var(--dourado); }
-        .carrinho-total.desconto { color:var(--roxo); font-weight:600; }
-        .carrinho-total.desconto .valor { color:var(--roxo); }
-        .campo-desconto { display:flex; gap:8px; align-items:center; margin-top:10px; padding:12px; background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(109,40,217,0.05)); border:2px solid var(--roxo); border-radius:var(--radius); }
-        .campo-desconto label { font-size:0.85em; font-weight:700; color:var(--roxo); white-space:nowrap; }
-        .campo-desconto input { flex:1; padding:8px 12px; border:2px solid var(--border-color); border-radius:10px; background:var(--bg-input); color:var(--text-primary); font-size:14px; font-family:inherit; min-width:100px; }
-        .campo-desconto input:focus { border-color:var(--roxo); outline:none; }
-        .campo-desconto .ajuda { font-size:0.7em; color:var(--text-muted); margin-top:4px; }
         .form-pedido { display:flex; flex-wrap:wrap; gap:12px; margin-top:12px; }
         .form-pedido .form-group { flex:1; min-width:180px; }
         .form-pedido label { display:block; font-size:0.85em; font-weight:600; color:var(--text-secondary); margin-bottom:4px; }
@@ -117,7 +107,6 @@
         <div class="header">
             <h1>🍦 Cardápio 1 - Dindins Gourmet FX</h1>
             <div class="header-actions">
-                <button class="btn btn-cadeado" id="btnCadeado" onclick="toggleModoRevendedor()" title="Modo Revendedor">🔒</button>
                 <button class="btn btn-theme" onclick="toggleTheme()" title="Alternar tema"><span id="themeIcon">🌙</span></button>
                 <button class="btn btn-primary" onclick="recarregarTudo()">🔄 Atualizar</button>
             </div>
@@ -135,17 +124,7 @@
 
             <div class="carrinho-total hidden" id="linhaSubtotal"><span>Subtotal:</span><span id="subtotalValor">R$ 0,00</span></div>
             <div class="carrinho-total hidden" id="linhaTaxa"><span>Taxa de entrega:</span><span id="taxaValor">R$ 0,00</span></div>
-            <div class="carrinho-total desconto hidden" id="linhaDesconto"><span>🎁 Desconto:</span><span class="valor" id="descontoValor">- R$ 0,00</span></div>
             <div class="carrinho-total principal hidden" id="linhaTotal"><span>Total:</span><span class="valor" id="totalValor">R$ 0,00</span></div>
-
-            <div class="campo-desconto hidden" id="campoDesconto">
-                <div style="flex:1;">
-                    <label>🎁 DESCONTO REVENDEDOR</label>
-                    <input type="text" id="inputDesconto" placeholder="Ex: 10% ou 5 ou 5,00" oninput="aplicarDesconto()" maxlength="20">
-                    <div class="ajuda">Digite <strong>10%</strong> para porcentagem ou <strong>5</strong> para R$ 5,00</div>
-                </div>
-                <button class="btn" style="background:transparent;color:var(--roxo);border:2px solid var(--roxo);min-height:40px;padding:8px 12px;" onclick="limparDesconto()" title="Limpar desconto">✕</button>
-            </div>
 
             <div class="form-pedido hidden" id="formPedido">
                 <div class="form-group">
@@ -191,7 +170,6 @@
 
         const SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
-        const SENHA_REVENDEDOR = 'dindinsmaster';
         const COOLDOWN_MS = 3000;
 
         if (SUPABASE_KEY.startsWith('eyJ') || SUPABASE_KEY.startsWith('sb_secret_')) {
@@ -208,9 +186,6 @@
         let carrinho = {};
         let config = { whatsapp: '', pix: '', grupoWhatsapp: '' };
         let realtimeChannel = null;
-        let descontoAplicado = 0;
-        let descontoTexto = '';
-        let modoRevendedor = false;
         let ultimoEnvio = 0;
         const MAX_POR_ITEM = 20;
         const CART_EXPIRY_DAYS = 7;
@@ -247,79 +222,6 @@
                 }]);
             } catch (e) {}
         }
-
-        // ═══════════════════════════════════════════════════
-        // MODO REVENDEDOR
-        // ═══════════════════════════════════════════════════
-        function toggleModoRevendedor() {
-            if (modoRevendedor) {
-                modoRevendedor = false;
-                sessionStorage.removeItem('modo_revendedor_c1');
-                atualizarUIModoRevendedor();
-                mostrarToast('🔒 Modo Revendedor desativado.', 'info');
-                return;
-            }
-            const senha = prompt('🔒 Digite a senha de revendedor:');
-            if (senha === null) return;
-            if (senha === SENHA_REVENDEDOR) {
-                modoRevendedor = true;
-                sessionStorage.setItem('modo_revendedor_c1', 'ativo');
-                atualizarUIModoRevendedor();
-                mostrarToast('🎁 Modo Revendedor ATIVADO!', 'success');
-            } else {
-                mostrarToast('❌ Senha incorreta.', 'error');
-            }
-        }
-
-        function atualizarUIModoRevendedor() {
-            const btn = document.getElementById('btnCadeado');
-            const campo = document.getElementById('campoDesconto');
-            if (modoRevendedor) {
-                btn.classList.add('ativo');
-                btn.textContent = '🎁';
-                if (Object.keys(carrinho).length > 0) campo.classList.remove('hidden');
-            } else {
-                btn.classList.remove('ativo');
-                btn.textContent = '🔒';
-                campo.classList.add('hidden');
-                limparDesconto();
-            }
-        }
-
-        function aplicarDesconto() {
-            if (!modoRevendedor) return;
-            const input = document.getElementById('inputDesconto');
-            const valor = (input.value || '').trim();
-            if (!valor) { descontoAplicado = 0; descontoTexto = ''; atualizarCarrinho(); return; }
-            const { subtotal, taxa } = calcularTotalSemDesconto();
-            const totalBruto = subtotal + taxa;
-            let desc = 0;
-            if (valor.includes('%')) {
-                const pct = parseFloat(valor.replace('%', '').replace(',', '.'));
-                if (isNaN(pct) || pct < 0 || pct > 100) { mostrarToast('⚠️ Porcentagem inválida (0 a 100).', 'warning'); return; }
-                desc = (totalBruto * pct) / 100;
-            } else {
-                const num = parseFloat(valor.replace(',', '.'));
-                if (isNaN(num) || num < 0) { mostrarToast('⚠️ Valor inválido.', 'warning'); return; }
-                if (num > totalBruto) { mostrarToast('⚠️ Desconto maior que o total.', 'warning'); return; }
-                desc = num;
-            }
-            descontoAplicado = Math.round(desc * 100) / 100;
-            descontoTexto = valor;
-            atualizarCarrinho();
-        }
-
-        function limparDesconto() {
-            const input = document.getElementById('inputDesconto');
-            if (input) input.value = '';
-            descontoAplicado = 0;
-            descontoTexto = '';
-            atualizarCarrinho();
-        }
-
-        window.toggleModoRevendedor = toggleModoRevendedor;
-        window.aplicarDesconto = aplicarDesconto;
-        window.limparDesconto = limparDesconto;
 
         // ═══════════════════════════════════════════════════
         // TEMA
@@ -503,7 +405,7 @@
         }
         window.copiarPix = copiarPix;
 
-        function calcularTotalSemDesconto() {
+        function calcularTotal() {
             let subtotal = 0;
             Object.keys(carrinho).forEach(id => { subtotal += carrinho[id].preco * carrinho[id].quantidade; });
             const setorSel = document.getElementById('setor');
@@ -512,25 +414,16 @@
             return { subtotal, taxa, total: subtotal + taxa };
         }
 
-        function calcularTotal() {
-            const { subtotal, taxa, total } = calcularTotalSemDesconto();
-            const totalComDesconto = Math.max(0, total - descontoAplicado);
-            return { subtotal, taxa, total: totalComDesconto, totalBruto: total, desconto: descontoAplicado };
-        }
-
         function atualizarCarrinho() {
             const container = document.getElementById('carrinhoItens');
             const linhaSubtotal = document.getElementById('linhaSubtotal');
             const linhaTaxa = document.getElementById('linhaTaxa');
-            const linhaDesconto = document.getElementById('linhaDesconto');
             const linhaTotal = document.getElementById('linhaTotal');
             const subtotalValor = document.getElementById('subtotalValor');
             const taxaValor = document.getElementById('taxaValor');
-            const descontoValor = document.getElementById('descontoValor');
             const totalValor = document.getElementById('totalValor');
             const countSpan = document.getElementById('carrinhoCount');
             const formPedido = document.getElementById('formPedido');
-            const campoDesconto = document.getElementById('campoDesconto');
             const pixBox = document.getElementById('pixBox');
 
             const itens = Object.keys(carrinho);
@@ -539,8 +432,7 @@
             if (itens.length === 0) {
                 container.innerHTML = `<div class="empty-state" style="padding:20px;"><span class="icon">🛒</span><div>Seu carrinho está vazio</div></div>`;
                 linhaSubtotal.classList.add('hidden'); linhaTaxa.classList.add('hidden');
-                linhaDesconto.classList.add('hidden'); linhaTotal.classList.add('hidden');
-                formPedido.classList.add('hidden'); campoDesconto.classList.add('hidden');
+                linhaTotal.classList.add('hidden'); formPedido.classList.add('hidden');
                 pixBox.classList.add('hidden');
                 countSpan.textContent = '0 itens';
                 return;
@@ -554,7 +446,7 @@
             });
             container.innerHTML = html;
 
-            const { subtotal, taxa, total, desconto } = calcularTotal();
+            const { subtotal, taxa, total } = calcularTotal();
             subtotalValor.textContent = formatarPreco(subtotal);
             taxaValor.textContent = formatarPreco(taxa);
             totalValor.textContent = formatarPreco(total);
@@ -564,16 +456,6 @@
             linhaTotal.classList.remove('hidden');
             formPedido.classList.remove('hidden');
             countSpan.textContent = `${totalItens} ${totalItens === 1 ? 'item' : 'itens'}`;
-
-            if (desconto > 0) {
-                descontoValor.textContent = '- ' + formatarPreco(desconto);
-                linhaDesconto.classList.remove('hidden');
-            } else {
-                linhaDesconto.classList.add('hidden');
-            }
-
-            if (modoRevendedor) campoDesconto.classList.remove('hidden');
-            else campoDesconto.classList.add('hidden');
 
             const pag = document.getElementById('pagamento').value;
             if (pag === 'pix') pixBox.classList.remove('hidden');
@@ -628,7 +510,7 @@
                 }
 
                 const itens = Object.keys(carrinho).map(id => ({ nome: carrinho[id].nome, quantidade: carrinho[id].quantidade, preco: carrinho[id].preco }));
-                const { subtotal, taxa, total, desconto } = calcularTotal();
+                const { subtotal, taxa, total } = calcularTotal();
 
                 let obs = 'Cardápio 1';
                 let localTexto = 'Retirada no local';
@@ -645,7 +527,6 @@
                 const formasPagamento = { 'pix': '📱 PIX', 'cartao': '💳 Cartão (na entrega)', 'dinheiro': '💵 Dinheiro' };
                 const formaTexto = formasPagamento[pagamento] || pagamento;
                 obs += ` | Pagamento: ${formaTexto}`;
-                if (desconto > 0) obs += ` | Desconto: ${descontoTexto}`;
 
                 const idempotencyKey = gerarIdempotencyKey();
 
@@ -653,7 +534,7 @@
                     p_cliente: cliente, p_telefone: telefone, p_itens: itens, p_total: total,
                     p_pagamento: pagamento, p_obs: obs, p_origem: 'c1',
                     p_idempotency_key: idempotencyKey,
-                    p_desconto: descontoTexto || null
+                    p_desconto: null
                 });
 
                 if (error) throw new Error(error.message);
@@ -683,15 +564,11 @@
                 carrinho = {};
                 salvarCarrinho();
                 limparIdempotencyKey();
-                descontoAplicado = 0;
-                descontoTexto = '';
                 ultimoEnvio = Date.now();
                 document.getElementById('cliente').value = '';
                 document.getElementById('telefone').value = '';
                 document.getElementById('setor').value = '';
                 document.getElementById('pagamento').value = 'pix';
-                const inp = document.getElementById('inputDesconto');
-                if (inp) inp.value = '';
                 atualizarCarrinho();
                 setTimeout(carregarCardapio, 1500);
 
@@ -762,7 +639,6 @@
 
         document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('telefone').addEventListener('input', function() { mascararTelefone(this); });
-            if (sessionStorage.getItem('modo_revendedor_c1') === 'ativo') modoRevendedor = true;
             atualizarOfflineBanner();
             carregarCarrinhoSalvo();
             await carregarConfig();
@@ -770,7 +646,6 @@
             await carregarCardapio();
             iniciarRealtime();
             verificarCarrinhoSalvo();
-            atualizarUIModoRevendedor();
             atualizarPix();
         });
 
@@ -782,7 +657,7 @@
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🍦 Cardápio 1 - v11.1 (corrigido, CAPTCHA off, PIX visível) carregado!');
+        console.log('🍦 Cardápio 1 - v12.0 (sem desconto cliente, com PIX) carregado!');
     })();
     </script>
 </body>
