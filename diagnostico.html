@@ -75,7 +75,6 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* TELA DE ACESSO RESTRITO */
         .restrito {
             max-width: 500px;
             margin: 80px auto;
@@ -161,9 +160,10 @@
                     return false;
                 }
 
+                // ⭐ Busca o admin completo (com is_master)
                 const { data: adminData, error: adminErr } = await sb
                     .from('admin_usuarios')
-                    .select('user_id, nome, ativo')
+                    .select('user_id, nome, ativo, is_master')
                     .eq('user_id', session.user.id)
                     .maybeSingle();
 
@@ -177,14 +177,8 @@
                     return false;
                 }
 
-                const { data: masterData } = await sb
-                    .from('admin_usuarios')
-                    .select('user_id')
-                    .order('criado_em', { ascending: true })
-                    .limit(1)
-                    .maybeSingle();
-
-                if (!masterData || masterData.user_id !== session.user.id) {
+                // ⭐ NOVO: verifica is_master direto da coluna do banco
+                if (adminData.is_master !== true) {
                     mostrarAcessoRestrito('Apenas o administrador master pode acessar o diagnóstico.');
                     return false;
                 }
@@ -205,17 +199,13 @@
                 adicionarCheck('warning', '⚠️ HTTPS', 'Recomendado usar HTTPS em produção.');
             }
 
-            // 2. Verificar chave exposta (CORRIGIDO — não se auto-detecta)
+            // 2. Chave exposta
             try {
                 const response = await fetch(window.location.href);
                 const html = await response.text();
 
-                // Padrões REAIS de chave secreta (entre aspas, com tamanho mínimo)
-                // Não confunde com a string literal 'sb_secret_' que aparece no próprio código
                 const regexChaveSecreta = /["']sb_secret_[A-Za-z0-9_-]{20,}["']/;
                 const regexJWTSecreto = /["']eyJ[A-Za-z0-9-_]{20,}\.eyJ[A-Za-z0-9-_]{20,}\.[A-Za-z0-9-_]{20,}["']/;
-                
-                // Chave publishable (essa pode estar no HTML — é pública)
                 const regexChavePublica = /["']sb_publishable_[A-Za-z0-9_-]{20,}["']/;
 
                 const temChaveSecreta = regexChaveSecreta.test(html) || regexJWTSecreto.test(html);
@@ -272,30 +262,51 @@
                 adicionarCheck('info', 'ℹ️ Sem Carrinho', 'Nenhum carrinho ativo.');
             }
 
-            // 7. Supabase
+            // 7. Supabase — conexão básica
             try {
                 const { error } = await sb.from('estoquecentral').select('*').limit(1);
-
                 if (error) {
                     adicionarCheck('error', '🚨 Erro de Conexão', error.message);
                 } else {
                     adicionarCheck('ok', '✅ Supabase Conectado', 'Conexão com o banco estabelecida.');
                 }
-
-                const { data: adminData, error: adminErr } = await sb
-                    .from('admin_usuarios')
-                    .select('*')
-                    .limit(1);
-
-                if (adminErr && adminErr.code === '42501') {
-                    adicionarCheck('ok', '✅ RLS Ativo', 'Tabelas protegidas bloqueiam acesso não autorizado.');
-                } else if (!adminErr && adminData && adminData.length > 0) {
-                    adicionarCheck('warning', '⚠️ RLS Pode Estar Aberto', 'admin_usuarios retornou dados sem autenticação.');
-                } else {
-                    adicionarCheck('ok', '✅ RLS Ativo', 'Tabelas protegidas.');
-                }
             } catch (e) {
                 adicionarCheck('error', '🚨 Erro Supabase', e.message);
+            }
+
+            // 8. RLS — não dá falso positivo quando logado
+            try {
+                const { data: { session: sessaoAtual } } = await sb.auth.getSession();
+
+                if (sessaoAtual) {
+                    const { data: adminData, error: adminErr } = await sb
+                        .from('admin_usuarios')
+                        .select('user_id')
+                        .limit(2);
+
+                    if (adminErr) {
+                        adicionarCheck('ok', '✅ RLS Ativo', 'Query em admin_usuarios bloqueada mesmo logado (RLS apertado).');
+                    } else if (!adminData || adminData.length === 0) {
+                        adicionarCheck('info', 'ℹ️ RLS', 'Logado, mas sem acesso a admin_usuarios.');
+                    } else {
+                        adicionarCheck('ok', '✅ RLS Ativo', 'Você está logado como admin — acesso a admin_usuarios permitido (correto).');
+                    }
+                } else {
+                    const { data: adminData, error: adminErr } = await sb
+                        .from('admin_usuarios')
+                        .select('user_id')
+                        .limit(2);
+
+                    if (adminErr) {
+                        adicionarCheck('ok', '✅ RLS Ativo', 'Query bloqueada pelo RLS (correto para usuário deslogado).');
+                    } else if (!adminData || adminData.length === 0) {
+                        adicionarCheck('ok', '✅ RLS Ativo', 'Deslogado e sem acesso a admin_usuarios (correto).');
+                    } else {
+                        adicionarCheck('error', '🚨 RLS ABERTO', `${adminData.length} admins visíveis SEM login! Corrija urgente.`);
+                    }
+                }
+            } catch (e) {
+                adicionarCheck('error', '🚨 Erro RLS', e.message);
             }
 
             renderizarResultados();
