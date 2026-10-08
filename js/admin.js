@@ -1,18 +1,15 @@
 // ============================================================
-// SUPABASE CLIENT
+// SUPABASE CLIENT (vem do js/config.js)
 // ============================================================
-const SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
+const SUPABASE_URL = window.CONFIG.SUPABASE_URL;
+const SUPABASE_KEY = window.CONFIG.SUPABASE_KEY;
+const sb = window.sb;
 
-if (SUPABASE_KEY.startsWith('eyJ') || SUPABASE_KEY.startsWith('sb_secret_')) {
-    alert('🚨 ERRO CRÍTICO DE SEGURANÇA.');
-    throw new Error('Chave secreta no cliente');
+if (!sb) {
+    console.error('❌ config.js não carregou ou falhou ao criar o client');
+    alert('Erro de configuração. Recarregue a página.');
+    throw new Error('Supabase client não inicializado');
 }
-console.log('%c🔒 Segurança OK', 'color: #22c55e; font-weight: bold;');
-
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storage: window.localStorage, flowType: 'pkce' }
-});
 
 sb.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
@@ -1330,7 +1327,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, true);
 });
 
-console.log('✅ Admin parte 1 carregado! v20.1 (MASTER POR FLAG + PROTEÇÃO)');
+console.log('✅ Admin parte 1 carregado! v22.0 (config.js + master por flag + proteção)');
+console.log('🔗 Config compartilhada via js/config.js');
 console.log('👑 is_master lido direto do banco');
 console.log('🛡️ Sistema de permissões BLINDADO');
-console.log('🔒 Abas proibidas são escondidas e bloqueadas no clique');
