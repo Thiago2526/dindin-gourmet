@@ -8,15 +8,28 @@
 async function carregarFinanceiro() {
     try {
         const { data } = await sb.from('todospedidos').select('*');
-        State.cache.pedidos = data || [];
-        const total = State.cache.pedidos.filter(x => x.pagamentostatus === 'pago').reduce((s, x) => s + (x.total || 0), 0);
-        const pend = State.cache.pedidos.filter(x => x.pagamentostatus !== 'pago').reduce((s, x) => s + (x.total || 0), 0);
+        let pedidos = data || [];
+
+        const cliente = document.getElementById('filtroFinanceiroCliente')?.value?.toLowerCase().trim() || '';
+        const tel = document.getElementById('filtroFinanceiroTelefone')?.value?.replace(/\D/g, '') || '';
+        const inicio = document.getElementById('filtroFinanceiroInicio')?.value || '';
+        const fim = document.getElementById('filtroFinanceiroFim')?.value || '';
+
+        if (cliente) pedidos = pedidos.filter(x => (x.cliente || '').toLowerCase().includes(cliente));
+        if (tel) pedidos = pedidos.filter(x => (x.telefone || '').replace(/\D/g, '').includes(tel));
+        if (inicio) pedidos = pedidos.filter(x => x.data && x.data >= inicio);
+        if (fim) pedidos = pedidos.filter(x => x.data && x.data <= fim);
+
+        State.cache.pedidos = pedidos;
+
+        const total = pedidos.filter(x => x.pagamentostatus === 'pago').reduce((s, x) => s + (x.total || 0), 0);
+        const pend = pedidos.filter(x => x.pagamentostatus !== 'pago').reduce((s, x) => s + (x.total || 0), 0);
         document.getElementById('listaFinanceiro').innerHTML = `
             <div class="resumo-financeiro">
                 <div class="resumo-card"><div class="destaque">R$ ${total.toFixed(2)}</div><div class="label">💰 Recebido</div></div>
                 <div class="resumo-card"><div class="destaque" style="color:#fcd34d;">R$ ${pend.toFixed(2)}</div><div class="label">⏳ Pendente</div></div>
-                <div class="resumo-card"><div class="valor">${State.cache.pedidos.length}</div><div class="label">📦 Pedidos</div></div>
-                <div class="resumo-card"><div class="valor">${State.cache.pedidos.filter(x => x.pagamentostatus === 'pago').length}</div><div class="label">✅ Pagos</div></div>
+                <div class="resumo-card"><div class="valor">${pedidos.length}</div><div class="label">📦 Pedidos</div></div>
+                <div class="resumo-card"><div class="valor">${pedidos.filter(x => x.pagamentostatus === 'pago').length}</div><div class="label">✅ Pagos</div></div>
             </div>`;
     } catch (e) { tratarErro(e); }
 }
@@ -24,7 +37,7 @@ window.carregarFinanceiro = carregarFinanceiro;
 
 function aplicarFiltroFinanceiro() { carregarFinanceiro(); }
 function limparFiltroFinanceiro() {
-    ['filtroFinanceiroCliente', 'filtroFinanceiroInicio', 'filtroFinanceiroFim'].forEach(i => document.getElementById(i).value = '');
+    ['filtroFinanceiroCliente', 'filtroFinanceiroTelefone', 'filtroFinanceiroInicio', 'filtroFinanceiroFim'].forEach(i => document.getElementById(i).value = '');
     carregarFinanceiro();
 }
 window.aplicarFiltroFinanceiro = aplicarFiltroFinanceiro;
@@ -489,7 +502,6 @@ async function salvarConfig() {
     });
 }
 window.salvarConfig = salvarConfig;
-
 // ============================================================
 // AUDITORIA
 // ============================================================
@@ -533,7 +545,7 @@ window.aplicarFiltroAuditoria = aplicarFiltroAuditoria;
 window.limparFiltroAuditoria = limparFiltroAuditoria;
 
 // ============================================================
-// PAGAMENTOS (COM FILTRO DE TELEFONE)
+// PAGAMENTOS
 // ============================================================
 async function carregarPagamentos() {
     try {
@@ -555,7 +567,7 @@ function formatarPagamento(pagamento) {
         'pix': '📱 PIX',
         'cartao': '💳 Cartão',
         'dinheiro': '💵 Dinheiro',
-        'credito': '💳 Crédito (link)',
+        'credito': '💳 Crédito',
         'pendente': '⏳ Pendente',
         'pago': '✅ Pago'
     };
@@ -568,12 +580,12 @@ function montarMensagemLembrete(pedidos) {
 
     if (pedidos.length === 1) {
         const p = pedidos[0];
-        const itensTexto = (p.itens || []).map(i => 
+        const itensTexto = (p.itens || []).map(i =>
             `• ${i.quantidade}x ${i.nome} — R$ ${((i.preco || 0) * (i.quantidade || 0)).toFixed(2)}`
         ).join('\n') || 'Sem itens';
         const pedidoId = p.pedido_id || `#${p.id}`;
         const dataFormatada = Utils.formatarData(p.data);
-        const formaPgto = formatarPagamento(p.pagamento);
+        const formaPgto = formatarPagamento(p.pagamentostatus);
 
         return `💳 *LEMBRETE DE PAGAMENTO*\n\n` +
             `Olá *${nome}*!\n\n` +
@@ -592,12 +604,12 @@ function montarMensagemLembrete(pedidos) {
 
     let totalGeral = 0;
     pedidos.forEach((p) => {
-        const itensTexto = (p.itens || []).map(it => 
+        const itensTexto = (p.itens || []).map(it =>
             `  • ${it.quantidade}x ${it.nome}`
         ).join('\n') || '  (sem itens)';
         const pedidoId = p.pedido_id || `#${p.id}`;
         const dataFormatada = Utils.formatarData(p.data);
-        const formaPgto = formatarPagamento(p.pagamento);
+        const formaPgto = formatarPagamento(p.pagamentostatus);
         totalGeral += p.total || 0;
 
         msg += `━━━━━━━━━━━━━━━━━━━━\n`;
@@ -627,7 +639,7 @@ function renderizarPagamentos(p) {
             ? '<span class="badge badge-pago">✅ PAGO</span>'
             : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
         const b = x.pagamentostatus !== 'pago'
-            ? `<button class="btn btn-success btn-sm" onclick="confirmarPag(${x.id})" title="Confirmar pagamento">✅</button>`
+            ? `<button class="btn btn-success btn-sm" onclick="confirmarPag(${x.id})" title="Confirmar pagamento total">✅</button>`
             : '';
         const lem = x.pagamentostatus !== 'pago' && x.telefone
             ? `<button class="btn btn-whatsapp btn-sm" onclick="lembrarIndividual(${x.id})" title="Enviar lembrete">📱</button>`
@@ -635,10 +647,13 @@ function renderizarPagamentos(p) {
         const desc = x.pagamentostatus !== 'pago'
             ? `<button class="btn btn-warning btn-sm" onclick="abrirModalDesconto(${x.id})" title="Aplicar desconto">🎁</button>`
             : '';
+        const val = x.pagamentostatus !== 'pago'
+            ? `<button class="btn btn-primary btn-sm" onclick="abrirModalValorPago(${x.id})" title="Registrar valor pago">💵</button>`
+            : '';
         const itensTexto = formatarItensPedido(x.itens);
         const dataFormatada = Utils.formatarData(x.data);
         const pedidoId = x.pedido_id || `#${x.id}`;
-        const formaPgto = formatarPagamento(x.pagamento);
+        const formaPgto = formatarPagamento(x.pagamentostatus);
         const badgeDesconto = x.desconto ? `<span class="badge" style="background:#8b5cf6;color:white;">🎁 ${Utils.escapeHtml(x.desconto)}</span>` : '';
 
         return `<div class="card-item" style="flex-direction:column;align-items:stretch;">
@@ -660,7 +675,7 @@ function renderizarPagamentos(p) {
                 <span style="color:var(--text-secondary);">${Utils.escapeHtml(itensTexto)}</span>
             </div>
             <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-                ${b} ${lem} ${desc}
+                ${b} ${lem} ${desc} ${val}
             </div>
         </div>`;
     }).join('');
@@ -711,14 +726,148 @@ function aplicarFiltroPagamentos() {
         }
         return true;
     });
+
+    mostrarResumoCliente(filtered, c, tel);
     renderizarPagamentos(filtered);
 }
+window.aplicarFiltroPagamentos = aplicarFiltroPagamentos;
+
+// ============================================================
+// RESUMO CONSOLIDADO DO CLIENTE FILTRADO
+// ============================================================
+function mostrarResumoCliente(pedidos, filtroCliente, filtroTelefone) {
+    const container = document.getElementById('resumoClienteFiltrado');
+    if (!container) return;
+
+    if (!filtroCliente && !filtroTelefone) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+        return;
+    }
+
+    if (pedidos.length === 0) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+        return;
+    }
+
+    const pendentes = pedidos.filter(p => p.pagamentostatus !== 'pago');
+    const pagos = pedidos.filter(p => p.pagamentostatus === 'pago');
+
+    const totalPendente = pendentes.reduce((s, p) => s + (p.total || 0), 0);
+    const totalPago = pagos.reduce((s, p) => s + (p.total || 0), 0);
+    const totalGeral = totalPendente + totalPago;
+
+    const primeiro = pedidos[0];
+    const nomeCliente = primeiro.cliente || 'Cliente';
+    const telefone = primeiro.telefone || '';
+
+    let html = `
+        <div style="background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(109,40,217,0.05));border:2px solid var(--roxo);border-radius:var(--radius);padding:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+                <div>
+                    <div style="font-size:0.8em;color:var(--roxo);font-weight:700;text-transform:uppercase;letter-spacing:1px;">📊 Resumo do Cliente</div>
+                    <div style="font-size:1.3em;font-weight:800;color:var(--dourado);margin-top:4px;">👤 ${Utils.escapeHtml(nomeCliente)}</div>
+                    ${telefone ? `<div style="color:var(--text-secondary);font-size:0.9em;">📱 ${Utils.mascararTelefone(telefone)}</div>` : ''}
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:0.85em;color:var(--text-secondary);">${pedidos.length} pedido(s) no filtro</div>
+                    <div style="font-size:0.85em;color:var(--success);">✅ ${pagos.length} pago(s)</div>
+                    <div style="font-size:0.85em;color:#f59e0b;">⏳ ${pendentes.length} pendente(s)</div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px;">
+                <div style="background:var(--bg-card);padding:12px;border-radius:10px;text-align:center;">
+                    <div style="font-size:0.75em;color:var(--text-muted);text-transform:uppercase;">Total Pago</div>
+                    <div style="font-size:1.3em;font-weight:800;color:var(--success);">R$ ${totalPago.toFixed(2)}</div>
+                </div>
+                <div style="background:var(--bg-card);padding:12px;border-radius:10px;text-align:center;">
+                    <div style="font-size:0.75em;color:var(--text-muted);text-transform:uppercase;">Total Pendente</div>
+                    <div style="font-size:1.3em;font-weight:800;color:#f59e0b;">R$ ${totalPendente.toFixed(2)}</div>
+                </div>
+                <div style="background:var(--bg-card);padding:12px;border-radius:10px;text-align:center;border:2px solid var(--roxo);">
+                    <div style="font-size:0.75em;color:var(--text-muted);text-transform:uppercase;">💰 Total Geral</div>
+                    <div style="font-size:1.4em;font-weight:900;color:var(--dourado);">R$ ${totalGeral.toFixed(2)}</div>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                ${pendentes.length > 0 ? `
+                    <button class="btn btn-whatsapp" onclick="lembrarClienteFiltrado()" style="flex:1;min-width:200px;">
+                        📱 Lembrar Cliente (${pendentes.length} ${pendentes.length === 1 ? 'pedido' : 'pedidos'} — R$ ${totalPendente.toFixed(2)})
+                    </button>
+                    <button class="btn btn-success" onclick="confirmarTodosPendentesFiltrado()" style="flex:1;min-width:200px;">
+                        ✅ Confirmar Todos Pendentes
+                    </button>
+                ` : `
+                    <div style="background:var(--success);color:white;padding:12px 20px;border-radius:10px;font-weight:700;text-align:center;flex:1;">
+                        🎉 Todos os pedidos deste filtro estão pagos!
+                    </div>
+                `}
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = html;
+    container.style.display = 'block';
+
+    State.clientesFiltrados = pedidos;
+}
+
+window.lembrarClienteFiltrado = function() {
+    const pedidos = State.clientesFiltrados || [];
+    const pendentes = pedidos.filter(p => p.pagamentostatus !== 'pago');
+
+    if (pendentes.length === 0) {
+        mostrarToast('Nenhum pedido pendente neste filtro', 'info');
+        return;
+    }
+
+    const telefone = (pendentes[0].telefone || '').replace(/\D/g, '');
+    if (!telefone) {
+        mostrarToast('Cliente sem telefone cadastrado', 'warning');
+        return;
+    }
+
+    const msg = montarMensagemLembrete(pendentes);
+    window.open(`https://wa.me/55${telefone}?text=${encodeURIComponent(msg)}`, '_blank');
+    mostrarToast(`📱 WhatsApp aberto com lembrete de ${pendentes.length} pedido(s)`, 'success');
+};
+
+window.confirmarTodosPendentesFiltrado = async function() {
+    const pedidos = State.clientesFiltrados || [];
+    const pendentes = pedidos.filter(p => p.pagamentostatus !== 'pago');
+
+    if (pendentes.length === 0) {
+        mostrarToast('Nenhum pedido pendente para confirmar', 'info');
+        return;
+    }
+
+    const total = pendentes.reduce((s, p) => s + (p.total || 0), 0);
+    if (!confirm(`Confirmar pagamento de ${pendentes.length} pedido(s) totalizando R$ ${total.toFixed(2)}?`)) return;
+
+    try {
+        for (const p of pendentes) {
+            await sb.from('todospedidos').update({ pagamentostatus: 'pago' }).eq('id', p.id);
+        }
+        mostrarToast(`✅ ${pendentes.length} pedido(s) confirmados!`, 'success');
+        await carregarPagamentos();
+        await carregarDashboard();
+        aplicarFiltroPagamentos();
+    } catch (e) {
+        console.error('Erro ao confirmar:', e);
+        mostrarToast('❌ Erro: ' + e.message, 'error');
+    }
+};
 
 function limparFiltroPagamentos() {
     ['filtroPagamentosStatus', 'filtroPagamentosCliente', 'filtroPagamentosTelefone', 'filtroPagamentosInicio', 'filtroPagamentosFim'].forEach(i => document.getElementById(i).value = i === 'filtroPagamentosStatus' ? 'todos' : '');
+    const resumo = document.getElementById('resumoClienteFiltrado');
+    if (resumo) { resumo.style.display = 'none'; resumo.innerHTML = ''; }
+    State.clientesFiltrados = [];
     renderizarPagamentos(State.cache.pedidos);
 }
-window.aplicarFiltroPagamentos = aplicarFiltroPagamentos;
 window.limparFiltroPagamentos = limparFiltroPagamentos;
 
 async function confirmarPag(id) {
@@ -731,6 +880,106 @@ async function confirmarPag(id) {
 }
 window.confirmarPag = confirmarPag;
 
+// ============================================================
+// VALOR PAGO (pagamento parcial)
+// ============================================================
+window.abrirModalValorPago = function(id) {
+    const pedido = State.cache.pedidos.find(p => p.id === id);
+    if (!pedido) { mostrarToast('Pedido não encontrado', 'error'); return; }
+
+    document.getElementById('valorPagoPedidoId').value = id;
+    document.getElementById('valorPagoPedidoInfo').value = `${pedido.pedido_id || '#' + pedido.id} — ${pedido.cliente}`;
+    document.getElementById('valorPagoTotal').value = `R$ ${(pedido.total || 0).toFixed(2)}`;
+    document.getElementById('valorPagoInput').value = '';
+    document.getElementById('valorPagoPreview').style.display = 'none';
+    document.getElementById('modalValorPago').classList.add('active');
+    setTimeout(() => document.getElementById('valorPagoInput').focus(), 200);
+};
+
+window.fecharModalValorPago = function() {
+    document.getElementById('modalValorPago').classList.remove('active');
+};
+
+window.atualizarPreviewValorPago = function() {
+    const id = document.getElementById('valorPagoPedidoId').value;
+    const pedido = State.cache.pedidos.find(p => p.id == id);
+    if (!pedido) return;
+
+    const valorInput = document.getElementById('valorPagoInput').value.trim();
+    const total = pedido.total || 0;
+
+    if (!valorInput) {
+        document.getElementById('valorPagoPreview').style.display = 'none';
+        return;
+    }
+
+    const valorPago = parseFloat(valorInput.replace(',', '.')) || 0;
+    const falta = Math.max(0, total - valorPago);
+
+    document.getElementById('vpTotal').textContent = `R$ ${total.toFixed(2)}`;
+    document.getElementById('vpPago').textContent = `R$ ${valorPago.toFixed(2)}`;
+    document.getElementById('vpFalta').textContent = `R$ ${falta.toFixed(2)}`;
+    document.getElementById('valorPagoPreview').style.display = 'block';
+};
+
+window.salvarValorPago = async function() {
+    const id = document.getElementById('valorPagoPedidoId').value;
+    const pedido = State.cache.pedidos.find(p => p.id == id);
+    if (!pedido) { mostrarToast('Pedido não encontrado', 'error'); return; }
+
+    const valorInput = document.getElementById('valorPagoInput').value.trim();
+    if (!valorInput) { mostrarToast('Digite o valor pago', 'warning'); return; }
+
+    const valorPago = parseFloat(valorInput.replace(',', '.'));
+    if (isNaN(valorPago) || valorPago < 0) { mostrarToast('Valor inválido', 'warning'); return; }
+
+    const total = pedido.total || 0;
+    const falta = Math.max(0, total - valorPago);
+    const novoStatus = valorPago >= total ? 'pago' : 'pendente';
+
+    let obsExtra = '';
+    if (valorPago >= total) {
+        obsExtra = `✅ Pago integralmente (R$ ${valorPago.toFixed(2)})`;
+    } else if (valorPago > 0) {
+        obsExtra = `⚠️ Pagamento parcial: R$ ${valorPago.toFixed(2)} de R$ ${total.toFixed(2)} (falta R$ ${falta.toFixed(2)})`;
+    }
+
+    const confirmMsg = valorPago >= total
+        ? `Confirmar pagamento TOTAL de R$ ${valorPago.toFixed(2)}?`
+        : `Registrar pagamento PARCIAL de R$ ${valorPago.toFixed(2)}?\nFalta: R$ ${falta.toFixed(2)}\n\nO pedido continua como PENDENTE.`;
+    if (!confirm(confirmMsg)) return;
+
+    const btn = document.querySelector('#modalValorPago .btn-success');
+    await executarComLoading(btn, '⏳ Registrando...', async () => {
+        try {
+            const obsAtual = pedido.obs || '';
+            const novaObs = obsExtra ? `${obsAtual} | ${obsExtra}` : obsAtual;
+
+            const { error } = await sb.from('todospedidos')
+                .update({ pagamentostatus: novoStatus, obs: novaObs })
+                .eq('id', id);
+
+            if (error) throw error;
+
+            fecharModalValorPago();
+            await carregarPagamentos();
+            await carregarDashboard();
+
+            if (valorPago >= total) {
+                mostrarToast(`✅ Pagamento total registrado! R$ ${valorPago.toFixed(2)}`, 'success');
+            } else {
+                mostrarToast(`⚠️ Pagamento parcial: R$ ${valorPago.toFixed(2)} (falta R$ ${falta.toFixed(2)})`, 'warning');
+            }
+        } catch (e) {
+            console.error('Erro ao registrar pagamento:', e);
+            mostrarToast('❌ Erro: ' + e.message, 'error');
+        }
+    });
+};
+
+// ============================================================
+// LEMBRAR TODOS PENDENTES
+// ============================================================
 async function lembrarTodosPendentes() {
     try {
         const { data, error } = await sb
@@ -785,7 +1034,7 @@ async function lembrarTodosPendentes() {
                     ${c.pedidos.map(p => {
                         const pid = p.pedido_id || `#${p.id}`;
                         const itensTexto = formatarItensPedido(p.itens);
-                        const formaPgto = formatarPagamento(p.pagamento);
+                        const formaPgto = formatarPagamento(p.pagamentostatus);
                         return `<div style="padding:4px 0;border-bottom:1px solid var(--border-color);">
                             <strong>${pid}</strong> — ${formaPgto} — <strong>R$ ${(p.total || 0).toFixed(2)}</strong>
                             <br>
@@ -822,250 +1071,7 @@ function fecharModalLembrete() {
 window.fecharModalLembrete = fecharModalLembrete;
 
 // ============================================================
-// EXPORTAÇÃO: ESTOQUE DOS CARDÁPIOS
-// ============================================================
-window.exportarEstoqueCSV = function() {
-    const dados = State.cache.estoque || [];
-    if (dados.length === 0) { mostrarToast('Sem itens no estoque', 'warning'); return; }
-
-    const linhas = [
-        ['ID', 'Nome', 'Emoji', 'Preco (R$)', 'Estoque Total', 'Alocado C2', 'Disponivel C1', 'Valor em Estoque (R$)']
-    ];
-
-    dados.forEach(i => {
-        const total = i.quantidadetotal || 0;
-        const c2 = i.alocadocardapio2 || 0;
-        const dispC1 = total - c2;
-        const preco = i.preco || 0;
-        linhas.push([
-            i.id,
-            `"${(i.nome || '').replace(/"/g, '""')}"`,
-            i.emoji || '',
-            preco.toFixed(2).replace('.', ','),
-            total,
-            c2,
-            dispC1,
-            (total * preco).toFixed(2).replace('.', ',')
-        ]);
-    });
-
-    const csv = '\uFEFF' + linhas.map(l => l.join(';')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `estoque_cardapios_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    mostrarToast('📥 CSV do estoque gerado!', 'success');
-};
-
-window.exportarEstoquePDF = function() {
-    const dados = State.cache.estoque || [];
-    if (dados.length === 0) { mostrarToast('Sem itens no estoque', 'warning'); return; }
-
-    let totalGeral = 0;
-    let linhas = '';
-    dados.forEach(i => {
-        const total = i.quantidadetotal || 0;
-        const c2 = i.alocadocardapio2 || 0;
-        const dispC1 = total - c2;
-        const preco = i.preco || 0;
-        const valor = total * preco;
-        totalGeral += valor;
-
-        linhas += `
-            <tr>
-                <td>${i.emoji || ''} ${i.nome || ''}</td>
-                <td style="text-align:right;">R$ ${preco.toFixed(2)}</td>
-                <td style="text-align:center;">${total}</td>
-                <td style="text-align:center;">${c2}</td>
-                <td style="text-align:center;">${dispC1}</td>
-                <td style="text-align:right;">R$ ${valor.toFixed(2)}</td>
-            </tr>
-        `;
-    });
-
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Relatorio de Estoque - Cardapios</title>
-            <style>
-                * { margin:0; padding:0; box-sizing:border-box; }
-                body { font-family: Arial, sans-serif; padding: 24px; color: #333; }
-                h1 { color: #CC5500; font-size: 24px; margin-bottom: 6px; }
-                .sub { color: #666; font-size: 13px; margin-bottom: 20px; }
-                .resumo { background: #f5f5f5; padding: 14px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 30px; }
-                .resumo div { font-size: 14px; }
-                .resumo strong { color: #CC5500; font-size: 18px; display: block; }
-                table { width: 100%; border-collapse: collapse; font-size: 12px; }
-                th { background: #CC5500; color: white; padding: 10px; text-align: left; }
-                td { padding: 8px 10px; border-bottom: 1px solid #ddd; }
-                tr:nth-child(even) { background: #f9f9f9; }
-                .footer { margin-top: 20px; font-size: 11px; color: #999; text-align: center; }
-                @media print { body { padding: 12px; } }
-            </style>
-        </head>
-        <body>
-            <h1>📦 Relatorio de Estoque - Cardapios</h1>
-            <div class="sub">Gerado em ${new Date().toLocaleString('pt-BR')}</div>
-            <div class="resumo">
-                <div><strong>${dados.length}</strong>Itens cadastrados</div>
-                <div><strong>R$ ${totalGeral.toFixed(2)}</strong>Valor total em estoque</div>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th style="text-align:right;">Preco</th>
-                        <th style="text-align:center;">Estoque</th>
-                        <th style="text-align:center;">C2</th>
-                        <th style="text-align:center;">Disp. C1</th>
-                        <th style="text-align:right;">Valor</th>
-                    </tr>
-                </thead>
-                <tbody>${linhas}</tbody>
-            </table>
-            <div class="footer">Dindins Gourmet FX - Relatorio gerado automaticamente</div>
-        </body>
-        </html>
-    `;
-
-    const win = window.open('', '_blank');
-    if (!win) { mostrarToast('⚠️ Permita pop-ups para gerar PDF', 'warning'); return; }
-    win.document.write(html);
-    win.document.close();
-    setTimeout(() => { win.print(); }, 500);
-    mostrarToast('📄 PDF aberto. Escolha "Salvar como PDF".', 'info');
-};
-
-// ============================================================
-// EXPORTAÇÃO: INSUMOS
-// ============================================================
-window.exportarInsumosCSV = function() {
-    const dados = State.cache.insumos || [];
-    if (dados.length === 0) { mostrarToast('Sem insumos', 'warning'); return; }
-
-    const linhas = [
-        ['ID', 'Nome', 'Unidade', 'Preco/Unidade (R$)', 'Estoque', 'Minimo', 'Valor em Estoque (R$)', 'Fornecedor', 'Observacoes']
-    ];
-
-    dados.forEach(i => {
-        const preco = i.preco_por_unidade || 0;
-        const estoque = i.quantidade_estoque || 0;
-        linhas.push([
-            i.id,
-            `"${(i.nome || '').replace(/"/g, '""')}"`,
-            i.unidade || '',
-            preco.toFixed(4).replace('.', ','),
-            String(estoque).replace('.', ','),
-            String(i.quantidade_minima || 0).replace('.', ','),
-            (preco * estoque).toFixed(2).replace('.', ','),
-            `"${(i.fornecedor || '').replace(/"/g, '""')}"`,
-            `"${(i.observacoes || '').replace(/"/g, '""')}"`
-        ]);
-    });
-
-    const csv = '\uFEFF' + linhas.map(l => l.join(';')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `insumos_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    mostrarToast('📥 CSV dos insumos gerado!', 'success');
-};
-
-window.exportarInsumosPDF = function() {
-    const dados = State.cache.insumos || [];
-    if (dados.length === 0) { mostrarToast('Sem insumos', 'warning'); return; }
-
-    let totalGeral = 0;
-    let criticos = 0;
-    let linhas = '';
-    dados.forEach(i => {
-        const preco = i.preco_por_unidade || 0;
-        const estoque = i.quantidade_estoque || 0;
-        const minimo = i.quantidade_minima || 0;
-        const valor = preco * estoque;
-        totalGeral += valor;
-
-        let status = 'OK';
-        let corStatus = '#22c55e';
-        if (estoque <= 0) { status = 'Critico'; corStatus = '#ef4444'; criticos++; }
-        else if (estoque <= minimo) { status = 'Baixo'; corStatus = '#f59e0b'; criticos++; }
-
-        linhas += `
-            <tr>
-                <td>${i.nome || ''}</td>
-                <td>${i.unidade || ''}</td>
-                <td style="text-align:right;">R$ ${preco.toFixed(4)}</td>
-                <td style="text-align:center;">${estoque}</td>
-                <td style="text-align:center;">${minimo}</td>
-                <td style="text-align:right;">R$ ${valor.toFixed(2)}</td>
-                <td style="text-align:center;color:${corStatus};font-weight:bold;">${status}</td>
-            </tr>
-        `;
-    });
-
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Relatorio de Insumos</title>
-            <style>
-                * { margin:0; padding:0; box-sizing:border-box; }
-                body { font-family: Arial, sans-serif; padding: 24px; color: #333; }
-                h1 { color: #CC5500; font-size: 24px; margin-bottom: 6px; }
-                .sub { color: #666; font-size: 13px; margin-bottom: 20px; }
-                .resumo { background: #f5f5f5; padding: 14px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 30px; }
-                .resumo div { font-size: 14px; }
-                .resumo strong { color: #CC5500; font-size: 18px; display: block; }
-                table { width: 100%; border-collapse: collapse; font-size: 12px; }
-                th { background: #CC5500; color: white; padding: 10px; text-align: left; }
-                td { padding: 8px 10px; border-bottom: 1px solid #ddd; }
-                tr:nth-child(even) { background: #f9f9f9; }
-                .footer { margin-top: 20px; font-size: 11px; color: #999; text-align: center; }
-                @media print { body { padding: 12px; } }
-            </style>
-        </head>
-        <body>
-            <h1>🧪 Relatorio de Insumos</h1>
-            <div class="sub">Gerado em ${new Date().toLocaleString('pt-BR')}</div>
-            <div class="resumo">
-                <div><strong>${dados.length}</strong>Insumos cadastrados</div>
-                <div><strong>${criticos}</strong>Em nivel critico/baixo</div>
-                <div><strong>R$ ${totalGeral.toFixed(2)}</strong>Valor total em estoque</div>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Unidade</th>
-                        <th style="text-align:right;">Preco/Un</th>
-                        <th style="text-align:center;">Estoque</th>
-                        <th style="text-align:center;">Minimo</th>
-                        <th style="text-align:right;">Valor</th>
-                        <th style="text-align:center;">Status</th>
-                    </tr>
-                </thead>
-                <tbody>${linhas}</tbody>
-            </table>
-            <div class="footer">Dindins Gourmet FX - Relatorio gerado automaticamente</div>
-        </body>
-        </html>
-    `;
-
-    const win = window.open('', '_blank');
-    if (!win) { mostrarToast('⚠️ Permita pop-ups para gerar PDF', 'warning'); return; }
-    win.document.write(html);
-    win.document.close();
-    setTimeout(() => { win.print(); }, 500);
-    mostrarToast('📄 PDF aberto. Escolha "Salvar como PDF".', 'info');
-};
-
-// ============================================================
-// DESCONTO EM PEDIDOS (aplicado pelo admin)
+// DESCONTO EM PEDIDOS
 // ============================================================
 window.abrirModalDesconto = function(id) {
     const pedido = State.cache.pedidos.find(p => p.id === id);
@@ -1160,8 +1166,8 @@ window.aplicarDescontoPedido = async function() {
     await executarComLoading(btn, '⏳ Aplicando...', async () => {
         try {
             const obsAtual = pedido.obs || '';
-            const novaObs = obsAtual.includes('Desconto:') 
-                ? obsAtual 
+            const novaObs = obsAtual.includes('Desconto:')
+                ? obsAtual
                 : `${obsAtual} | 🎁 Desconto: ${descTexto}`;
 
             const { error } = await sb.from('todospedidos')
@@ -1187,7 +1193,9 @@ window.aplicarDescontoPedido = async function() {
     });
 };
 
-console.log('✅ Admin parte 2 carregada! v14.0');
+console.log('✅ Admin parte 2 carregada! v16.0');
 console.log('📥 Exportação CSV/PDF de estoque e insumos');
 console.log('🎁 Desconto em pedidos via aba Pagamentos');
-console.log('📞 Filtro por telefone em Pagamentos');
+console.log('💵 Valor pago parcial');
+console.log('📊 Resumo consolidado do cliente');
+console.log('📞 Filtro por telefone em Financeiro');
