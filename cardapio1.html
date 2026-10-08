@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#0a0604">
     <title>Cardápio 1 - Dindins Gourmet FX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js?v=1"></script>
     <style>
         :root { --laranja:#CC5500; --dourado:#DAA520; --amarelo:#FFD700; --danger:#ef4444; --success:#22c55e; --info:#3b82f6; --roxo:#8b5cf6; --radius:14px; --transition:all 0.3s cubic-bezier(0.4,0,0.2,1); }
         [data-theme="dark"] { --bg-primary:#0a0604; --bg-secondary:#160c08; --bg-card:#24140c; --bg-card-hover:#341c12; --bg-input:#1a0f0a; --text-primary:#f0e0d0; --text-secondary:#c4b0a0; --text-muted:#8a7a6a; --border-color:#4a3020; --border-hover:#6a4a30; --shadow:0 8px 32px rgba(0,0,0,0.8); --shadow-hover:0 12px 48px rgba(0,0,0,0.9); }
@@ -91,12 +92,7 @@
             .header { flex-direction:column; align-items:stretch; text-align:center; }
             .form-pedido { flex-direction:column; }
             .realtime-indicator { display:none; }
-            .carrinho {
-                position: static;
-                max-height: none;
-                padding: 12px;
-                margin-top: 12px;
-            }
+            .carrinho { position: static; max-height: none; padding: 12px; margin-top: 12px; }
             .carrinho h3 { font-size: 1em; margin-bottom: 8px; }
             .carrinho-item { padding: 4px 0; font-size: 0.85em; }
             .form-pedido { gap: 8px; margin-top: 8px; }
@@ -189,18 +185,14 @@
     (function() {
         'use strict';
 
-        const SUPABASE_URL = 'https://khgkneegpxcgufslupby.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_yiQJTpp-mB2sD3QGtSBrOA_euX6346G';
         const COOLDOWN_MS = 3000;
+        const sb = window.sb;
 
-        if (SUPABASE_KEY.startsWith('eyJ') || SUPABASE_KEY.startsWith('sb_secret_')) {
-            console.error('🚨 CHAVE SECRETA NO FRONTEND! 🚨');
-            alert('🚨 ERRO CRÍTICO DE SEGURANÇA.');
-            throw new Error('Chave secreta no cliente');
+        if (!sb) {
+            console.error('❌ config.js não carregou ou falhou ao criar o client');
+            alert('Erro de configuração. Recarregue a página.');
+            throw new Error('Supabase client não inicializado');
         }
-        console.log('%c🔒 Segurança OK', 'color: #22c55e; font-weight: bold;');
-
-        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let produtos = [];
         let setores = [];
@@ -683,7 +675,7 @@
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🍦 Cardápio 1 - v15.0 (carrinho compacto, PIX controlado) carregado!');
+        console.log('🍦 Cardápio 1 - v16.0 (config.js compartilhado) carregado!');
     })();
     </script>
 </body>
