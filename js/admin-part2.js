@@ -502,6 +502,7 @@ async function salvarConfig() {
     });
 }
 window.salvarConfig = salvarConfig;
+
 // ============================================================
 // AUDITORIA
 // ============================================================
@@ -1436,7 +1437,7 @@ window.exportarInsumosPDF = function() {
     mostrarToast('📄 PDF aberto. Escolha "Salvar como PDF".', 'info');
 };
 
-console.log('✅ Admin parte 2 carregada! v16.0');
+console.log('✅ Admin parte 2 carregada! v17.0');
 console.log('📥 Exportação CSV/PDF de estoque e insumos');
 console.log('🎁 Desconto em pedidos via aba Pagamentos');
 console.log('💵 Valor pago parcial');
