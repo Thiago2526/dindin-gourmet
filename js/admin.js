@@ -28,6 +28,7 @@ sb.auth.onAuthStateChange((event, session) => {
 // ============================================================
 window.State = {
     user: null, adminData: null, session: null,
+    isMaster: false,
     pagination: { pedidos: { page: 1, limit: 10, total: 0 }, auditoria: { page: 1, limit: 10, total: 0 } },
     cache: { estoque: [], c2: [], pedidos: [], historico: [], setores: [], insumos: [], receitas: [], config: {}, audit: [] },
     loading: {},
@@ -165,6 +166,24 @@ async function previewFotoAdmin(input) {
 window.previewFotoAdmin = previewFotoAdmin;
 
 // ============================================================
+// VERIFICA SE É O MASTER (primeiro admin criado)
+// ============================================================
+async function verificarSeEhMaster(userId) {
+    try {
+        const { data: masterData } = await sb
+            .from('admin_usuarios')
+            .select('user_id')
+            .order('criado_em', { ascending: true })
+            .limit(1)
+            .maybeSingle();
+        return masterData && masterData.user_id === userId;
+    } catch (e) {
+        console.warn('Erro ao verificar master:', e);
+        return false;
+    }
+}
+
+// ============================================================
 // LOGIN
 // ============================================================
 async function fazerLogin() {
@@ -221,6 +240,9 @@ async function fazerLogin() {
         State.adminData = adminData;
         State.session = data.session;
 
+        // Verifica se é o master (primeiro admin criado)
+        State.isMaster = await verificarSeEhMaster(data.user.id);
+
         entrarPainel();
         mostrarToast('Bem-vindo, ' + adminData.nome + '!', 'success');
 
@@ -261,7 +283,7 @@ async function sair() {
     try {
         await sb.auth.signOut();
         if (State.realtimeChannel) await sb.removeChannel(State.realtimeChannel);
-        State.user = null; State.adminData = null;
+        State.user = null; State.adminData = null; State.isMaster = false;
         document.getElementById('telaLogin').classList.remove('hidden');
         document.getElementById('painelAdmin').classList.remove('active');
     } catch (e) { mostrarToast(e.message, 'error'); }
@@ -277,6 +299,10 @@ async function verificarSessao() {
                 State.user = session.user;
                 State.adminData = adminData;
                 State.session = session;
+
+                // Verifica se é o master (primeiro admin criado)
+                State.isMaster = await verificarSeEhMaster(session.user.id);
+
                 entrarPainel();
                 return true;
             }
@@ -291,10 +317,17 @@ async function verificarSessao() {
 function aplicarPermissoes() {
     if (!State.adminData) return;
     const p = State.adminData.permissoes || {};
-    const isMaster = State.adminData.user_id === State.user?.id;
+
     document.querySelectorAll('.tab-btn').forEach(btn => {
         const tab = btn.getAttribute('data-tab');
-        if (isMaster || ['dashboard', 'config'].includes(tab)) { btn.style.display = 'flex'; return; }
+
+        // Master vê tudo
+        if (State.isMaster) { btn.style.display = 'flex'; return; }
+
+        // Dashboard e Config são sempre visíveis
+        if (['dashboard', 'config'].includes(tab)) { btn.style.display = 'flex'; return; }
+
+        // Mapeamento das permissões
         const map = {
             estoque: p.estoque, c1: p.cardapio1, c2: p.cardapio2,
             pedidos: p.pedidos, pagamentos: p.pagamentos, financeiro: p.financeiro,
@@ -302,6 +335,7 @@ function aplicarPermissoes() {
             calculadora: p.calculadora, setores: p.setores,
             admins: p.admins, auditoria: p.auditoria || p.admins
         };
+
         btn.style.display = map[tab] ? 'flex' : 'none';
     });
 }
@@ -444,8 +478,10 @@ async function carregarListaAdmins() {
             if (p.calculadora) perms.push('💰C');
             if (p.setores) perms.push('📍');
             if (p.admins) perms.push('👥');
+            if (p.auditoria) perms.push('📋A');
             const isCurrent = a.user_id === State.user?.id;
-            return `<div class="card-item"><div class="card-item-info"><div><strong>👤 ${Utils.escapeHtml(a.nome)}</strong><br><small>${Utils.escapeHtml(a.email)} | ${a.ativo ? '✅' : '⛔'} ${isCurrent ? '(Você)' : ''}<br>Perm: ${perms.join(' ')}</small></div></div><div class="card-item-actions">${!isCurrent ? `<button class="btn btn-warning btn-sm" onclick="toggleAdminStatus('${a.user_id}')">🔒</button><button class="btn btn-danger btn-sm" onclick="excluirAdminSupabase('${a.user_id}')">🗑️</button>` : ''}</div></div>`;
+            const isMaster = State.isMaster && isCurrent;
+            return `<div class="card-item"><div class="card-item-info"><div><strong>👤 ${Utils.escapeHtml(a.nome)}</strong> ${isMaster ? '<span class="badge badge-pago">MASTER</span>' : ''}<br><small>${Utils.escapeHtml(a.email)} | ${a.ativo ? '✅' : '⛔'} ${isCurrent ? '(Você)' : ''}<br>Perm: ${perms.join(' ') || '(nenhuma)'}</small></div></div><div class="card-item-actions">${!isCurrent ? `<button class="btn btn-warning btn-sm" onclick="toggleAdminStatus('${a.user_id}')">🔒</button><button class="btn btn-danger btn-sm" onclick="excluirAdminSupabase('${a.user_id}')">🗑️</button>` : ''}</div></div>`;
         }).join('');
     } catch (e) { tratarErro(e); }
 }
@@ -1182,8 +1218,10 @@ document.addEventListener('DOMContentLoaded', () => {
     verificarSessao();
 });
 
-console.log('✅ Admin parte 1 carregado! v16.0');
+console.log('✅ Admin parte 1 carregado! v18.0');
 console.log('📦 Estoque detalhado v3.0');
 console.log('🗑️ Exclusão com DEVOLUÇÃO AUTOMÁTICA de estoque');
 console.log('📞 Filtro por telefone em Pedidos, Pagamentos e Financeiro');
 console.log('📋 Pedidos com detalhes completos (Origem, Pagamento, Local, Taxa)');
+console.log('👑 Sistema de master: primeiro admin criado tem acesso total');
+console.log('🔐 Admins respeitam permissões individuais');
