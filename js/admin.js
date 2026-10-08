@@ -68,6 +68,37 @@ window.Utils = {
 const Utils = window.Utils;
 
 // ============================================================
+// MAPA DE PERMISSÕES (fonte única da verdade)
+// ============================================================
+function getPermissaoMap() {
+    const p = State.adminData?.permissoes || {};
+    return {
+        estoque: p.estoque === true,
+        c1: p.cardapio1 === true,
+        c2: p.cardapio2 === true,
+        pedidos: p.pedidos === true,
+        pagamentos: p.pagamentos === true,
+        financeiro: p.financeiro === true,
+        ranking: p.pedidos === true,
+        historico: p.estoque === true,
+        insumos: p.insumos === true,
+        calculadora: p.calculadora === true,
+        setores: p.setores === true,
+        admins: p.admins === true,
+        auditoria: (p.auditoria === true) || (p.admins === true)
+    };
+}
+window.getPermissaoMap = getPermissaoMap;
+
+function temPermissao(tab) {
+    if (State.isMaster) return true;
+    if (['dashboard', 'config'].includes(tab)) return true;
+    const map = getPermissaoMap();
+    return map[tab] === true;
+}
+window.temPermissao = temPermissao;
+
+// ============================================================
 // FUNÇÃO AUXILIAR - EXECUTAR COM LOADING
 // ============================================================
 async function executarComLoading(btn, textoLoading, fn) {
@@ -240,7 +271,6 @@ async function fazerLogin() {
         State.adminData = adminData;
         State.session = data.session;
 
-        // Verifica se é o master (primeiro admin criado)
         State.isMaster = await verificarSeEhMaster(data.user.id);
 
         entrarPainel();
@@ -300,7 +330,6 @@ async function verificarSessao() {
                 State.adminData = adminData;
                 State.session = session;
 
-                // Verifica se é o master (primeiro admin criado)
                 State.isMaster = await verificarSeEhMaster(session.user.id);
 
                 entrarPainel();
@@ -312,33 +341,37 @@ async function verificarSessao() {
 }
 
 // ============================================================
-// PERMISSÕES
+// PERMISSÕES — CORRIGIDO E BLINDADO
 // ============================================================
 function aplicarPermissoes() {
     if (!State.adminData) return;
-    const p = State.adminData.permissoes || {};
+    const map = getPermissaoMap();
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
         const tab = btn.getAttribute('data-tab');
-
-        // Master vê tudo
         if (State.isMaster) { btn.style.display = 'flex'; return; }
-
-        // Dashboard e Config são sempre visíveis
         if (['dashboard', 'config'].includes(tab)) { btn.style.display = 'flex'; return; }
+        btn.style.display = (map[tab] === true) ? 'flex' : 'none';
+    });
 
-        // Mapeamento das permissões
-        const map = {
-            estoque: p.estoque, c1: p.cardapio1, c2: p.cardapio2,
-            pedidos: p.pedidos, pagamentos: p.pagamentos, financeiro: p.financeiro,
-            ranking: p.pedidos, historico: p.estoque, insumos: p.insumos,
-            calculadora: p.calculadora, setores: p.setores,
-            admins: p.admins, auditoria: p.auditoria || p.admins
-        };
-
-        btn.style.display = map[tab] ? 'flex' : 'none';
+    // Esconde também o conteúdo das abas proibidas
+    document.querySelectorAll('.conteudo').forEach(el => {
+        const tab = el.id.replace('conteudo-', '');
+        if (State.isMaster) return;
+        if (['dashboard', 'config'].includes(tab)) return;
+        if (map[tab] !== true) {
+            el.classList.remove('active');
+        }
     });
 }
+window.aplicarPermissoes = aplicarPermissoes;
+
+// Re-aplica permissões (chamada após carregarTudo e em cliques)
+function reaplicarPermissoes() {
+    if (!State.adminData || State.isMaster) return;
+    aplicarPermissoes();
+}
+window.reaplicarPermissoes = reaplicarPermissoes;
 
 // ============================================================
 // MODAL TROCA SENHA
@@ -390,15 +423,25 @@ async function trocarSenhaModal() {
 window.trocarSenhaModal = trocarSenhaModal;
 
 // ============================================================
-// NAVEGAÇÃO
+// NAVEGAÇÃO — COM BLOQUEIO DE PERMISSÃO
 // ============================================================
 function mudarTab(tab) {
+    // Bloqueia se não tem permissão
+    if (!temPermissao(tab)) {
+        mostrarToast('⛔ Você não tem permissão para acessar esta aba.', 'error');
+        return;
+    }
+
     document.querySelectorAll('.conteudo').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     const c = document.getElementById('conteudo-' + tab);
     if (c) c.classList.add('active');
     const t = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
     if (t) t.classList.add('active');
+
+    // Re-aplica permissões depois de mudar de aba (defensivo)
+    setTimeout(reaplicarPermissoes, 50);
+
     const loaders = {
         dashboard: carregarDashboard, estoque: carregarEstoque, c1: carregarC1, c2: carregarC2,
         pedidos: carregarPedidos, pagamentos: carregarPagamentos, financeiro: carregarFinanceiro,
@@ -900,7 +943,7 @@ async function excluirC2(id) {
 window.excluirC2 = excluirC2;
 
 // ============================================================
-// PEDIDOS (COM FILTRO DE TELEFONE)
+// PEDIDOS
 // ============================================================
 async function carregarPedidos(page = 1) {
     try {
@@ -1063,7 +1106,7 @@ window.aplicarFiltroPedidos = aplicarFiltroPedidos;
 window.limparFiltroPedidos = limparFiltroPedidos;
 
 // ============================================================
-// EXCLUIR PEDIDO (DEVOLVE ESTOQUE AUTOMATICAMENTE)
+// EXCLUIR PEDIDO (DEVOLVE ESTOQUE)
 // ============================================================
 async function excluirPedido(id) {
     const pedido = State.cache.pedidos.find(p => p.id === id);
@@ -1099,7 +1142,7 @@ async function excluirPedido(id) {
                             quantidade: qtd,
                             obs: `Devolução - Pedido ${pedido.pedido_id || '#' + id} excluído`
                         }]);
-                    } catch (e) { /* silencioso */ }
+                    } catch (e) { }
                 }
             }
         }
@@ -1159,18 +1202,28 @@ async function iniciarRealtime() {
 }
 
 // ============================================================
-// CARREGAR TUDO
+// CARREGAR TUDO — protegido
 // ============================================================
-function carregarTudo() {
-    Promise.all([
-        carregarDashboard(),
-        carregarEstoque(),
-        carregarC1(),
-        carregarC2(),
-        carregarSetores(),
-        carregarInsumos()
-    ]).catch(err => console.error('Erro ao carregar dados:', err));
+async function carregarTudo() {
+    try {
+        const tarefas = [
+            carregarDashboard(),
+            carregarEstoque(),
+            carregarC1(),
+            carregarC2()
+        ];
+        // Só carrega setores/insumos se tiver permissão
+        if (temPermissao('setores')) tarefas.push(carregarSetores());
+        if (temPermissao('insumos')) tarefas.push(carregarInsumos());
+        await Promise.all(tarefas);
+    } catch (err) {
+        console.error('Erro ao carregar dados:', err);
+    } finally {
+        // Re-aplica permissões após tudo carregar
+        setTimeout(reaplicarPermissoes, 200);
+    }
 }
+window.carregarTudo = carregarTudo;
 
 // ============================================================
 // EVENT LISTENERS
@@ -1216,12 +1269,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('campoSenha').addEventListener('keypress', e => { if (e.key === 'Enter') fazerLogin(); });
 
     verificarSessao();
+
+    // Proteção extra: re-aplica permissões a cada 1.5s por 10s (caso algo re-exiba)
+    let tentativas = 0;
+    const intervalo = setInterval(() => {
+        reaplicarPermissoes();
+        tentativas++;
+        if (tentativas >= 7) clearInterval(intervalo);
+    }, 1500);
 });
 
-console.log('✅ Admin parte 1 carregado! v18.0');
-console.log('📦 Estoque detalhado v3.0');
-console.log('🗑️ Exclusão com DEVOLUÇÃO AUTOMÁTICA de estoque');
-console.log('📞 Filtro por telefone em Pedidos, Pagamentos e Financeiro');
-console.log('📋 Pedidos com detalhes completos (Origem, Pagamento, Local, Taxa)');
-console.log('👑 Sistema de master: primeiro admin criado tem acesso total');
-console.log('🔐 Admins respeitam permissões individuais');
+console.log('✅ Admin parte 1 carregado! v19.0');
+console.log('🛡️ Sistema de permissões BLINDADO');
+console.log('🔒 Abas proibidas são escondidas e bloqueadas no clique');
+console.log('👑 Master continua vendo tudo');
