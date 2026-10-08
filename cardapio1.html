@@ -86,7 +86,27 @@
         .offline-banner { display:none; background:var(--danger); color:white; text-align:center; padding:10px; font-weight:700; margin-bottom:15px; border-radius:var(--radius); }
         .offline-banner.ativo { display:block; }
         .hidden { display:none !important; }
-        @media (max-width:768px) { .menu-grid { grid-template-columns:1fr 1fr; } .header { flex-direction:column; align-items:stretch; text-align:center; } .form-pedido { flex-direction:column; } .carrinho { max-height:60vh; } .realtime-indicator { display:none; } }
+        @media (max-width:768px) {
+            .menu-grid { grid-template-columns:1fr 1fr; }
+            .header { flex-direction:column; align-items:stretch; text-align:center; }
+            .form-pedido { flex-direction:column; }
+            .realtime-indicator { display:none; }
+            .carrinho {
+                position: static;
+                max-height: none;
+                padding: 12px;
+                margin-top: 12px;
+            }
+            .carrinho h3 { font-size: 1em; margin-bottom: 8px; }
+            .carrinho-item { padding: 4px 0; font-size: 0.85em; }
+            .form-pedido { gap: 8px; margin-top: 8px; }
+            .form-pedido .form-group { min-width: 100%; margin-bottom: 6px; }
+            .btn-finalizar { width: 100%; padding: 10px 20px; font-size: 1em; min-height: 44px; }
+            .pix-box { padding: 10px; margin-top: 8px; }
+            .pix-box .titulo { font-size: 0.85em; }
+            .pix-box .chave { padding: 10px; font-size: 0.85em; }
+            .pix-box .btn-copiar { padding: 8px; font-size: 0.9em; }
+        }
         @media (max-width:480px) { .menu-grid { grid-template-columns:1fr; } }
     </style>
 </head>
@@ -144,6 +164,7 @@
                 <div class="form-group">
                     <label for="pagamento">Forma de pagamento</label>
                     <select id="pagamento" onchange="atualizarPix()">
+                        <option value="">Selecione...</option>
                         <option value="pix">📱 Chave PIX</option>
                         <option value="cartao">💳 Cartão (na entrega)</option>
                         <option value="dinheiro">💵 Dinheiro</option>
@@ -196,7 +217,7 @@
             t.className = tipo;
             t.style.display = 'block';
             clearTimeout(t._timeout);
-            t._timeout = setTimeout(() => { t.style.display = 'none'; }, 4000);
+            t._timeout = setTimeout(() => { t.style.display = 'none'; }, 7000);
         }
 
         function formatarPreco(v) { return 'R$ ' + (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -381,7 +402,8 @@
         function atualizarPix() {
             const pag = document.getElementById('pagamento').value;
             const box = document.getElementById('pixBox');
-            if (pag === 'pix') box.classList.remove('hidden');
+            const temItens = Object.keys(carrinho).length > 0;
+            if (pag === 'pix' && temItens) box.classList.remove('hidden');
             else box.classList.add('hidden');
         }
         window.atualizarPix = atualizarPix;
@@ -390,13 +412,13 @@
             const chave = config.pix || '';
             if (!chave) { mostrarToast('⚠️ Chave PIX não configurada.', 'warning'); return; }
             navigator.clipboard.writeText(chave).then(() => {
-                mostrarToast('📋 Chave PIX copiada!', 'success');
+                mostrarToast('📋 Chave PIX copiada! Após efetuar o pagamento, envie o comprovante no WhatsApp.', 'success');
             }).catch(() => {
                 const ta = document.createElement('textarea');
                 ta.value = chave;
                 ta.style.position = 'fixed'; ta.style.opacity = '0';
                 document.body.appendChild(ta); ta.select();
-                try { document.execCommand('copy'); mostrarToast('📋 Chave PIX copiada!', 'success'); } catch (e) { mostrarToast('⚠️ Não foi possível copiar.', 'warning'); }
+                try { document.execCommand('copy'); mostrarToast('📋 Chave PIX copiada! Após efetuar o pagamento, envie o comprovante no WhatsApp.', 'success'); } catch (e) { mostrarToast('⚠️ Não foi possível copiar.', 'warning'); }
                 document.body.removeChild(ta);
             });
         }
@@ -434,7 +456,6 @@
                 linhaTotal.classList.add('hidden'); formPedido.classList.add('hidden');
                 pixBox.classList.add('hidden');
                 countSpan.textContent = '0 itens';
-                // Reexibe botão e esconde sucesso (para quando esvaziar o carrinho após um pedido)
                 if (btn) btn.style.display = 'block';
                 if (sucesso) sucesso.style.display = 'none';
                 return;
@@ -459,12 +480,11 @@
             formPedido.classList.remove('hidden');
             countSpan.textContent = `${totalItens} ${totalItens === 1 ? 'item' : 'itens'}`;
 
-            // ⚡ Reexibe botão de finalizar e esconde tela de sucesso antiga
             if (btn) btn.style.display = 'block';
             if (sucesso) sucesso.style.display = 'none';
 
             const pag = document.getElementById('pagamento').value;
-            if (pag === 'pix') pixBox.classList.remove('hidden');
+            if (pag === 'pix' && itens.length > 0) pixBox.classList.remove('hidden');
             else pixBox.classList.add('hidden');
         }
 
@@ -480,6 +500,7 @@
             if (!cliente) { mostrarToast('❌ Preencha seu nome.', 'error'); return; }
             if (telefone.length < 10) { mostrarToast('❌ WhatsApp inválido.', 'error'); return; }
             if (Object.keys(carrinho).length === 0) { mostrarToast('❌ Carrinho vazio.', 'warning'); return; }
+            if (!pagamento) { mostrarToast('❌ Escolha a forma de pagamento.', 'error'); return; }
 
             const overlay = document.getElementById('loadingOverlay');
             const btn = document.getElementById('btnFinalizar');
@@ -573,7 +594,7 @@
                 document.getElementById('cliente').value = '';
                 document.getElementById('telefone').value = '';
                 document.getElementById('setor').value = '';
-                document.getElementById('pagamento').value = 'pix';
+                document.getElementById('pagamento').value = '';
                 atualizarCarrinho();
                 setTimeout(carregarCardapio, 1500);
 
@@ -662,7 +683,7 @@
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🍦 Cardápio 1 - v14.1 (corrigido botão) carregado!');
+        console.log('🍦 Cardápio 1 - v15.0 (carrinho compacto, PIX controlado) carregado!');
     })();
     </script>
 </body>
