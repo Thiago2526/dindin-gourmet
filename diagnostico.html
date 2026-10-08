@@ -155,14 +155,12 @@
 
         async function verificarAcesso() {
             try {
-                // 1. Verifica se tem sessão
                 const { data: { session } } = await sb.auth.getSession();
                 if (!session || !session.user) {
                     mostrarAcessoRestrito('Você precisa estar logado para acessar esta página.');
                     return false;
                 }
 
-                // 2. Verifica se o usuário é admin ativo
                 const { data: adminData, error: adminErr } = await sb
                     .from('admin_usuarios')
                     .select('user_id, nome, ativo')
@@ -179,7 +177,6 @@
                     return false;
                 }
 
-                // 3. Verifica se é o master (primeiro admin criado)
                 const { data: masterData } = await sb
                     .from('admin_usuarios')
                     .select('user_id')
@@ -208,21 +205,26 @@
                 adicionarCheck('warning', '⚠️ HTTPS', 'Recomendado usar HTTPS em produção.');
             }
 
-            // 2. Verificar chave exposta
+            // 2. Verificar chave exposta (CORRIGIDO — não se auto-detecta)
             try {
                 const response = await fetch(window.location.href);
                 const html = await response.text();
 
-                const temChaveSecreta = html.includes('sb_secret_') || /service_role_key/i.test(html);
-                const temChavePublica = html.includes('sb_publishable_');
-                const temJWT = /eyJ[A-Za-z0-9-_]{20,}\.[A-Za-z0-9-_]{20,}\.[A-Za-z0-9-_]{20,}/.test(html);
+                // Padrões REAIS de chave secreta (entre aspas, com tamanho mínimo)
+                // Não confunde com a string literal 'sb_secret_' que aparece no próprio código
+                const regexChaveSecreta = /["']sb_secret_[A-Za-z0-9_-]{20,}["']/;
+                const regexJWTSecreto = /["']eyJ[A-Za-z0-9-_]{20,}\.eyJ[A-Za-z0-9-_]{20,}\.[A-Za-z0-9-_]{20,}["']/;
+                
+                // Chave publishable (essa pode estar no HTML — é pública)
+                const regexChavePublica = /["']sb_publishable_[A-Za-z0-9_-]{20,}["']/;
+
+                const temChaveSecreta = regexChaveSecreta.test(html) || regexJWTSecreto.test(html);
+                const temChavePublica = regexChavePublica.test(html);
 
                 if (temChaveSecreta) {
-                    adicionarCheck('error', '🚨 CHAVE SECRETA EXPOSTA', 'service_role_key encontrada no HTML. REMOVA IMEDIATAMENTE!');
+                    adicionarCheck('error', '🚨 CHAVE SECRETA EXPOSTA', 'Uma chave secreta real foi encontrada no HTML. REMOVA IMEDIATAMENTE!');
                 } else if (temChavePublica) {
                     adicionarCheck('ok', '✅ Chave Pública Correta', 'Apenas a chave "publishable" está no cliente (correto).');
-                } else if (temJWT) {
-                    adicionarCheck('error', '🚨 JWT EXPOSTO', 'Token JWT detectado no HTML. Perigoso.');
                 } else {
                     adicionarCheck('info', 'ℹ️ Chave não Detectada', 'Não foi possível identificar a chave.');
                 }
