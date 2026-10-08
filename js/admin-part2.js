@@ -1193,6 +1193,249 @@ window.aplicarDescontoPedido = async function() {
     });
 };
 
+// ============================================================
+// EXPORTAÇÃO: ESTOQUE DOS CARDÁPIOS
+// ============================================================
+window.exportarEstoqueCSV = function() {
+    const dados = State.cache.estoque || [];
+    if (dados.length === 0) { mostrarToast('Sem itens no estoque', 'warning'); return; }
+
+    const linhas = [
+        ['ID', 'Nome', 'Emoji', 'Preco (R$)', 'Estoque Total', 'Alocado C2', 'Disponivel C1', 'Valor em Estoque (R$)']
+    ];
+
+    dados.forEach(i => {
+        const total = i.quantidadetotal || 0;
+        const c2 = i.alocadocardapio2 || 0;
+        const dispC1 = total - c2;
+        const preco = i.preco || 0;
+        linhas.push([
+            i.id,
+            `"${(i.nome || '').replace(/"/g, '""')}"`,
+            i.emoji || '',
+            preco.toFixed(2).replace('.', ','),
+            total,
+            c2,
+            dispC1,
+            (total * preco).toFixed(2).replace('.', ',')
+        ]);
+    });
+
+    const csv = '\uFEFF' + linhas.map(l => l.join(';')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `estoque_cardapios_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    mostrarToast('📥 CSV do estoque gerado!', 'success');
+};
+
+window.exportarEstoquePDF = function() {
+    const dados = State.cache.estoque || [];
+    if (dados.length === 0) { mostrarToast('Sem itens no estoque', 'warning'); return; }
+
+    let totalGeral = 0;
+    let linhas = '';
+    dados.forEach(i => {
+        const total = i.quantidadetotal || 0;
+        const c2 = i.alocadocardapio2 || 0;
+        const dispC1 = total - c2;
+        const preco = i.preco || 0;
+        const valor = total * preco;
+        totalGeral += valor;
+
+        linhas += `
+            <tr>
+                <td>${i.emoji || ''} ${i.nome || ''}</td>
+                <td style="text-align:right;">R$ ${preco.toFixed(2)}</td>
+                <td style="text-align:center;">${total}</td>
+                <td style="text-align:center;">${c2}</td>
+                <td style="text-align:center;">${dispC1}</td>
+                <td style="text-align:right;">R$ ${valor.toFixed(2)}</td>
+            </tr>
+        `;
+    });
+
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Relatorio de Estoque - Cardapios</title>
+            <style>
+                * { margin:0; padding:0; box-sizing:border-box; }
+                body { font-family: Arial, sans-serif; padding: 24px; color: #333; }
+                h1 { color: #CC5500; font-size: 24px; margin-bottom: 6px; }
+                .sub { color: #666; font-size: 13px; margin-bottom: 20px; }
+                .resumo { background: #f5f5f5; padding: 14px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 30px; }
+                .resumo div { font-size: 14px; }
+                .resumo strong { color: #CC5500; font-size: 18px; display: block; }
+                table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                th { background: #CC5500; color: white; padding: 10px; text-align: left; }
+                td { padding: 8px 10px; border-bottom: 1px solid #ddd; }
+                tr:nth-child(even) { background: #f9f9f9; }
+                .footer { margin-top: 20px; font-size: 11px; color: #999; text-align: center; }
+                @media print { body { padding: 12px; } }
+            </style>
+        </head>
+        <body>
+            <h1>📦 Relatorio de Estoque - Cardapios</h1>
+            <div class="sub">Gerado em ${new Date().toLocaleString('pt-BR')}</div>
+            <div class="resumo">
+                <div><strong>${dados.length}</strong>Itens cadastrados</div>
+                <div><strong>R$ ${totalGeral.toFixed(2)}</strong>Valor total em estoque</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th style="text-align:right;">Preco</th>
+                        <th style="text-align:center;">Estoque</th>
+                        <th style="text-align:center;">C2</th>
+                        <th style="text-align:center;">Disp. C1</th>
+                        <th style="text-align:right;">Valor</th>
+                    </tr>
+                </thead>
+                <tbody>${linhas}</tbody>
+            </table>
+            <div class="footer">Dindins Gourmet FX - Relatorio gerado automaticamente</div>
+        </body>
+        </html>
+    `;
+
+    const win = window.open('', '_blank');
+    if (!win) { mostrarToast('⚠️ Permita pop-ups para gerar PDF', 'warning'); return; }
+    win.document.write(html);
+    win.document.close();
+    setTimeout(() => { win.print(); }, 500);
+    mostrarToast('📄 PDF aberto. Escolha "Salvar como PDF".', 'info');
+};
+
+// ============================================================
+// EXPORTAÇÃO: INSUMOS
+// ============================================================
+window.exportarInsumosCSV = function() {
+    const dados = State.cache.insumos || [];
+    if (dados.length === 0) { mostrarToast('Sem insumos', 'warning'); return; }
+
+    const linhas = [
+        ['ID', 'Nome', 'Unidade', 'Preco/Unidade (R$)', 'Estoque', 'Minimo', 'Valor em Estoque (R$)', 'Fornecedor', 'Observacoes']
+    ];
+
+    dados.forEach(i => {
+        const preco = i.preco_por_unidade || 0;
+        const estoque = i.quantidade_estoque || 0;
+        linhas.push([
+            i.id,
+            `"${(i.nome || '').replace(/"/g, '""')}"`,
+            i.unidade || '',
+            preco.toFixed(4).replace('.', ','),
+            String(estoque).replace('.', ','),
+            String(i.quantidade_minima || 0).replace('.', ','),
+            (preco * estoque).toFixed(2).replace('.', ','),
+            `"${(i.fornecedor || '').replace(/"/g, '""')}"`,
+            `"${(i.observacoes || '').replace(/"/g, '""')}"`
+        ]);
+    });
+
+    const csv = '\uFEFF' + linhas.map(l => l.join(';')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `insumos_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    mostrarToast('📥 CSV dos insumos gerado!', 'success');
+};
+
+window.exportarInsumosPDF = function() {
+    const dados = State.cache.insumos || [];
+    if (dados.length === 0) { mostrarToast('Sem insumos', 'warning'); return; }
+
+    let totalGeral = 0;
+    let criticos = 0;
+    let linhas = '';
+    dados.forEach(i => {
+        const preco = i.preco_por_unidade || 0;
+        const estoque = i.quantidade_estoque || 0;
+        const minimo = i.quantidade_minima || 0;
+        const valor = preco * estoque;
+        totalGeral += valor;
+
+        let status = 'OK';
+        let corStatus = '#22c55e';
+        if (estoque <= 0) { status = 'Critico'; corStatus = '#ef4444'; criticos++; }
+        else if (estoque <= minimo) { status = 'Baixo'; corStatus = '#f59e0b'; criticos++; }
+
+        linhas += `
+            <tr>
+                <td>${i.nome || ''}</td>
+                <td>${i.unidade || ''}</td>
+                <td style="text-align:right;">R$ ${preco.toFixed(4)}</td>
+                <td style="text-align:center;">${estoque}</td>
+                <td style="text-align:center;">${minimo}</td>
+                <td style="text-align:right;">R$ ${valor.toFixed(2)}</td>
+                <td style="text-align:center;color:${corStatus};font-weight:bold;">${status}</td>
+            </tr>
+        `;
+    });
+
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Relatorio de Insumos</title>
+            <style>
+                * { margin:0; padding:0; box-sizing:border-box; }
+                body { font-family: Arial, sans-serif; padding: 24px; color: #333; }
+                h1 { color: #CC5500; font-size: 24px; margin-bottom: 6px; }
+                .sub { color: #666; font-size: 13px; margin-bottom: 20px; }
+                .resumo { background: #f5f5f5; padding: 14px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 30px; }
+                .resumo div { font-size: 14px; }
+                .resumo strong { color: #CC5500; font-size: 18px; display: block; }
+                table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                th { background: #CC5500; color: white; padding: 10px; text-align: left; }
+                td { padding: 8px 10px; border-bottom: 1px solid #ddd; }
+                tr:nth-child(even) { background: #f9f9f9; }
+                .footer { margin-top: 20px; font-size: 11px; color: #999; text-align: center; }
+                @media print { body { padding: 12px; } }
+            </style>
+        </head>
+        <body>
+            <h1>🧪 Relatorio de Insumos</h1>
+            <div class="sub">Gerado em ${new Date().toLocaleString('pt-BR')}</div>
+            <div class="resumo">
+                <div><strong>${dados.length}</strong>Insumos cadastrados</div>
+                <div><strong>${criticos}</strong>Em nivel critico/baixo</div>
+                <div><strong>R$ ${totalGeral.toFixed(2)}</strong>Valor total em estoque</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Unidade</th>
+                        <th style="text-align:right;">Preco/Un</th>
+                        <th style="text-align:center;">Estoque</th>
+                        <th style="text-align:center;">Minimo</th>
+                        <th style="text-align:right;">Valor</th>
+                        <th style="text-align:center;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>${linhas}</tbody>
+            </table>
+            <div class="footer">Dindins Gourmet FX - Relatorio gerado automaticamente</div>
+        </body>
+        </html>
+    `;
+
+    const win = window.open('', '_blank');
+    if (!win) { mostrarToast('⚠️ Permita pop-ups para gerar PDF', 'warning'); return; }
+    win.document.write(html);
+    win.document.close();
+    setTimeout(() => { win.print(); }, 500);
+    mostrarToast('📄 PDF aberto. Escolha "Salvar como PDF".', 'info');
+};
+
 console.log('✅ Admin parte 2 carregada! v16.0');
 console.log('📥 Exportação CSV/PDF de estoque e insumos');
 console.log('🎁 Desconto em pedidos via aba Pagamentos');
