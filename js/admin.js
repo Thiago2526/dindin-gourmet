@@ -197,24 +197,6 @@ async function previewFotoAdmin(input) {
 window.previewFotoAdmin = previewFotoAdmin;
 
 // ============================================================
-// VERIFICA SE É O MASTER (primeiro admin criado)
-// ============================================================
-async function verificarSeEhMaster(userId) {
-    try {
-        const { data: masterData } = await sb
-            .from('admin_usuarios')
-            .select('user_id')
-            .order('criado_em', { ascending: true })
-            .limit(1)
-            .maybeSingle();
-        return masterData && masterData.user_id === userId;
-    } catch (e) {
-        console.warn('Erro ao verificar master:', e);
-        return false;
-    }
-}
-
-// ============================================================
 // LOGIN
 // ============================================================
 async function fazerLogin() {
@@ -271,10 +253,11 @@ async function fazerLogin() {
         State.adminData = adminData;
         State.session = data.session;
 
-        State.isMaster = await verificarSeEhMaster(data.user.id);
+        // ⭐ NOVO: lê is_master direto da coluna do banco
+        State.isMaster = adminData.is_master === true;
 
         entrarPainel();
-        mostrarToast('Bem-vindo, ' + adminData.nome + '!', 'success');
+        mostrarToast('Bem-vindo, ' + adminData.nome + (State.isMaster ? ' (MASTER)' : '') + '!', 'success');
 
     } catch (error) {
         erroEl.textContent = '❌ ' + (error.message || 'Credenciais inválidas');
@@ -303,7 +286,7 @@ window.esqueciSenha = esqueciSenha;
 function entrarPainel() {
     document.getElementById('telaLogin').classList.add('hidden');
     document.getElementById('painelAdmin').classList.add('active');
-    document.getElementById('userLogado').textContent = '👤 ' + Utils.escapeHtml(State.adminData.nome);
+    document.getElementById('userLogado').textContent = '👤 ' + Utils.escapeHtml(State.adminData.nome) + (State.isMaster ? ' 👑' : '');
     aplicarPermissoes();
     iniciarRealtime();
     carregarTudo();
@@ -330,7 +313,8 @@ async function verificarSessao() {
                 State.adminData = adminData;
                 State.session = session;
 
-                State.isMaster = await verificarSeEhMaster(session.user.id);
+                // ⭐ NOVO: lê is_master direto da coluna do banco
+                State.isMaster = adminData.is_master === true;
 
                 entrarPainel();
                 return true;
@@ -341,7 +325,7 @@ async function verificarSessao() {
 }
 
 // ============================================================
-// PERMISSÕES — CORRIGIDO E BLINDADO
+// PERMISSÕES
 // ============================================================
 function aplicarPermissoes() {
     if (!State.adminData) return;
@@ -354,7 +338,6 @@ function aplicarPermissoes() {
         btn.style.display = (map[tab] === true) ? 'flex' : 'none';
     });
 
-    // Esconde também o conteúdo das abas proibidas
     document.querySelectorAll('.conteudo').forEach(el => {
         const tab = el.id.replace('conteudo-', '');
         if (State.isMaster) return;
@@ -366,7 +349,6 @@ function aplicarPermissoes() {
 }
 window.aplicarPermissoes = aplicarPermissoes;
 
-// Re-aplica permissões (chamada após carregarTudo e em cliques)
 function reaplicarPermissoes() {
     if (!State.adminData || State.isMaster) return;
     aplicarPermissoes();
@@ -426,7 +408,6 @@ window.trocarSenhaModal = trocarSenhaModal;
 // NAVEGAÇÃO — COM BLOQUEIO DE PERMISSÃO
 // ============================================================
 function mudarTab(tab) {
-    // Bloqueia se não tem permissão
     if (!temPermissao(tab)) {
         mostrarToast('⛔ Você não tem permissão para acessar esta aba.', 'error');
         return;
@@ -439,7 +420,6 @@ function mudarTab(tab) {
     const t = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
     if (t) t.classList.add('active');
 
-    // Re-aplica permissões depois de mudar de aba (defensivo)
     setTimeout(reaplicarPermissoes, 50);
 
     const loaders = {
@@ -523,8 +503,19 @@ async function carregarListaAdmins() {
             if (p.admins) perms.push('👥');
             if (p.auditoria) perms.push('📋A');
             const isCurrent = a.user_id === State.user?.id;
-            const isMaster = State.isMaster && isCurrent;
-            return `<div class="card-item"><div class="card-item-info"><div><strong>👤 ${Utils.escapeHtml(a.nome)}</strong> ${isMaster ? '<span class="badge badge-pago">MASTER</span>' : ''}<br><small>${Utils.escapeHtml(a.email)} | ${a.ativo ? '✅' : '⛔'} ${isCurrent ? '(Você)' : ''}<br>Perm: ${perms.join(' ') || '(nenhuma)'}</small></div></div><div class="card-item-actions">${!isCurrent ? `<button class="btn btn-warning btn-sm" onclick="toggleAdminStatus('${a.user_id}')">🔒</button><button class="btn btn-danger btn-sm" onclick="excluirAdminSupabase('${a.user_id}')">🗑️</button>` : ''}</div></div>`;
+            const ehMaster = a.is_master === true;
+
+            // Botão de master: só o master atual pode promover/rebaixar
+            let botaoMaster = '';
+            if (State.isMaster && !isCurrent) {
+                if (ehMaster) {
+                    botaoMaster = `<button class="btn btn-warning btn-sm" onclick="rebaixarMaster('${a.user_id}')" title="Rebaixar master">⬇️👑</button>`;
+                } else {
+                    botaoMaster = `<button class="btn btn-info btn-sm" onclick="promoverMaster('${a.user_id}')" title="Promover a master">⬆️👑</button>`;
+                }
+            }
+
+            return `<div class="card-item"><div class="card-item-info"><div><strong>👤 ${Utils.escapeHtml(a.nome)}</strong> ${ehMaster ? '<span class="badge badge-pago">👑 MASTER</span>' : ''}<br><small>${Utils.escapeHtml(a.email)} | ${a.ativo ? '✅' : '⛔'} ${isCurrent ? '(Você)' : ''}<br>Perm: ${perms.join(' ') || '(nenhuma)'}</small></div></div><div class="card-item-actions">${botaoMaster}${!isCurrent ? `<button class="btn btn-warning btn-sm" onclick="toggleAdminStatus('${a.user_id}')">🔒</button><button class="btn btn-danger btn-sm" onclick="excluirAdminSupabase('${a.user_id}')">🗑️</button>` : ''}</div></div>`;
         }).join('');
     } catch (e) { tratarErro(e); }
 }
@@ -544,6 +535,11 @@ window.toggleAdminStatus = toggleAdminStatus;
 
 async function excluirAdminSupabase(userId) {
     try {
+        const { data: a } = await sb.from('admin_usuarios').select('*').eq('user_id', userId).single();
+        if (a?.is_master) {
+            mostrarToast('⛔ Não é possível excluir o master. Rebaixe-o antes.', 'error');
+            return;
+        }
         if (!confirm('Excluir permanentemente?')) return;
         await chamarEdgeFunction('delete_user', { userId });
         await carregarListaAdmins();
@@ -551,6 +547,46 @@ async function excluirAdminSupabase(userId) {
     } catch (e) { tratarErro(e); }
 }
 window.excluirAdminSupabase = excluirAdminSupabase;
+
+// ⭐ NOVO: promover a master
+async function promoverMaster(userId) {
+    if (!State.isMaster) { mostrarToast('⛔ Só o master atual pode promover.', 'error'); return; }
+    try {
+        const { data: a } = await sb.from('admin_usuarios').select('nome').eq('user_id', userId).single();
+        if (!a) return;
+        if (!confirm(`Promover "${a.nome}" a MASTER?\n\nEle terá acesso total ao sistema.`)) return;
+        const { error } = await sb.from('admin_usuarios').update({ is_master: true }).eq('user_id', userId);
+        if (error) throw error;
+        await carregarListaAdmins();
+        mostrarToast(`👑 ${a.nome} agora é master!`, 'success');
+    } catch (e) { tratarErro(e); }
+}
+window.promoverMaster = promoverMaster;
+
+// ⭐ NOVO: rebaixar master
+async function rebaixarMaster(userId) {
+    if (!State.isMaster) { mostrarToast('⛔ Só o master atual pode rebaixar.', 'error'); return; }
+    if (userId === State.user.id) { mostrarToast('⛔ Você não pode rebaixar a si mesmo.', 'error'); return; }
+
+    try {
+        const { data: a } = await sb.from('admin_usuarios').select('nome').eq('user_id', userId).single();
+        if (!a) return;
+        if (!confirm(`Rebaixar "${a.nome}" de MASTER?\n\nEle perderá o acesso total e passará a respeitar as permissões individuais.`)) return;
+
+        // Verifica se vai sobrar pelo menos 1 master
+        const { data: masters } = await sb.from('admin_usuarios').select('user_id').eq('is_master', true);
+        if (!masters || masters.length <= 1) {
+            mostrarToast('⛔ Não é possível rebaixar o último master.', 'error');
+            return;
+        }
+
+        const { error } = await sb.from('admin_usuarios').update({ is_master: false }).eq('user_id', userId);
+        if (error) throw error;
+        await carregarListaAdmins();
+        mostrarToast(`⬇️ ${a.nome} não é mais master.`, 'success');
+    } catch (e) { tratarErro(e); }
+}
+window.rebaixarMaster = rebaixarMaster;
 
 // ============================================================
 // DASHBOARD
@@ -1202,7 +1238,7 @@ async function iniciarRealtime() {
 }
 
 // ============================================================
-// CARREGAR TUDO — protegido
+// CARREGAR TUDO
 // ============================================================
 async function carregarTudo() {
     try {
@@ -1212,14 +1248,12 @@ async function carregarTudo() {
             carregarC1(),
             carregarC2()
         ];
-        // Só carrega setores/insumos se tiver permissão
         if (temPermissao('setores')) tarefas.push(carregarSetores());
         if (temPermissao('insumos')) tarefas.push(carregarInsumos());
         await Promise.all(tarefas);
     } catch (err) {
         console.error('Erro ao carregar dados:', err);
     } finally {
-        // Re-aplica permissões após tudo carregar
         setTimeout(reaplicarPermissoes, 200);
     }
 }
@@ -1231,7 +1265,6 @@ window.carregarTudo = carregarTudo;
 document.addEventListener('DOMContentLoaded', () => {
     verificarConexao();
 
-    // Máscara de telefone nos filtros
     ['filtroPedidosTelefone', 'filtroPagamentosTelefone', 'filtroFinanceiroTelefone'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', function() {
@@ -1270,7 +1303,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     verificarSessao();
 
-    // Proteção extra: re-aplica permissões a cada 1.5s por 10s (caso algo re-exiba)
     let tentativas = 0;
     const intervalo = setInterval(() => {
         reaplicarPermissoes();
@@ -1279,7 +1311,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1500);
 });
 
-console.log('✅ Admin parte 1 carregado! v19.0');
+console.log('✅ Admin parte 1 carregado! v20.0 (MASTER POR FLAG)');
+console.log('👑 is_master lido direto do banco');
 console.log('🛡️ Sistema de permissões BLINDADO');
-console.log('🔒 Abas proibidas são escondidas e bloqueadas no clique');
-console.log('👑 Master continua vendo tudo');
