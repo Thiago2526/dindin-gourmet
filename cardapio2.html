@@ -160,8 +160,8 @@
                     <select id="pagamento" onchange="atualizarPix()">
                         <option value="">Selecione...</option>
                         <option value="pix">📱 Chave PIX</option>
+                        <option value="cartao">💳 Cartão (Crédito ou Débito)</option>
                         <option value="dinheiro">💵 Dinheiro</option>
-                        <option value="credito">💳 Solicitar link de pagamento no crédito</option>
                     </select>
                 </div>
                 <div class="form-group" style="flex:0 0 auto;display:flex;align-items:flex-end;"><button class="btn-finalizar" id="btnFinalizar" onclick="finalizarPedidoCliente()">✅ Finalizar Pedido</button></div>
@@ -509,7 +509,7 @@
                 const itens = Object.keys(carrinho).map(id => ({ nome: carrinho[id].nome, quantidade: carrinho[id].quantidade, preco: carrinho[id].preco }));
                 const { subtotal, total } = calcularTotal();
 
-                const formasPagamento = { 'pix': '📱 PIX', 'dinheiro': '💵 Dinheiro', 'credito': '💳 Link de Crédito' };
+                const formasPagamento = { 'pix': '📱 PIX', 'cartao': '💳 Cartão (Crédito ou Débito)', 'dinheiro': '💵 Dinheiro' };
                 const formaTexto = formasPagamento[pagamento] || pagamento;
                 const obs = 'Cardápio 2 | setor_id=null | taxa=0 | Retirada no local | Pagamento: ' + formaTexto;
 
@@ -531,8 +531,6 @@
                 let msgSucesso = `<div class="icon">✅</div><h3>Pedido Recebido!</h3><div class="pedido-num">${pedidoId}</div>`;
                 if (pagamento === 'pix' && config.pix) {
                     msgSucesso += `<p>📱 <strong>Chave PIX:</strong></p><div style="background:var(--bg-input);padding:10px;border-radius:8px;font-family:monospace;margin:8px 0;word-break:break-all;font-size:0.9em;">${config.pix}</div><button class="btn btn-primary" onclick="copiarPix()" style="width:100%;">📋 Copiar Chave PIX</button><p style="margin-top:12px;">Após o pagamento, envie o comprovante no grupo dos Dindins no WhatsApp.</p>`;
-                } else if (pagamento === 'credito') {
-                    msgSucesso += `<p>💳 Você solicitou pagamento no crédito.</p><p>O link de pagamento será enviado pelo WhatsApp.</p>`;
                 } else {
                     msgSucesso += `<p>Obrigado pelo seu pedido! Agradecemos a preferência. 🍦</p>`;
                 }
@@ -640,7 +638,7 @@
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🔥 Cardápio 2 - v15.0 (carrinho compacto, PIX controlado) carregado!');
+        console.log('🔥 Cardápio 2 - v16.0 (cartão no lugar de crédito, carrinho compacto) carregado!');
     })();
     </script>
 </body>
