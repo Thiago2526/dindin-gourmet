@@ -34,7 +34,8 @@ window.State = {
     fotoEmBase64: null,
     realtimeChannel: null,
     ingredientesTemporarios: [],
-    clientesPendentes: []
+    clientesPendentes: [],
+    clientesFiltrados: []
 };
 const State = window.State;
 
@@ -898,13 +899,51 @@ window.carregarPedidos = carregarPedidos;
 function renderizarPedidos(p) {
     const l = document.getElementById('listaPedidos');
     if (p.length === 0) { l.innerHTML = '<div class="empty-state"><span class="empty-icon">📭</span><div>Nenhum pedido</div></div>'; return; }
+
+    function fmtPagamento(valor) {
+        if (!valor) return '—';
+        const v = String(valor).toLowerCase().trim();
+        if (v.includes('pix')) return '📱 PIX';
+        if (v.includes('cartao') || v.includes('cartão')) return '💳 Cartão (Crédito ou Débito)';
+        if (v.includes('dinheiro')) return '💵 Dinheiro';
+        if (v.includes('credito') || v.includes('crédito')) return '💳 Crédito';
+        return valor;
+    }
+
     l.innerHTML = p.map(x => {
+        const obs = x.obs || '';
+
+        let origem = '❓ Não identificado';
+        if (obs.includes('Cardápio 1')) origem = '🍦 Cardápio 1';
+        else if (obs.includes('Cardápio 2')) origem = '🔥 Cardápio 2';
+
+        const formaPagamento = fmtPagamento(x.pagamentostatus);
+
+        let localTexto = '—';
+        const matchSetor = obs.match(/Entrega:\s*([^|]+)/);
+        if (matchSetor) {
+            localTexto = `📍 Entrega: ${matchSetor[1].trim()}`;
+        } else if (obs.includes('Retirada no local')) {
+            localTexto = '📍 Retirada no local';
+        }
+
+        const matchTaxa = obs.match(/taxa=([\d.]+)/);
+        const taxa = matchTaxa ? parseFloat(matchTaxa[1]) || 0 : 0;
+
         let ih = '';
+        let subtotal = 0;
         if (x.itens && x.itens.length > 0) {
-            ih = '<div class="pedido-itens"><strong>📋 ITENS:</strong>';
-            x.itens.forEach(it => { ih += `<div class="pedido-item-linha"><span>• ${it.quantidade || 0}x ${Utils.escapeHtml(it.nome || '')}</span><span>R$ ${((it.preco || 0) * (it.quantidade || 0)).toFixed(2)}</span></div>`; });
+            ih = '<div class="pedido-itens"><strong>🛒 ITENS:</strong>';
+            x.itens.forEach(it => {
+                const qtd = it.quantidade || 0;
+                const preco = it.preco || 0;
+                const sub = qtd * preco;
+                subtotal += sub;
+                ih += `<div class="pedido-item-linha"><span>• ${qtd}x ${Utils.escapeHtml(it.nome || '')}</span><span>R$ ${sub.toFixed(2)}</span></div>`;
+            });
             ih += '</div>';
         }
+
         const sp = x.pagamentostatus === 'pago' ? '<span class="badge badge-pago">✅ PAGO</span>' : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
         const st = (x.status || 'novo').toLowerCase();
         const map = {
@@ -914,13 +953,58 @@ function renderizarPedidos(p) {
             cancelado: '<span class="badge badge-cancelado">❌ Cancelado</span>'
         };
         const spd = map[st] || '<span class="badge badge-novo">🆕 Novo</span>';
+
         let be = '';
         if (st !== 'entregue' && st !== 'cancelado') be = `<button class="btn btn-deliver btn-sm" onclick="marcarEntregue(${x.id})">✅ Entregue</button>`;
         else if (st === 'entregue') be = '<span style="color:#6ee7b7;font-weight:bold;background:#064e3b;padding:4px 14px;border-radius:20px;font-size:12px;">✔ Entregue</span>';
         const bw = x.telefone ? `<button class="btn btn-whatsapp btn-sm" onclick="abrirWhatsapp('${x.telefone}','${Utils.escapeHtml(x.cliente)}',${x.total || 0})">📱</button>` : '';
+
         const pedidoId = x.pedido_id || `#${x.id}`;
         const descontoTag = x.desconto ? `<span class="badge badge-pendente" style="background:#8b5cf6;color:white;">🎁 ${Utils.escapeHtml(x.desconto)}</span>` : '';
-        return `<div class="card-item" style="flex-direction:column;align-items:stretch;"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;"><div><strong style="color:var(--dourado);">${pedidoId}</strong><br><strong>👤 ${Utils.escapeHtml(x.cliente)}</strong> ${descontoTag}<br><small>📱 ${x.telefone ? Utils.mascararTelefone(x.telefone) : 'N/A'} | 📅 ${Utils.formatarData(x.data)}</small></div><div style="text-align:right;"><strong style="color:var(--dourado);font-size:1.2em;">R$ ${(x.total || 0).toFixed(2)}</strong><br>${sp} ${spd}</div></div>${ih}<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">${be} ${bw} <button class="btn btn-danger btn-sm" onclick="excluirPedido(${x.id})">🗑️</button></div></div>`;
+
+        return `
+            <div class="card-item" style="flex-direction:column;align-items:stretch;">
+                <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                    <div>
+                        <strong style="color:var(--dourado);font-size:1.1em;">📦 ${pedidoId}</strong>
+                        <br>
+                        <strong>👤 ${Utils.escapeHtml(x.cliente)}</strong> ${descontoTag}
+                        <br>
+                        <small>📱 ${x.telefone ? Utils.mascararTelefone(x.telefone) : 'N/A'} | 📅 ${Utils.formatarData(x.data)}</small>
+                    </div>
+                    <div style="text-align:right;">
+                        <strong style="color:var(--dourado);font-size:1.2em;">R$ ${(x.total || 0).toFixed(2)}</strong>
+                        <br>
+                        ${sp} ${spd}
+                    </div>
+                </div>
+
+                <div style="background:var(--bg-secondary);padding:10px 14px;border-radius:10px;margin-top:10px;font-size:0.9em;">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;">
+                        <div><strong>📋 Origem:</strong> ${origem}</div>
+                        <div><strong>💳 Pagamento:</strong> ${formaPagamento}</div>
+                        <div><strong>${localTexto}</strong></div>
+                        ${taxa > 0 ? `<div><strong>🛵 Taxa:</strong> R$ ${taxa.toFixed(2)}</div>` : ''}
+                    </div>
+                </div>
+
+                ${ih}
+
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-top:10px;padding-top:8px;border-top:1px solid var(--border-color);">
+                    <div style="font-size:0.9em;color:var(--text-secondary);">
+                        💰 Subtotal: <strong>R$ ${subtotal.toFixed(2)}</strong>
+                        ${taxa > 0 ? `<br>🛵 Taxa: <strong>R$ ${taxa.toFixed(2)}</strong>` : ''}
+                    </div>
+                    <div style="font-size:1.1em;color:var(--dourado);font-weight:800;">
+                        💵 TOTAL: R$ ${(x.total || 0).toFixed(2)}
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+                    ${be} ${bw} <button class="btn btn-danger btn-sm" onclick="excluirPedido(${x.id})">🗑️</button>
+                </div>
+            </div>
+        `;
     }).join('');
 }
 
@@ -1059,7 +1143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     verificarConexao();
 
     // Máscara de telefone nos filtros
-    ['filtroPedidosTelefone', 'filtroPagamentosTelefone'].forEach(id => {
+    ['filtroPedidosTelefone', 'filtroPagamentosTelefone', 'filtroFinanceiroTelefone'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', function() {
             let v = this.value.replace(/\D/g, '').slice(0, 11);
@@ -1085,6 +1169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fecharModalEditarEstoque();
             if (typeof fecharModalLembrete === 'function') fecharModalLembrete();
             if (typeof fecharModalDesconto === 'function') fecharModalDesconto();
+            if (typeof fecharModalValorPago === 'function') fecharModalValorPago();
         }
     });
 
@@ -1097,7 +1182,8 @@ document.addEventListener('DOMContentLoaded', () => {
     verificarSessao();
 });
 
-console.log('✅ Admin parte 1 carregado! v14.0');
+console.log('✅ Admin parte 1 carregado! v16.0');
 console.log('📦 Estoque detalhado v3.0');
 console.log('🗑️ Exclusão com DEVOLUÇÃO AUTOMÁTICA de estoque');
-console.log('📞 Filtro por telefone em Pedidos e Pagamentos');
+console.log('📞 Filtro por telefone em Pedidos, Pagamentos e Financeiro');
+console.log('📋 Pedidos com detalhes completos (Origem, Pagamento, Local, Taxa)');
