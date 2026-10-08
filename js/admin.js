@@ -68,7 +68,7 @@ window.Utils = {
 const Utils = window.Utils;
 
 // ============================================================
-// MAPA DE PERMISSÕES (fonte única da verdade)
+// MAPA DE PERMISSÕES
 // ============================================================
 function getPermissaoMap() {
     const p = State.adminData?.permissoes || {};
@@ -252,8 +252,6 @@ async function fazerLogin() {
         State.user = data.user;
         State.adminData = adminData;
         State.session = data.session;
-
-        // ⭐ NOVO: lê is_master direto da coluna do banco
         State.isMaster = adminData.is_master === true;
 
         entrarPainel();
@@ -312,10 +310,7 @@ async function verificarSessao() {
                 State.user = session.user;
                 State.adminData = adminData;
                 State.session = session;
-
-                // ⭐ NOVO: lê is_master direto da coluna do banco
                 State.isMaster = adminData.is_master === true;
-
                 entrarPainel();
                 return true;
             }
@@ -405,7 +400,7 @@ async function trocarSenhaModal() {
 window.trocarSenhaModal = trocarSenhaModal;
 
 // ============================================================
-// NAVEGAÇÃO — COM BLOQUEIO DE PERMISSÃO
+// NAVEGAÇÃO
 // ============================================================
 function mudarTab(tab) {
     if (!temPermissao(tab)) {
@@ -505,7 +500,6 @@ async function carregarListaAdmins() {
             const isCurrent = a.user_id === State.user?.id;
             const ehMaster = a.is_master === true;
 
-            // Botão de master: só o master atual pode promover/rebaixar
             let botaoMaster = '';
             if (State.isMaster && !isCurrent) {
                 if (ehMaster) {
@@ -548,7 +542,6 @@ async function excluirAdminSupabase(userId) {
 }
 window.excluirAdminSupabase = excluirAdminSupabase;
 
-// ⭐ NOVO: promover a master
 async function promoverMaster(userId) {
     if (!State.isMaster) { mostrarToast('⛔ Só o master atual pode promover.', 'error'); return; }
     try {
@@ -563,7 +556,6 @@ async function promoverMaster(userId) {
 }
 window.promoverMaster = promoverMaster;
 
-// ⭐ NOVO: rebaixar master
 async function rebaixarMaster(userId) {
     if (!State.isMaster) { mostrarToast('⛔ Só o master atual pode rebaixar.', 'error'); return; }
     if (userId === State.user.id) { mostrarToast('⛔ Você não pode rebaixar a si mesmo.', 'error'); return; }
@@ -573,7 +565,6 @@ async function rebaixarMaster(userId) {
         if (!a) return;
         if (!confirm(`Rebaixar "${a.nome}" de MASTER?\n\nEle perderá o acesso total e passará a respeitar as permissões individuais.`)) return;
 
-        // Verifica se vai sobrar pelo menos 1 master
         const { data: masters } = await sb.from('admin_usuarios').select('user_id').eq('is_master', true);
         if (!masters || masters.length <= 1) {
             mostrarToast('⛔ Não é possível rebaixar o último master.', 'error');
@@ -1303,14 +1294,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     verificarSessao();
 
-    let tentativas = 0;
-    const intervalo = setInterval(() => {
-        reaplicarPermissoes();
-        tentativas++;
-        if (tentativas >= 7) clearInterval(intervalo);
-    }, 1500);
+    // 🛡️ PROTEÇÃO CONTÍNUA: monitora as abas por 60 segundos
+    let _protecaoTentativas = 0;
+    const _protecaoIntervalo = setInterval(() => {
+        if (State.adminData && !State.isMaster) {
+            const map = getPermissaoMap();
+            let precisaCorrigir = false;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                const tab = btn.getAttribute('data-tab');
+                if (['dashboard', 'config'].includes(tab)) return;
+                const permitido = map[tab] === true;
+                const visivel = btn.style.display !== 'none';
+                if (permitido !== visivel) precisaCorrigir = true;
+            });
+            if (precisaCorrigir) aplicarPermissoes();
+        }
+        _protecaoTentativas++;
+        if (_protecaoTentativas >= 120) clearInterval(_protecaoIntervalo);
+    }, 500);
+
+    // 🛡️ BLOQUEIO de clique em abas proibidas
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.tab-btn');
+        if (!btn || !State.adminData || State.isMaster) return;
+        const tab = btn.getAttribute('data-tab');
+        if (['dashboard', 'config'].includes(tab)) return;
+        const map = getPermissaoMap();
+        if (map[tab] !== true) {
+            e.preventDefault();
+            e.stopPropagation();
+            mostrarToast('⛔ Você não tem permissão para acessar esta aba.', 'error');
+            aplicarPermissoes();
+            return false;
+        }
+    }, true);
 });
 
-console.log('✅ Admin parte 1 carregado! v20.0 (MASTER POR FLAG)');
+console.log('✅ Admin parte 1 carregado! v20.1 (MASTER POR FLAG + PROTEÇÃO)');
 console.log('👑 is_master lido direto do banco');
 console.log('🛡️ Sistema de permissões BLINDADO');
+console.log('🔒 Abas proibidas são escondidas e bloqueadas no clique');
