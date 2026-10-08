@@ -147,6 +147,36 @@
         </div>
     </div>
 
+    <!-- MODAL VALOR PAGO -->
+    <div class="modal-overlay" id="modalValorPago">
+        <div class="modal-box">
+            <button class="close-btn" onclick="fecharModalValorPago()">✕</button>
+            <h3>💵 Registrar Pagamento</h3>
+            <input type="hidden" id="valorPagoPedidoId">
+            <div class="form-group">
+                <label>Pedido</label>
+                <input type="text" id="valorPagoPedidoInfo" readonly style="background:var(--bg-secondary);">
+            </div>
+            <div class="form-group">
+                <label>Total do Pedido</label>
+                <input type="text" id="valorPagoTotal" readonly style="background:var(--bg-secondary);font-weight:700;color:var(--dourado);">
+            </div>
+            <div class="form-group">
+                <label>Valor Pago pelo Cliente (R$) *</label>
+                <input type="text" id="valorPagoInput" placeholder="Ex: 25,00" oninput="atualizarPreviewValorPago()">
+            </div>
+            <div class="resultado-calculadora" id="valorPagoPreview" style="display:none;">
+                <div class="resultado-linha"><span>Total do pedido:</span><strong id="vpTotal">R$ 0,00</strong></div>
+                <div class="resultado-linha"><span>Valor pago:</span><strong id="vpPago" style="color:#22c55e;">R$ 0,00</strong></div>
+                <div class="resultado-linha destaque"><span>💰 Falta pagar:</span><strong id="vpFalta" style="color:#f59e0b;">R$ 0,00</strong></div>
+            </div>
+            <div class="btn-row" style="margin-top:16px;">
+                <button class="btn btn-success" onclick="salvarValorPago()">✅ Registrar</button>
+                <button class="btn btn-danger" onclick="fecharModalValorPago()">✕</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL LEMBRETE PENDENTES -->
     <div class="modal-overlay" id="modalLembretePendentes">
         <div class="modal-box modal-large">
@@ -325,6 +355,10 @@
                 <button class="btn btn-limpar" onclick="limparFiltroPagamentos()">🗑️ Limpar</button>
             </div>
             <button class="btn btn-whatsapp" onclick="lembrarTodosPendentes()" style="margin-bottom:16px;">📱 Lembrar Todos Pendentes</button>
+
+            <!-- RESUMO CONSOLIDADO -->
+            <div id="resumoClienteFiltrado" style="display:none; margin-bottom:16px;"></div>
+
             <div id="listaPagamentos"></div>
         </div>
 
@@ -339,6 +373,7 @@
                 <div class="form-group"><label>Início</label><input type="date" id="filtroFinanceiroInicio"></div>
                 <div class="form-group"><label>Fim</label><input type="date" id="filtroFinanceiroFim"></div>
                 <div class="form-group"><label>Cliente</label><input type="text" id="filtroFinanceiroCliente"></div>
+                <div class="form-group"><label>Telefone</label><input type="tel" id="filtroFinanceiroTelefone" placeholder="(11) 99999-9999"></div>
                 <button class="btn btn-primary" onclick="aplicarFiltroFinanceiro()">🔍 Filtrar</button>
                 <button class="btn btn-limpar" onclick="limparFiltroFinanceiro()">🗑️ Limpar</button>
             </div>
@@ -501,7 +536,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/admin.js?v=15"></script>
-    <script src="js/admin-part2.js?v=15"></script>
+    <script src="js/admin.js?v=17"></script>
+    <script src="js/admin-part2.js?v=17"></script>
 </body>
 </html>
