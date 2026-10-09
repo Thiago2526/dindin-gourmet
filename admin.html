@@ -319,6 +319,7 @@
                 <div class="btn-group">
                     <button class="btn btn-primary btn-sm" onclick="carregarPedidos(1)">🔄 Atualizar</button>
                     <button class="btn btn-success btn-sm" onclick="exportarPedidosCSV()">📥 CSV</button>
+                    <button class="btn btn-info btn-sm" onclick="exportarPedidosPDF()">📄 PDF</button>
                 </div>
             </h3>
             <div class="filtros-container">
@@ -341,6 +342,7 @@
             <h3>💳 Pagamentos <span class="badge-count" id="pagamentosCount">0</span>
                 <div class="btn-group">
                     <button class="btn btn-primary btn-sm" onclick="carregarPagamentos()">🔄 Atualizar</button>
+                    <button class="btn btn-info btn-sm" onclick="exportarPagamentosPDF()">📄 PDF</button>
                 </div>
             </h3>
             <div class="filtros-container">
@@ -537,7 +539,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js?v=1"></script>
-    <script src="js/admin.js?v=22"></script>
-    <script src="js/admin-part2.js?v=22"></script>
+    <script src="js/admin.js?v=24"></script>
+    <script src="js/admin-part2.js?v=24"></script>
 </body>
 </html>
