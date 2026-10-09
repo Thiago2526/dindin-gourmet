@@ -1,5 +1,5 @@
 // ============================================================
-// PARTE 2 - FUNÇÕES RESTANTES (v18.0 - pagamento corrigido + PDF pagamentos)
+// PARTE 2 - FUNÇÕES RESTANTES (v20.0 - histórico + exclusão)
 // ============================================================
 
 // ============================================================
@@ -22,12 +22,22 @@ async function carregarFinanceiro() {
 
         State.cache.pedidos = pedidos;
 
-        const total = pedidos.filter(x => x.pagamentostatus === 'pago').reduce((s, x) => s + (x.total || 0), 0);
-        const pend = pedidos.filter(x => x.pagamentostatus !== 'pago').reduce((s, x) => s + (x.total || 0), 0);
+        const valorRecebido = x => {
+            if (x.pagamentostatus === 'pago') return x.total || 0;
+            return x.valorpago || 0;
+        };
+        const valorPendente = x => {
+            if (x.pagamentostatus === 'pago') return 0;
+            return Math.max(0, (x.total || 0) - (x.valorpago || 0));
+        };
+
+        const total = pedidos.reduce((s, x) => s + valorRecebido(x), 0);
+        const pend = pedidos.reduce((s, x) => s + valorPendente(x), 0);
+
         document.getElementById('listaFinanceiro').innerHTML = `
             <div class="resumo-financeiro">
                 <div class="resumo-card"><div class="destaque">R$ ${total.toFixed(2)}</div><div class="label">💰 Recebido</div></div>
-                <div class="resumo-card"><div class="destaque" style="color:#fcd34d;">R$ ${pend.toFixed(2)}</div><div class="label">⏳ Pendente</div></div>
+                <div class="resumo-card"><div class="destaque" style="color:#fcd34d;">R$ ${pend.toFixed(2)}</div><div class="label">⏳ A Receber</div></div>
                 <div class="resumo-card"><div class="valor">${pedidos.length}</div><div class="label">📦 Pedidos</div></div>
                 <div class="resumo-card"><div class="valor">${pedidos.filter(x => x.pagamentostatus === 'pago').length}</div><div class="label">✅ Pagos</div></div>
             </div>`;
@@ -71,7 +81,7 @@ window.aplicarFiltroRanking = aplicarFiltroRanking;
 window.limparFiltroRanking = limparFiltroRanking;
 
 // ============================================================
-// HISTÓRICO
+// HISTÓRICO DE ESTOQUE
 // ============================================================
 function renderizarTabelaHistorico(dados) {
     const l = document.getElementById('listaHistorico');
@@ -574,9 +584,32 @@ function formatarPagamento(forma) {
     return mapa[forma] || forma || '—';
 }
 
+function getHistoricoPagamentos(pedido) {
+    return Array.isArray(pedido.historicopagamentos) ? pedido.historicopagamentos : [];
+}
+
+function calcularTotalPago(pedido) {
+    const hist = getHistoricoPagamentos(pedido);
+    if (hist.length > 0) return hist.reduce((s, e) => s + (e.valor || 0), 0);
+    // Fallback: usa valorpago se o histórico estiver vazio
+    return pedido.valorpago || 0;
+}
+
 function montarMensagemLembrete(pedidos) {
     const nome = pedidos[0].cliente || 'Cliente';
     const pix = State.cache.config?.pix || 'não configurado';
+
+    const linhaValores = (p) => {
+        const total = p.total || 0;
+        const pago = calcularTotalPago(p);
+        const falta = Math.max(0, total - pago);
+        if (p.pagamentostatus === 'pago') {
+            return `💰 Total: R$ ${total.toFixed(2)} (✅ Pago)`;
+        } else if (pago > 0 && pago < total) {
+            return `💰 Total: R$ ${total.toFixed(2)}\n✅ Já pago: R$ ${pago.toFixed(2)}\n⏳ Falta: R$ ${falta.toFixed(2)}`;
+        }
+        return `💰 Total: R$ ${total.toFixed(2)}`;
+    };
 
     if (pedidos.length === 1) {
         const p = pedidos[0];
@@ -593,7 +626,7 @@ function montarMensagemLembrete(pedidos) {
             `🕐 ${dataFormatada}\n\n` +
             `📋 *Itens:*\n${itensTexto}\n\n` +
             `💳 *Forma:* ${formaPgto}\n` +
-            `💰 *Total:* R$ ${(p.total || 0).toFixed(2)}\n\n` +
+            `${linhaValores(p)}\n\n` +
             `📱 *PIX:* ${pix}\n\n` +
             `_Por favor, envie o comprovante após o pagamento._`;
     }
@@ -603,6 +636,7 @@ function montarMensagemLembrete(pedidos) {
         `Você tem *${pedidos.length} pedidos* aguardando pagamento:\n\n`;
 
     let totalGeral = 0;
+    let totalPago = 0;
     pedidos.forEach((p) => {
         const itensTexto = (p.itens || []).map(it =>
             `  • ${it.quantidade}x ${it.nome}`
@@ -611,18 +645,25 @@ function montarMensagemLembrete(pedidos) {
         const dataFormatada = Utils.formatarData(p.data);
         const formaPgto = formatarPagamento(p.pagamento);
         totalGeral += p.total || 0;
+        totalPago += calcularTotalPago(p);
 
         msg += `━━━━━━━━━━━━━━━━━━━━\n`;
         msg += `📦 *${pedidoId}*\n`;
         msg += `🕐 ${dataFormatada}\n`;
         msg += `${itensTexto}\n`;
         msg += `💳 ${formaPgto}\n`;
-        msg += `💰 R$ ${(p.total || 0).toFixed(2)}\n`;
+        msg += `${linhaValores(p)}\n`;
     });
 
+    const faltaGeral = Math.max(0, totalGeral - totalPago);
+
     msg += `━━━━━━━━━━━━━━━━━━━━\n\n`;
-    msg += `💵 *TOTAL GERAL: R$ ${totalGeral.toFixed(2)}*\n\n`;
-    msg += `📱 *PIX:* ${pix}\n\n`;
+    msg += `💵 *TOTAL GERAL: R$ ${totalGeral.toFixed(2)}*\n`;
+    if (totalPago > 0) {
+        msg += `✅ *Já pago: R$ ${totalPago.toFixed(2)}*\n`;
+        msg += `⏳ *Falta: R$ ${faltaGeral.toFixed(2)}*\n`;
+    }
+    msg += `\n📱 *PIX:* ${pix}\n\n`;
     msg += `_Por favor, envie o comprovante após o pagamento._`;
 
     return msg;
@@ -635,9 +676,22 @@ function renderizarPagamentos(p) {
         return;
     }
     l.innerHTML = p.map(x => {
-        const s = x.pagamentostatus === 'pago'
-            ? '<span class="badge badge-pago">✅ PAGO</span>'
-            : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
+        const total = x.total || 0;
+        const valorpago = calcularTotalPago(x);
+        const falta = Math.max(0, total - valorpago);
+        const percentual = total > 0 ? Math.min(100, Math.round((valorpago / total) * 100)) : 0;
+        const historico = getHistoricoPagamentos(x);
+        const qtdPagamentos = historico.length;
+
+        let badgeStatus;
+        if (x.pagamentostatus === 'pago') {
+            badgeStatus = '<span class="badge badge-pago">✅ PAGO</span>';
+        } else if (valorpago > 0 && valorpago < total) {
+            badgeStatus = '<span class="badge badge-pendente" style="background:#8b5cf6;color:white;">💜 PARCIAL</span>';
+        } else {
+            badgeStatus = '<span class="badge badge-pendente">⏳ PENDENTE</span>';
+        }
+
         const b = x.pagamentostatus !== 'pago'
             ? `<button class="btn btn-success btn-sm" onclick="confirmarPag(${x.id})" title="Confirmar pagamento total">✅</button>`
             : '';
@@ -650,22 +704,42 @@ function renderizarPagamentos(p) {
         const val = x.pagamentostatus !== 'pago'
             ? `<button class="btn btn-primary btn-sm" onclick="abrirModalValorPago(${x.id})" title="Registrar valor pago">💵</button>`
             : '';
+        const btnHist = qtdPagamentos > 0
+            ? `<button class="btn btn-info btn-sm" onclick="abrirModalHistoricoPagamentos(${x.id})" title="Ver histórico de pagamentos">📜 Histórico (${qtdPagamentos})</button>`
+            : '';
+
         const itensTexto = formatarItensPedido(x.itens);
         const dataFormatada = Utils.formatarData(x.data);
         const pedidoId = x.pedido_id || `#${x.id}`;
-        // ✅ CORRIGIDO: forma em x.pagamento
         const formaPgto = formatarPagamento(x.pagamento);
         const badgeDesconto = x.desconto ? `<span class="badge" style="background:#8b5cf6;color:white;">🎁 ${Utils.escapeHtml(x.desconto)}</span>` : '';
+
+        let barraHtml = '';
+        if (x.pagamentostatus !== 'pago' && valorpago > 0) {
+            barraHtml = `
+                <div style="margin-top:10px;">
+                    <div style="display:flex;justify-content:space-between;font-size:0.8em;color:var(--text-secondary);margin-bottom:4px;">
+                        <span>💰 Total: <strong>R$ ${total.toFixed(2)}</strong></span>
+                        <span>✅ Pago: <strong style="color:var(--success);">R$ ${valorpago.toFixed(2)}</strong></span>
+                        <span>⏳ Falta: <strong style="color:#f59e0b;">R$ ${falta.toFixed(2)}</strong></span>
+                    </div>
+                    <div style="height:8px;background:var(--bg-secondary);border-radius:4px;overflow:hidden;position:relative;">
+                        <div style="height:100%;width:${percentual}%;background:linear-gradient(90deg,#8b5cf6,#22c55e);border-radius:4px;transition:width 0.4s ease;"></div>
+                    </div>
+                    <div style="text-align:right;font-size:0.75em;color:var(--text-muted);margin-top:2px;">${percentual}% pago</div>
+                </div>
+            `;
+        }
 
         return `<div class="card-item" style="flex-direction:column;align-items:stretch;">
             <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
                 <div>
-                    <strong style="color:var(--dourado);">👤 ${Utils.escapeHtml(x.cliente)}</strong> ${s} ${badgeDesconto}
+                    <strong style="color:var(--dourado);">👤 ${Utils.escapeHtml(x.cliente)}</strong> ${badgeStatus} ${badgeDesconto}
                     <br>
                     <small>📱 ${x.telefone ? Utils.mascararTelefone(x.telefone) : 'N/A'}</small>
                 </div>
                 <div style="text-align:right;">
-                    <strong style="color:var(--dourado);font-size:1.15em;">R$ ${(x.total || 0).toFixed(2)}</strong>
+                    <strong style="color:var(--dourado);font-size:1.15em;">R$ ${total.toFixed(2)}</strong>
                     <br>
                     <small>💳 ${formaPgto}</small>
                 </div>
@@ -675,7 +749,11 @@ function renderizarPagamentos(p) {
                 <br>
                 <span style="color:var(--text-secondary);">${Utils.escapeHtml(itensTexto)}</span>
             </div>
+            ${barraHtml}
             <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+                ${btnHist}
+            </div>
+            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
                 ${b} ${lem} ${desc} ${val}
             </div>
         </div>`;
@@ -723,7 +801,7 @@ function aplicarFiltroPagamentos() {
 
     const filtered = State.cache.pedidos.filter(p => {
         if (s !== 'todos' && (p.pagamentostatus || 'pendente') !== s) return false;
-        if (c && !p.cliente.toLowerCase().includes(c)) return false;
+        if (c && !(p.cliente || '').toLowerCase().includes(c)) return false;
         if (tel) {
             const telPedido = (p.telefone || '').replace(/\D/g, '');
             if (!telPedido.includes(tel)) return false;
@@ -745,10 +823,9 @@ function aplicarFiltroPagamentos() {
 window.aplicarFiltroPagamentos = aplicarFiltroPagamentos;
 
 // ============================================================
-// PDF DE PAGAMENTOS (respeita filtros ativos)
+// PDF DE PAGAMENTOS
 // ============================================================
 window.exportarPagamentosPDF = function() {
-    // Pega os pedidos filtrados (ou todos se não tiver filtro)
     const s = document.getElementById('filtroPagamentosStatus')?.value || 'todos';
     const c = document.getElementById('filtroPagamentosCliente')?.value?.toLowerCase().trim() || '';
     const tel = document.getElementById('filtroPagamentosTelefone')?.value?.replace(/\D/g, '') || '';
@@ -778,7 +855,6 @@ window.exportarPagamentosPDF = function() {
         return;
     }
 
-    // Filtros ativos descritivos
     const filtrosAtivos = [];
     if (s !== 'todos') filtrosAtivos.push(`Status: ${s}`);
     if (c) filtrosAtivos.push(`Cliente: "${c}"`);
@@ -786,20 +862,42 @@ window.exportarPagamentosPDF = function() {
     if (inicio) filtrosAtivos.push(`De: ${inicio.split('-').reverse().join('/')}`);
     if (fim) filtrosAtivos.push(`Até: ${fim.split('-').reverse().join('/')}`);
 
-    // Totais
+    const totalRecebido = dados.reduce((sum, x) => {
+        if (x.pagamentostatus === 'pago') return sum + (x.total || 0);
+        return sum + calcularTotalPago(x);
+    }, 0);
+    const totalAReceber = dados.reduce((sum, x) => {
+        if (x.pagamentostatus === 'pago') return sum;
+        return sum + Math.max(0, (x.total || 0) - calcularTotalPago(x));
+    }, 0);
+    const totalGeral = dados.reduce((sum, x) => sum + (x.total || 0), 0);
+
     const pagos = dados.filter(x => x.pagamentostatus === 'pago');
-    const pendentes = dados.filter(x => x.pagamentostatus !== 'pago');
-    const totalPago = pagos.reduce((s, x) => s + (x.total || 0), 0);
-    const totalPendente = pendentes.reduce((s, x) => s + (x.total || 0), 0);
-    const totalGeral = totalPago + totalPendente;
+    const parciais = dados.filter(x => x.pagamentostatus !== 'pago' && calcularTotalPago(x) > 0);
+    const pendentesPuros = dados.filter(x => x.pagamentostatus !== 'pago' && calcularTotalPago(x) === 0);
 
     let linhas = '';
     dados.forEach(x => {
-        const st = x.pagamentostatus === 'pago'
-            ? '<span style="color:#22c55e;font-weight:bold;">✅ PAGO</span>'
-            : '<span style="color:#f59e0b;font-weight:bold;">⏳ PENDENTE</span>';
+        const total = x.total || 0;
+        const valorpago = calcularTotalPago(x);
+        const falta = Math.max(0, total - valorpago);
+
+        let statusBadge;
+        if (x.pagamentostatus === 'pago') {
+            statusBadge = '<span style="color:#22c55e;font-weight:bold;">✅ PAGO</span>';
+        } else if (valorpago > 0 && valorpago < total) {
+            statusBadge = '<span style="color:#8b5cf6;font-weight:bold;">💜 PARCIAL</span>';
+        } else {
+            statusBadge = '<span style="color:#f59e0b;font-weight:bold;">⏳ PENDENTE</span>';
+        }
+
         const forma = formatarPagamento(x.pagamento);
         const pedidoId = x.pedido_id || `#${x.id}`;
+
+        let valoresHtml = `<strong>R$ ${total.toFixed(2)}</strong>`;
+        if (x.pagamentostatus !== 'pago' && valorpago > 0) {
+            valoresHtml += `<br><small style="color:#22c55e;">Pago: R$ ${valorpago.toFixed(2)}</small><br><small style="color:#f59e0b;">Falta: R$ ${falta.toFixed(2)}</small>`;
+        }
 
         linhas += `
             <tr>
@@ -812,8 +910,8 @@ window.exportarPagamentosPDF = function() {
                     <small style="color:#666;">${x.telefone || '—'}</small>
                 </td>
                 <td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">${forma}</td>
-                <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;font-weight:bold;">R$ ${(x.total || 0).toFixed(2)}</td>
-                <td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">${st}</td>
+                <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">${valoresHtml}</td>
+                <td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">${statusBadge}</td>
             </tr>
         `;
     });
@@ -848,12 +946,12 @@ window.exportarPagamentosPDF = function() {
 
             <div class="resumo">
                 <div class="resumo-item">
-                    <strong style="color:#22c55e;">R$ ${totalPago.toFixed(2)}</strong>
+                    <strong style="color:#22c55e;">R$ ${totalRecebido.toFixed(2)}</strong>
                     <small>💰 Recebido</small>
                 </div>
                 <div class="resumo-item">
-                    <strong style="color:#f59e0b;">R$ ${totalPendente.toFixed(2)}</strong>
-                    <small>⏳ Pendente</small>
+                    <strong style="color:#f59e0b;">R$ ${totalAReceber.toFixed(2)}</strong>
+                    <small>⏳ A Receber</small>
                 </div>
                 <div class="resumo-item">
                     <strong style="color:#CC5500;">R$ ${totalGeral.toFixed(2)}</strong>
@@ -868,7 +966,11 @@ window.exportarPagamentosPDF = function() {
                     <small>✅ Pagos</small>
                 </div>
                 <div class="resumo-item">
-                    <strong style="color:#f59e0b;">${pendentes.length}</strong>
+                    <strong style="color:#8b5cf6;">${parciais.length}</strong>
+                    <small>💜 Parciais</small>
+                </div>
+                <div class="resumo-item">
+                    <strong style="color:#f59e0b;">${pendentesPuros.length}</strong>
                     <small>⏳ Pendentes</small>
                 </div>
             </div>
@@ -879,7 +981,7 @@ window.exportarPagamentosPDF = function() {
                         <th>Pedido / Data</th>
                         <th>Cliente</th>
                         <th style="text-align:center;">Forma</th>
-                        <th style="text-align:right;">Total</th>
+                        <th style="text-align:right;">Valores</th>
                         <th style="text-align:center;">Status</th>
                     </tr>
                 </thead>
@@ -899,6 +1001,121 @@ window.exportarPagamentosPDF = function() {
     win.document.close();
     setTimeout(() => { win.print(); }, 500);
     mostrarToast('📄 PDF aberto. Escolha "Salvar como PDF".', 'info');
+};
+
+// ============================================================
+// HISTÓRICO DE PAGAMENTOS (MODAL)
+// ============================================================
+window.abrirModalHistoricoPagamentos = function(pedidoId) {
+    const pedido = State.cache.pedidos.find(p => p.id === pedidoId);
+    if (!pedido) { mostrarToast('Pedido não encontrado', 'error'); return; }
+
+    document.getElementById('historicoPedidoInfo').value =
+        `${pedido.pedido_id || '#' + pedido.id} — ${pedido.cliente} — R$ ${(pedido.total || 0).toFixed(2)}`;
+
+    renderizarHistoricoPagamentos(pedido);
+    document.getElementById('modalHistoricoPagamentos').classList.add('active');
+};
+
+window.fecharModalHistoricoPagamentos = function() {
+    document.getElementById('modalHistoricoPagamentos').classList.remove('active');
+};
+
+function renderizarHistoricoPagamentos(pedido) {
+    const container = document.getElementById('historicoConteudo');
+    const historico = getHistoricoPagamentos(pedido);
+    const total = pedido.total || 0;
+    const valorpago = historico.reduce((s, e) => s + (e.valor || 0), 0);
+    const falta = Math.max(0, total - valorpago);
+
+    const formasLabel = { 'pix': '📱 PIX', 'cartao': '💳 Cartão', 'dinheiro': '💵 Dinheiro' };
+
+    let html = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;">
+            <div style="background:var(--bg-secondary);padding:12px;border-radius:10px;text-align:center;">
+                <div style="font-size:0.75em;color:var(--text-muted);text-transform:uppercase;">Total</div>
+                <div style="font-size:1.3em;font-weight:800;color:var(--dourado);">R$ ${total.toFixed(2)}</div>
+            </div>
+            <div style="background:var(--bg-secondary);padding:12px;border-radius:10px;text-align:center;">
+                <div style="font-size:0.75em;color:var(--text-muted);text-transform:uppercase;">Pago</div>
+                <div style="font-size:1.3em;font-weight:800;color:var(--success);">R$ ${valorpago.toFixed(2)}</div>
+            </div>
+            <div style="background:var(--bg-secondary);padding:12px;border-radius:10px;text-align:center;">
+                <div style="font-size:0.75em;color:var(--text-muted);text-transform:uppercase;">Falta</div>
+                <div style="font-size:1.3em;font-weight:800;color:#f59e0b;">R$ ${falta.toFixed(2)}</div>
+            </div>
+        </div>
+    `;
+
+    if (historico.length === 0) {
+        html += `<div class="empty-state" style="padding:20px;"><span class="empty-icon">💳</span><div>Nenhum pagamento registrado ainda</div></div>`;
+    } else {
+        html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+        const historicoOrdenado = [...historico].reverse();
+        historicoOrdenado.forEach((entry) => {
+            const forma = formasLabel[entry.forma] || entry.forma || '—';
+            html += `
+                <div style="background:var(--bg-secondary);padding:12px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap;">
+                            <strong style="color:var(--success);font-size:1.15em;">+ R$ ${(entry.valor || 0).toFixed(2)}</strong>
+                            <small style="color:var(--text-muted);font-size:0.8em;">${entry.data || '—'}</small>
+                        </div>
+                        <div style="font-size:0.85em;color:var(--text-secondary);">
+                            ${forma} • por <strong>${Utils.escapeHtml(entry.admin || '—')}</strong>
+                        </div>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="excluirPagamentoHistorico(${pedido.id}, '${entry.id}')" title="Excluir este pagamento" style="flex-shrink:0;">🗑️</button>
+                </div>
+            `;
+        });
+        html += '</div>';
+    }
+
+    container.innerHTML = html;
+}
+
+window.excluirPagamentoHistorico = async function(pedidoId, pagamentoId) {
+    const pedido = State.cache.pedidos.find(p => p.id === pedidoId);
+    if (!pedido) { mostrarToast('Pedido não encontrado', 'error'); return; }
+
+    const historico = getHistoricoPagamentos(pedido);
+    const entry = historico.find(e => e.id === pagamentoId);
+    if (!entry) { mostrarToast('Pagamento não encontrado no histórico', 'error'); return; }
+
+    if (!confirm(`🗑️ Excluir este pagamento?\n\n💰 Valor: R$ ${(entry.valor || 0).toFixed(2)}\n📅 Data: ${entry.data || '—'}\n💳 Forma: ${formatarPagamento(entry.forma)}\n\n⚠️ O valor será subtraído do total pago.`)) return;
+
+    try {
+        const novoHistorico = historico.filter(e => e.id !== pagamentoId);
+        const novoTotalPago = novoHistorico.reduce((s, e) => s + (e.valor || 0), 0);
+        const total = pedido.total || 0;
+        const novoStatus = novoTotalPago >= total ? 'pago' : 'pendente';
+
+        const { error } = await sb.from('todospedidos')
+            .update({
+                historicopagamentos: novoHistorico,
+                valorpago: novoTotalPago,
+                pagamentostatus: novoStatus
+            })
+            .eq('id', pedidoId);
+
+        if (error) throw error;
+
+        await carregarPagamentos();
+        await carregarDashboard();
+
+        const pedidoAtualizado = State.cache.pedidos.find(p => p.id === pedidoId);
+        if (pedidoAtualizado && document.getElementById('modalHistoricoPagamentos').classList.contains('active')) {
+            document.getElementById('historicoPedidoInfo').value =
+                `${pedidoAtualizado.pedido_id || '#' + pedidoAtualizado.id} — ${pedidoAtualizado.cliente} — R$ ${(pedidoAtualizado.total || 0).toFixed(2)}`;
+            renderizarHistoricoPagamentos(pedidoAtualizado);
+        }
+
+        mostrarToast(`🗑️ Pagamento de R$ ${(entry.valor || 0).toFixed(2)} excluído!`, 'success');
+    } catch (e) {
+        console.error('Erro ao excluir pagamento:', e);
+        mostrarToast('❌ Erro: ' + e.message, 'error');
+    }
 };
 
 // ============================================================
@@ -923,9 +1140,12 @@ function mostrarResumoCliente(pedidos, filtroCliente, filtroTelefone) {
     const pendentes = pedidos.filter(p => p.pagamentostatus !== 'pago');
     const pagos = pedidos.filter(p => p.pagamentostatus === 'pago');
 
-    const totalPendente = pendentes.reduce((s, p) => s + (p.total || 0), 0);
-    const totalPago = pagos.reduce((s, p) => s + (p.total || 0), 0);
-    const totalGeral = totalPendente + totalPago;
+    const totalPendente = pendentes.reduce((s, p) => s + Math.max(0, (p.total || 0) - calcularTotalPago(p)), 0);
+    const totalPago = pedidos.reduce((s, p) => {
+        if (p.pagamentostatus === 'pago') return s + (p.total || 0);
+        return s + calcularTotalPago(p);
+    }, 0);
+    const totalGeral = pedidos.reduce((s, p) => s + (p.total || 0), 0);
 
     const primeiro = pedidos[0];
     const nomeCliente = primeiro.cliente || 'Cliente';
@@ -952,7 +1172,7 @@ function mostrarResumoCliente(pedidos, filtroCliente, filtroTelefone) {
                     <div style="font-size:1.3em;font-weight:800;color:var(--success);">R$ ${totalPago.toFixed(2)}</div>
                 </div>
                 <div style="background:var(--bg-card);padding:12px;border-radius:10px;text-align:center;">
-                    <div style="font-size:0.75em;color:var(--text-muted);text-transform:uppercase;">Total Pendente</div>
+                    <div style="font-size:0.75em;color:var(--text-muted);text-transform:uppercase;">Falta Receber</div>
                     <div style="font-size:1.3em;font-weight:800;color:#f59e0b;">R$ ${totalPendente.toFixed(2)}</div>
                 </div>
                 <div style="background:var(--bg-card);padding:12px;border-radius:10px;text-align:center;border:2px solid var(--roxo);">
@@ -1017,8 +1237,26 @@ window.confirmarTodosPendentesFiltrado = async function() {
     if (!confirm(`Confirmar pagamento de ${pendentes.length} pedido(s) totalizando R$ ${total.toFixed(2)}?`)) return;
 
     try {
+        const dataAgora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
         for (const p of pendentes) {
-            await sb.from('todospedidos').update({ pagamentostatus: 'pago' }).eq('id', p.id);
+            const histAtual = getHistoricoPagamentos(p);
+            const falta = Math.max(0, (p.total || 0) - calcularTotalPago(p));
+
+            const novaEntrada = {
+                id: 'pgto-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8),
+                valor: falta,
+                forma: p.pagamento || 'pix',
+                data: dataAgora,
+                admin: State.adminData?.nome || 'Admin'
+            };
+
+            const novoHistorico = [...histAtual, novaEntrada];
+
+            await sb.from('todospedidos').update({
+                pagamentostatus: 'pago',
+                valorpago: p.total,
+                historicopagamentos: novoHistorico
+            }).eq('id', p.id);
         }
         mostrarToast(`✅ ${pendentes.length} pedido(s) confirmados!`, 'success');
         await carregarPagamentos();
@@ -1041,10 +1279,37 @@ window.limparFiltroPagamentos = limparFiltroPagamentos;
 
 async function confirmarPag(id) {
     try {
-        await sb.from('todospedidos').update({ pagamentostatus: 'pago' }).eq('id', id);
+        const pedido = State.cache.pedidos.find(p => p.id === id);
+        if (!pedido) { mostrarToast('Pedido não encontrado', 'error'); return; }
+
+        const total = pedido.total || 0;
+        const jaPago = calcularTotalPago(pedido);
+        const falta = Math.max(0, total - jaPago);
+
+        if (falta <= 0) { mostrarToast('Pedido já está totalmente pago', 'info'); return; }
+
+        // ✅ Cria entrada no histórico
+        const dataAgora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        const novaEntrada = {
+            id: 'pgto-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8),
+            valor: falta,
+            forma: pedido.pagamento || 'pix',
+            data: dataAgora,
+            admin: State.adminData?.nome || 'Admin'
+        };
+
+        const histAtual = getHistoricoPagamentos(pedido);
+        const novoHistorico = [...histAtual, novaEntrada];
+
+        await sb.from('todospedidos').update({
+            pagamentostatus: 'pago',
+            valorpago: total,
+            historicopagamentos: novoHistorico
+        }).eq('id', id);
+
         await carregarPagamentos();
         await carregarDashboard();
-        mostrarToast('✅ Pagamento confirmado!', 'success');
+        mostrarToast(`✅ Pagamento de R$ ${falta.toFixed(2)} confirmado!`, 'success');
     } catch (e) { tratarErro(e); }
 }
 window.confirmarPag = confirmarPag;
@@ -1056,13 +1321,48 @@ window.abrirModalValorPago = function(id) {
     const pedido = State.cache.pedidos.find(p => p.id === id);
     if (!pedido) { mostrarToast('Pedido não encontrado', 'error'); return; }
 
+    const total = pedido.total || 0;
+    const jaPago = calcularTotalPago(pedido);
+    const falta = Math.max(0, total - jaPago);
+
     document.getElementById('valorPagoPedidoId').value = id;
     document.getElementById('valorPagoPedidoInfo').value = `${pedido.pedido_id || '#' + pedido.id} — ${pedido.cliente}`;
-    document.getElementById('valorPagoTotal').value = `R$ ${(pedido.total || 0).toFixed(2)}`;
-    document.getElementById('valorPagoInput').value = '';
+    document.getElementById('valorPagoTotal').value = `R$ ${total.toFixed(2)}`;
+
+    // Mostra histórico se tiver
+    const historico = getHistoricoPagamentos(pedido);
+    const histDiv = document.getElementById('valorPagoHistorico');
+    const histLista = document.getElementById('valorPagoHistoricoLista');
+    if (historico.length > 0 && histDiv && histLista) {
+        histDiv.style.display = 'block';
+        histLista.innerHTML = historico.map(e => {
+            const forma = formatarPagamento(e.forma);
+            return `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.9em;border-bottom:1px solid var(--border-color);">
+                <span>${forma} · ${e.data || '—'}</span>
+                <strong style="color:var(--success);">+ R$ ${(e.valor || 0).toFixed(2)}</strong>
+            </div>`;
+        }).join('');
+    } else if (histDiv) {
+        histDiv.style.display = 'none';
+    }
+
+    // ✅ Pré-preenche com o que falta
+    document.getElementById('valorPagoInput').value = falta > 0 ? falta.toFixed(2).replace('.', ',') : '';
+
+    // Pré-seleciona a forma atual
+    const selectForma = document.getElementById('valorPagoForma');
+    if (selectForma) {
+        const formaAtual = (pedido.pagamento || 'pix').toLowerCase();
+        const opt = Array.from(selectForma.options).find(o => o.value === formaAtual);
+        selectForma.value = opt ? formaAtual : 'pix';
+    }
+
     document.getElementById('valorPagoPreview').style.display = 'none';
     document.getElementById('modalValorPago').classList.add('active');
-    setTimeout(() => document.getElementById('valorPagoInput').focus(), 200);
+    setTimeout(() => {
+        document.getElementById('valorPagoInput').focus();
+        document.getElementById('valorPagoInput').select();
+    }, 200);
 };
 
 window.fecharModalValorPago = function() {
@@ -1076,17 +1376,19 @@ window.atualizarPreviewValorPago = function() {
 
     const valorInput = document.getElementById('valorPagoInput').value.trim();
     const total = pedido.total || 0;
+    const jaPago = calcularTotalPago(pedido);
 
     if (!valorInput) {
         document.getElementById('valorPagoPreview').style.display = 'none';
         return;
     }
 
-    const valorPago = parseFloat(valorInput.replace(',', '.')) || 0;
-    const falta = Math.max(0, total - valorPago);
+    const valorAdicional = parseFloat(valorInput.replace(',', '.')) || 0;
+    const novoTotalPago = jaPago + valorAdicional;
+    const falta = Math.max(0, total - novoTotalPago);
 
     document.getElementById('vpTotal').textContent = `R$ ${total.toFixed(2)}`;
-    document.getElementById('vpPago').textContent = `R$ ${valorPago.toFixed(2)}`;
+    document.getElementById('vpPago').textContent = `R$ ${novoTotalPago.toFixed(2)}${jaPago > 0 ? ` (${jaPago.toFixed(2)} + ${valorAdicional.toFixed(2)})` : ''}`;
     document.getElementById('vpFalta').textContent = `R$ ${falta.toFixed(2)}`;
     document.getElementById('valorPagoPreview').style.display = 'block';
 };
@@ -1099,33 +1401,47 @@ window.salvarValorPago = async function() {
     const valorInput = document.getElementById('valorPagoInput').value.trim();
     if (!valorInput) { mostrarToast('Digite o valor pago', 'warning'); return; }
 
-    const valorPago = parseFloat(valorInput.replace(',', '.'));
-    if (isNaN(valorPago) || valorPago < 0) { mostrarToast('Valor inválido', 'warning'); return; }
+    const valorAdicional = parseFloat(valorInput.replace(',', '.'));
+    if (isNaN(valorAdicional) || valorAdicional <= 0) { mostrarToast('Valor inválido', 'warning'); return; }
+
+    const novaForma = document.getElementById('valorPagoForma').value;
+    const formasLabel = { 'pix': '📱 PIX', 'cartao': '💳 Cartão', 'dinheiro': '💵 Dinheiro' };
+    const formaTexto = formasLabel[novaForma] || novaForma;
 
     const total = pedido.total || 0;
-    const falta = Math.max(0, total - valorPago);
-    const novoStatus = valorPago >= total ? 'pago' : 'pendente';
+    const jaPago = calcularTotalPago(pedido);
+    const novoTotalPago = jaPago + valorAdicional;
+    const falta = Math.max(0, total - novoTotalPago);
+    const novoStatus = novoTotalPago >= total ? 'pago' : 'pendente';
 
-    let obsExtra = '';
-    if (valorPago >= total) {
-        obsExtra = `✅ Pago integralmente (R$ ${valorPago.toFixed(2)})`;
-    } else if (valorPago > 0) {
-        obsExtra = `⚠️ Pagamento parcial: R$ ${valorPago.toFixed(2)} de R$ ${total.toFixed(2)} (falta R$ ${falta.toFixed(2)})`;
-    }
-
-    const confirmMsg = valorPago >= total
-        ? `Confirmar pagamento TOTAL de R$ ${valorPago.toFixed(2)}?`
-        : `Registrar pagamento PARCIAL de R$ ${valorPago.toFixed(2)}?\nFalta: R$ ${falta.toFixed(2)}\n\nO pedido continua como PENDENTE.`;
+    const confirmMsg = novoTotalPago >= total
+        ? `Registrar pagamento de R$ ${valorAdicional.toFixed(2)} via ${formaTexto}?\n\nTotal pago: R$ ${novoTotalPago.toFixed(2)}\n✅ O pedido será marcado como PAGO.`
+        : `Registrar pagamento de R$ ${valorAdicional.toFixed(2)} via ${formaTexto}?\n\nTotal pago: R$ ${novoTotalPago.toFixed(2)}\nFalta: R$ ${falta.toFixed(2)}\n\nO pedido continua como PENDENTE.`;
     if (!confirm(confirmMsg)) return;
 
     const btn = document.querySelector('#modalValorPago .btn-success');
     await executarComLoading(btn, '⏳ Registrando...', async () => {
         try {
-            const obsAtual = pedido.obs || '';
-            const novaObs = obsExtra ? `${obsAtual} | ${obsExtra}` : obsAtual;
+            // ✅ Cria entrada no histórico
+            const dataAgora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+            const novaEntrada = {
+                id: 'pgto-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8),
+                valor: valorAdicional,
+                forma: novaForma,
+                data: dataAgora,
+                admin: State.adminData?.nome || 'Admin'
+            };
+
+            const histAtual = getHistoricoPagamentos(pedido);
+            const novoHistorico = [...histAtual, novaEntrada];
 
             const { error } = await sb.from('todospedidos')
-                .update({ pagamentostatus: novoStatus, obs: novaObs })
+                .update({
+                    valorpago: novoTotalPago,
+                    pagamentostatus: novoStatus,
+                    pagamento: novaForma,
+                    historicopagamentos: novoHistorico
+                })
                 .eq('id', id);
 
             if (error) throw error;
@@ -1134,10 +1450,10 @@ window.salvarValorPago = async function() {
             await carregarPagamentos();
             await carregarDashboard();
 
-            if (valorPago >= total) {
-                mostrarToast(`✅ Pagamento total registrado! R$ ${valorPago.toFixed(2)}`, 'success');
+            if (novoTotalPago >= total) {
+                mostrarToast(`✅ Pagamento total de R$ ${novoTotalPago.toFixed(2)} via ${formaTexto}`, 'success');
             } else {
-                mostrarToast(`⚠️ Pagamento parcial: R$ ${valorPago.toFixed(2)} (falta R$ ${falta.toFixed(2)})`, 'warning');
+                mostrarToast(`💜 Pagamento parcial de R$ ${valorAdicional.toFixed(2)} via ${formaTexto} (falta R$ ${falta.toFixed(2)})`, 'warning');
             }
         } catch (e) {
             console.error('Erro ao registrar pagamento:', e);
@@ -1169,10 +1485,11 @@ async function lembrarTodosPendentes() {
             if (!tel) return;
             const chave = `${p.cliente}|${tel}`;
             if (!clientes[chave]) {
-                clientes[chave] = { nome: p.cliente, tel: tel, pedidos: [], total: 0 };
+                clientes[chave] = { nome: p.cliente, tel: tel, pedidos: [], total: 0, pago: 0 };
             }
             clientes[chave].pedidos.push(p);
             clientes[chave].total += p.total || 0;
+            clientes[chave].pago += calcularTotalPago(p);
         });
 
         const lista = Object.values(clientes).sort((a, b) => b.pedidos.length - a.pedidos.length);
@@ -1185,7 +1502,9 @@ async function lembrarTodosPendentes() {
         State.clientesPendentes = lista;
 
         const container = document.getElementById('listaClientesPendentes');
-        container.innerHTML = lista.map((c, i) => `
+        container.innerHTML = lista.map((c, i) => {
+            const falta = Math.max(0, c.total - c.pago);
+            return `
             <div class="card-item" style="flex-direction:column;align-items:stretch;margin-bottom:12px;">
                 <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
                     <div>
@@ -1197,6 +1516,7 @@ async function lembrarTodosPendentes() {
                         <span class="badge badge-pendente">${c.pedidos.length} pedido(s)</span>
                         <br>
                         <strong style="color:var(--dourado);font-size:1.15em;">R$ ${c.total.toFixed(2)}</strong>
+                        ${c.pago > 0 ? `<br><small style="color:var(--success);">Pago: R$ ${c.pago.toFixed(2)}</small><br><small style="color:#f59e0b;">Falta: R$ ${falta.toFixed(2)}</small>` : ''}
                     </div>
                 </div>
                 <div style="background:var(--bg-secondary);padding:8px 12px;border-radius:8px;margin-top:8px;font-size:0.85em;max-height:150px;overflow-y:auto;">
@@ -1204,8 +1524,12 @@ async function lembrarTodosPendentes() {
                         const pid = p.pedido_id || `#${p.id}`;
                         const itensTexto = formatarItensPedido(p.itens);
                         const formaPgto = formatarPagamento(p.pagamento);
+                        const pago = calcularTotalPago(p);
+                        const totalP = p.total || 0;
+                        const faltaP = Math.max(0, totalP - pago);
                         return `<div style="padding:4px 0;border-bottom:1px solid var(--border-color);">
-                            <strong>${pid}</strong> — ${formaPgto} — <strong>R$ ${(p.total || 0).toFixed(2)}</strong>
+                            <strong>${pid}</strong> — ${formaPgto} — <strong>R$ ${totalP.toFixed(2)}</strong>
+                            ${pago > 0 && pago < totalP ? `<br><small style="color:#22c55e;">Pago: R$ ${pago.toFixed(2)}</small> · <small style="color:#f59e0b;">Falta: R$ ${faltaP.toFixed(2)}</small>` : ''}
                             <br>
                             <small style="color:var(--text-secondary);">${Utils.escapeHtml(itensTexto)}</small>
                         </div>`;
@@ -1217,7 +1541,7 @@ async function lembrarTodosPendentes() {
                     </button>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
 
         document.getElementById('modalLembretePendentes').classList.add('active');
     } catch (e) { tratarErro(e, 'Erro ao carregar pendentes'); }
@@ -1605,10 +1929,8 @@ window.exportarInsumosPDF = function() {
     mostrarToast('📄 PDF aberto. Escolha "Salvar como PDF".', 'info');
 };
 
-console.log('✅ Admin parte 2 carregada! v18.0 (pagamento corrigido + PDF pagamentos)');
+console.log('✅ Admin parte 2 carregada! v20.0 (histórico + exclusão de pagamentos)');
+console.log('🗑️ Exclusão individual de pagamentos no histórico');
+console.log('📜 Histórico detalhado com data/valor/forma/admin');
+console.log('💰 Pagamento parcial com barra de progresso');
 console.log('📄 PDF de Pagamentos com filtros ativos');
-console.log('📥 Exportação CSV/PDF de estoque e insumos');
-console.log('🎁 Desconto em pedidos via aba Pagamentos');
-console.log('💵 Valor pago parcial');
-console.log('📊 Resumo consolidado do cliente');
-console.log('📞 Filtro por telefone em Financeiro');
