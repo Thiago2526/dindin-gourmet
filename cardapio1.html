@@ -55,8 +55,12 @@
         .form-pedido { display:flex; flex-wrap:wrap; gap:12px; margin-top:12px; }
         .form-pedido .form-group { flex:1; min-width:180px; }
         .form-pedido label { display:block; font-size:0.85em; font-weight:600; color:var(--text-secondary); margin-bottom:4px; }
-        .form-pedido input, .form-pedido select { width:100%; padding:10px 14px; border:2px solid var(--border-color); border-radius:var(--radius); background:var(--bg-input); color:var(--text-primary); font-size:14px; font-family:inherit; }
-        .form-pedido input:focus, .form-pedido select:focus { border-color:var(--laranja); outline:none; }
+        .form-pedido input, .form-pedido select, .form-pedido textarea { width:100%; padding:10px 14px; border:2px solid var(--border-color); border-radius:var(--radius); background:var(--bg-input); color:var(--text-primary); font-size:14px; font-family:inherit; }
+        .form-pedido input:focus, .form-pedido select:focus, .form-pedido textarea:focus { border-color:var(--laranja); outline:none; }
+        .form-pedido textarea { resize:vertical; min-height:80px; }
+        .endereco-group { flex:1 1 100% !important; min-width:100% !important; }
+        .endereco-group label { display:flex; align-items:center; gap:6px; }
+        .endereco-group .obrigatorio { color:var(--danger); font-weight:700; }
         .btn-finalizar { padding:12px 32px; border:none; border-radius:var(--radius); background:linear-gradient(135deg,var(--success),#16a34a); color:white; font-weight:700; font-size:1.1em; cursor:pointer; transition:var(--transition); min-height:50px; }
         .btn-finalizar:hover:not(:disabled) { transform:scale(1.02); box-shadow:0 4px 20px rgba(34,197,94,0.3); }
         .btn-finalizar:disabled { opacity:0.5; cursor:not-allowed; }
@@ -157,6 +161,12 @@
                     <select id="setor" onchange="atualizarTaxa()">
                         <option value="">Retirar no local (sem taxa)</option>
                     </select>
+                </div>
+                <!-- ✅ NOVO: Campo de endereço (aparece quando escolhe bairro) -->
+                <div class="form-group endereco-group hidden" id="enderecoGroup">
+                    <label for="endereco">📦 Endereço completo para entrega <span class="obrigatorio">*</span></label>
+                    <textarea id="endereco" placeholder="Ex: Rua das Flores, 123, bloco B, apto 302&#10;Ponto de referência: ao lado da padaria" maxlength="300"></textarea>
+                    <small style="color:var(--text-muted);font-size:0.75em;display:block;margin-top:4px;">Inclua rua, número, complemento e ponto de referência</small>
                 </div>
                 <div class="form-group">
                     <label for="pagamento">Forma de pagamento</label>
@@ -337,7 +347,6 @@
             Object.keys(carrinho).forEach(id => {
                 const prod = produtos.find(p => p.id == id);
 
-                // Item sumiu do cardápio OU esgotou
                 if (!prod) {
                     removidos.push(carrinho[id]?.nome || 'Item');
                     delete carrinho[id];
@@ -345,7 +354,6 @@
                     return;
                 }
 
-                // Cliente tem mais no carrinho do que tem disponível
                 if (carrinho[id].quantidade > prod.disponivel) {
                     if (prod.disponivel === 0) {
                         removidos.push(prod.nome);
@@ -358,14 +366,12 @@
                 }
             });
 
-            // Mensagem pra itens que esgotaram
             if (removidos.length === 1) {
                 mostrarToast(`😢 Ops! "${removidos[0]}" esgotou agora e saiu do seu carrinho.`, 'warning');
             } else if (removidos.length > 1) {
                 mostrarToast(`😢 Ops! ${removidos.length} itens esgotaram: ${removidos.join(', ')}. Removidos do carrinho.`, 'warning');
             }
 
-            // Mensagem pra itens que foram ajustados
             if (ajustados.length === 1) {
                 mostrarToast(`📦 Ops! O estoque de "${ajustados[0].nome}" diminuiu. Ajustamos para ${ajustados[0].novaQtd} unidade(s).`, 'info');
             } else if (ajustados.length > 1) {
@@ -469,6 +475,15 @@
             const btn = document.getElementById('btnFinalizar');
             const sucesso = document.getElementById('sucesso-msg');
 
+            // ✅ Mostra/esconde campo de endereço baseado no bairro selecionado
+            const setorSel = document.getElementById('setor');
+            const temSetor = setorSel && setorSel.value !== '';
+            const enderecoGroup = document.getElementById('enderecoGroup');
+            if (enderecoGroup) {
+                if (temSetor) enderecoGroup.classList.remove('hidden');
+                else enderecoGroup.classList.add('hidden');
+            }
+
             const itens = Object.keys(carrinho);
             const totalItens = itens.reduce((a, id) => a + carrinho[id].quantidade, 0);
 
@@ -518,10 +533,19 @@
             const telefone = telefoneRaw.replace(/\D/g, '');
             const pagamento = document.getElementById('pagamento').value;
             const setorId = document.getElementById('setor').value;
+            const endereco = document.getElementById('endereco').value.trim();
 
             if (!cliente) { mostrarToast('❌ Preencha seu nome.', 'error'); return; }
             if (telefone.length < 10) { mostrarToast('❌ WhatsApp inválido.', 'error'); return; }
             if (Object.keys(carrinho).length === 0) { mostrarToast('❌ Carrinho vazio.', 'warning'); return; }
+
+            // ✅ VALIDAÇÃO: endereço obrigatório quando tem entrega
+            if (setorId && !endereco) {
+                mostrarToast('❌ Preencha o endereço completo para entrega.', 'error');
+                document.getElementById('endereco').focus();
+                return;
+            }
+
             if (!pagamento) { mostrarToast('❌ Escolha a forma de pagamento.', 'error'); return; }
 
             const overlay = document.getElementById('loadingOverlay');
@@ -561,12 +585,13 @@
                 const itens = Object.keys(carrinho).map(id => ({ nome: carrinho[id].nome, quantidade: carrinho[id].quantidade, preco: carrinho[id].preco }));
                 const { subtotal, taxa, total } = calcularTotal();
 
+                // ✅ Monta o obs com o endereço completo
                 let obs = 'Cardápio 1';
                 let localTexto = 'Retirada no local';
                 if (setorId) {
                     const setor = setores.find(s => s.id == setorId);
                     if (setor) {
-                        obs += ` | setor_id=${setorId} | taxa=${taxa} | Entrega: ${setor.nome}`;
+                        obs += ` | setor_id=${setorId} | taxa=${taxa} | Entrega: ${setor.nome} | Endereço: ${endereco}`;
                         localTexto = `Entrega - ${setor.nome}`;
                     }
                 } else {
@@ -616,6 +641,7 @@
                 document.getElementById('cliente').value = '';
                 document.getElementById('telefone').value = '';
                 document.getElementById('setor').value = '';
+                document.getElementById('endereco').value = '';
                 document.getElementById('pagamento').value = '';
                 atualizarCarrinho();
                 setTimeout(carregarCardapio, 1500);
@@ -713,7 +739,7 @@
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🍦 Cardápio 1 - v18.0 (mensagens amigáveis) carregado!');
+        console.log('🍦 Cardápio 1 - v19.0 (endereço obrigatório na entrega) carregado!');
     })();
     </script>
 </body>
