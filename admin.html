@@ -161,9 +161,24 @@
                 <label>Total do Pedido</label>
                 <input type="text" id="valorPagoTotal" readonly style="background:var(--bg-secondary);font-weight:700;color:var(--dourado);">
             </div>
+
+            <!-- Histórico de pagamentos já feitos -->
+            <div id="valorPagoHistorico" style="display:none;margin-bottom:14px;background:var(--bg-secondary);padding:12px;border-radius:10px;">
+                <div style="font-size:0.8em;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">💜 Pagamentos já registrados</div>
+                <div id="valorPagoHistoricoLista"></div>
+            </div>
+
             <div class="form-group">
                 <label>Valor Pago pelo Cliente (R$) *</label>
                 <input type="text" id="valorPagoInput" placeholder="Ex: 25,00" oninput="atualizarPreviewValorPago()">
+            </div>
+            <div class="form-group">
+                <label>Forma de Pagamento *</label>
+                <select id="valorPagoForma">
+                    <option value="pix">📱 PIX</option>
+                    <option value="cartao">💳 Cartão (Crédito ou Débito)</option>
+                    <option value="dinheiro">💵 Dinheiro</option>
+                </select>
             </div>
             <div class="resultado-calculadora" id="valorPagoPreview" style="display:none;">
                 <div class="resultado-linha"><span>Total do pedido:</span><strong id="vpTotal">R$ 0,00</strong></div>
@@ -173,6 +188,22 @@
             <div class="btn-row" style="margin-top:16px;">
                 <button class="btn btn-success" onclick="salvarValorPago()">✅ Registrar</button>
                 <button class="btn btn-danger" onclick="fecharModalValorPago()">✕</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL HISTÓRICO DE PAGAMENTOS -->
+    <div class="modal-overlay" id="modalHistoricoPagamentos">
+        <div class="modal-box">
+            <button class="close-btn" onclick="fecharModalHistoricoPagamentos()">✕</button>
+            <h3>📜 Histórico de Pagamentos</h3>
+            <div class="form-group">
+                <label>Pedido</label>
+                <input type="text" id="historicoPedidoInfo" readonly style="background:var(--bg-secondary);">
+            </div>
+            <div id="historicoConteudo" style="max-height:60vh;overflow-y:auto;"></div>
+            <div class="btn-row" style="margin-top:16px;">
+                <button class="btn btn-danger" onclick="fecharModalHistoricoPagamentos()">❌ Fechar</button>
             </div>
         </div>
     </div>
@@ -358,7 +389,6 @@
             </div>
             <button class="btn btn-whatsapp" onclick="lembrarTodosPendentes()" style="margin-bottom:16px;">📱 Lembrar Todos Pendentes</button>
 
-            <!-- RESUMO CONSOLIDADO -->
             <div id="resumoClienteFiltrado" style="display:none; margin-bottom:16px;"></div>
 
             <div id="listaPagamentos"></div>
@@ -539,7 +569,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js?v=1"></script>
-    <script src="js/admin.js?v=24"></script>
-    <script src="js/admin-part2.js?v=24"></script>
+    <script src="js/admin.js?v=26"></script>
+    <script src="js/admin-part2.js?v=21"></script>
 </body>
 </html>
