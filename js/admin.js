@@ -37,6 +37,10 @@ window.State = {
 };
 const State = window.State;
 
+// ✅ NOVO: campos pra controlar edição de foto no modal de estoque
+State.fotoEditarEstoque = null;
+State.fotoEditarEstoqueRemovida = false;
+
 // ============================================================
 // UTILITÁRIOS
 // ============================================================
@@ -177,7 +181,7 @@ async function verificarConexao() {
 }
 
 // ============================================================
-// PREVIEW FOTO
+// PREVIEW FOTO (cadastro)
 // ============================================================
 async function previewFotoAdmin(input) {
     if (input.files && input.files[0]) {
@@ -607,19 +611,24 @@ async function carregarDashboard() {
             return d && d.getTime() === dataHoje.getTime();
         });
 
-        const vendasHoje = pedidosHoje.filter(x => x.pagamentostatus === 'pago').reduce((s, x) => s + (x.total || 0), 0);
+        const valorReal = x => {
+            if (x.pagamentostatus === 'pago') return x.total || 0;
+            return x.valorpago || 0;
+        };
+
+        const vendasHoje = pedidosHoje.reduce((s, x) => s + valorReal(x), 0);
         const vendas7d = pedidos.filter(x => {
             const d = dataDoPedido(x);
-            return d && d >= data7diasAtras && x.pagamentostatus === 'pago';
-        }).reduce((s, x) => s + (x.total || 0), 0);
+            return d && d >= data7diasAtras;
+        }).reduce((s, x) => s + valorReal(x), 0);
         const vendas30d = pedidos.filter(x => {
             const d = dataDoPedido(x);
-            return d && d >= data30diasAtras && x.pagamentostatus === 'pago';
-        }).reduce((s, x) => s + (x.total || 0), 0);
+            return d && d >= data30diasAtras;
+        }).reduce((s, x) => s + valorReal(x), 0);
 
         const pedidosPagos30d = pedidos.filter(x => {
             const d = dataDoPedido(x);
-            return d && d >= data30diasAtras && x.pagamentostatus === 'pago';
+            return d && d >= data30diasAtras;
         });
         const ticketMedio = pedidosPagos30d.length > 0 ? (vendas30d / pedidosPagos30d.length) : 0;
 
@@ -665,8 +674,8 @@ async function carregarDashboard() {
                 const dia = new Date(dataHoje.getTime() - i * 24 * 60 * 60 * 1000);
                 const total = pedidos.filter(x => {
                     const d = dataDoPedido(x);
-                    return d && d.getTime() === dia.getTime() && x.pagamentostatus === 'pago';
-                }).reduce((s, x) => s + (x.total || 0), 0);
+                    return d && d.getTime() === dia.getTime();
+                }).reduce((s, x) => s + valorReal(x), 0);
                 const qtd = pedidos.filter(x => {
                     const d = dataDoPedido(x);
                     return d && d.getTime() === dia.getTime();
@@ -841,7 +850,7 @@ async function excluirItem(id) {
 window.excluirItem = excluirItem;
 
 // ============================================================
-// MODAL EDITAR ESTOQUE
+// MODAL EDITAR ESTOQUE (com foto)
 // ============================================================
 function abrirModalEditarEstoque(id) {
     const item = State.cache.estoque.find(x => x.id === id);
@@ -850,12 +859,79 @@ function abrirModalEditarEstoque(id) {
     document.getElementById('editarEstoqueNome').value = item.nome || '';
     document.getElementById('editarEstoquePreco').value = item.preco || 0;
     document.getElementById('editarEstoqueQtd').value = item.quantidadetotal || 0;
+
+    // ✅ Reset do estado da foto e preview
+    State.fotoEditarEstoque = null;
+    State.fotoEditarEstoqueRemovida = false;
+    const inputFoto = document.getElementById('editarEstoqueFoto');
+    if (inputFoto) inputFoto.value = '';
+    renderizarPreviewFotoEditarEstoque(item.foto);
+
     document.getElementById('modalEditarEstoque').classList.add('active');
     document.getElementById('editarEstoqueNome').focus();
 }
 window.abrirModalEditarEstoque = abrirModalEditarEstoque;
 
-function fecharModalEditarEstoque() { document.getElementById('modalEditarEstoque').classList.remove('active'); }
+// ✅ Renderiza preview da foto (nova, atual ou emoji)
+function renderizarPreviewFotoEditarEstoque(fotoOriginal) {
+    const container = document.getElementById('editarEstoqueFotoPreview');
+    if (!container) return;
+
+    const idItem = document.getElementById('editarEstoqueId').value;
+    const item = State.cache.estoque.find(x => x.id == idItem);
+    const emoji = item?.emoji || '🍦';
+
+    let fotoMostrar = null;
+    if (State.fotoEditarEstoque) {
+        fotoMostrar = State.fotoEditarEstoque;
+    } else if (State.fotoEditarEstoqueRemovida) {
+        fotoMostrar = null;
+    } else {
+        fotoMostrar = fotoOriginal;
+    }
+
+    if (fotoMostrar) {
+        container.innerHTML = `<img src="${fotoMostrar}" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:2px solid var(--border-color);display:block;">`;
+    } else {
+        container.innerHTML = `<div style="width:120px;height:120px;border-radius:12px;border:2px dashed var(--border-color);display:flex;align-items:center;justify-content:center;font-size:52px;background:var(--bg-secondary);">${emoji}</div>`;
+    }
+}
+
+// ✅ Preview ao escolher nova foto
+window.previewFotoEditarEstoque = function(input) {
+    if (input.files && input.files[0]) {
+        const r = new FileReader();
+        r.onload = e => {
+            State.fotoEditarEstoque = e.target.result;
+            State.fotoEditarEstoqueRemovida = false;
+            const item = State.cache.estoque.find(x => x.id == document.getElementById('editarEstoqueId').value);
+            renderizarPreviewFotoEditarEstoque(item?.foto);
+        };
+        r.readAsDataURL(input.files[0]);
+    }
+};
+
+// ✅ Remover foto
+window.removerFotoEditarEstoque = function() {
+    const item = State.cache.estoque.find(x => x.id == document.getElementById('editarEstoqueId').value);
+    const temFoto = State.fotoEditarEstoque || (item?.foto && !State.fotoEditarEstoqueRemovida);
+    if (!temFoto) { mostrarToast('Este item já não tem foto', 'info'); return; }
+    if (!confirm('Remover a foto deste item?')) return;
+
+    State.fotoEditarEstoque = null;
+    State.fotoEditarEstoqueRemovida = true;
+    const input = document.getElementById('editarEstoqueFoto');
+    if (input) input.value = '';
+    renderizarPreviewFotoEditarEstoque(null);
+    mostrarToast('Foto marcada para remoção. Clique em Salvar pra confirmar.', 'info');
+};
+
+function fecharModalEditarEstoque() {
+    document.getElementById('modalEditarEstoque').classList.remove('active');
+    // ✅ Limpa o estado da foto
+    State.fotoEditarEstoque = null;
+    State.fotoEditarEstoqueRemovida = false;
+}
 window.fecharModalEditarEstoque = fecharModalEditarEstoque;
 
 async function salvarEdicaoEstoque() {
@@ -868,20 +944,37 @@ async function salvarEdicaoEstoque() {
         if (!nome) { mostrarToast('Digite o nome', 'warning'); return; }
         if (isNaN(preco) || preco < 0) { mostrarToast('Preço inválido', 'warning'); return; }
         if (isNaN(qtd) || qtd < 0) { mostrarToast('Quantidade inválida', 'warning'); return; }
+
         const item = State.cache.estoque.find(x => x.id == id);
         const dif = qtd - (item?.quantidadetotal || 0);
-        const { error } = await sb.from('estoquecentral').update({ nome, preco, quantidadetotal: qtd }).eq('id', id);
+
+        // ✅ Monta o objeto de atualização
+        const atualizacao = { nome, preco, quantidadetotal: qtd };
+
+        // ✅ Foto: nova, removida ou mantém
+        if (State.fotoEditarEstoque) {
+            atualizacao.foto = State.fotoEditarEstoque;
+        } else if (State.fotoEditarEstoqueRemovida) {
+            atualizacao.foto = null;
+        }
+        // Senão, mantém a foto original (não envia o campo)
+
+        const { error } = await sb.from('estoquecentral').update(atualizacao).eq('id', id);
         if (error) throw error;
+
         if (dif !== 0) {
             try {
                 await sb.from('historicoestoque').insert([{ data: new Date().toLocaleString('pt-BR'), tipo: dif > 0 ? 'entrada' : 'saida', item: nome, quantidade: Math.abs(dif), obs: 'Ajuste via modal' }]);
             } catch (e) {}
         }
+
         fecharModalEditarEstoque();
         await carregarEstoque();
         await carregarC1();
         await carregarDashboard();
-        mostrarToast('✅ Item atualizado!', 'success');
+
+        const msgFoto = atualizacao.foto !== undefined ? ' (foto atualizada)' : '';
+        mostrarToast(`✅ Item atualizado${msgFoto}!`, 'success');
     });
 }
 window.salvarEdicaoEstoque = salvarEdicaoEstoque;
@@ -1020,7 +1113,6 @@ function renderizarPedidos(p) {
         if (obs.includes('Cardápio 1')) origem = '🍦 Cardápio 1';
         else if (obs.includes('Cardápio 2')) origem = '🔥 Cardápio 2';
 
-        // ✅ CORRIGIDO: forma em x.pagamento (não x.pagamentostatus)
         const formaPagamento = fmtPagamento(x.pagamento);
 
         let localTexto = '—';
@@ -1048,7 +1140,17 @@ function renderizarPedidos(p) {
             ih += '</div>';
         }
 
-        const sp = x.pagamentostatus === 'pago' ? '<span class="badge badge-pago">✅ PAGO</span>' : '<span class="badge badge-pendente">⏳ PENDENTE</span>';
+        const vp = x.valorpago || 0;
+        const tp = x.total || 0;
+        let sp;
+        if (x.pagamentostatus === 'pago') {
+            sp = '<span class="badge badge-pago">✅ PAGO</span>';
+        } else if (vp > 0 && vp < tp) {
+            sp = '<span class="badge badge-pendente" style="background:#8b5cf6;color:white;">💜 PARCIAL</span>';
+        } else {
+            sp = '<span class="badge badge-pendente">⏳ PENDENTE</span>';
+        }
+
         const st = (x.status || 'novo').toLowerCase();
         const map = {
             entregue: '<span class="badge badge-entregue">✅ Entregue</span>',
@@ -1077,7 +1179,7 @@ function renderizarPedidos(p) {
                         <small>📱 ${x.telefone ? Utils.mascararTelefone(x.telefone) : 'N/A'} | 📅 ${Utils.formatarData(x.data)}</small>
                     </div>
                     <div style="text-align:right;">
-                        <strong style="color:var(--dourado);font-size:1.2em;">R$ ${(x.total || 0).toFixed(2)}</strong>
+                        <strong style="color:var(--dourado);font-size:1.2em;">R$ ${tp.toFixed(2)}</strong>
                         <br>
                         ${sp} ${spd}
                     </div>
@@ -1100,7 +1202,7 @@ function renderizarPedidos(p) {
                         ${taxa > 0 ? `<br>🛵 Taxa: <strong>R$ ${taxa.toFixed(2)}</strong>` : ''}
                     </div>
                     <div style="font-size:1.1em;color:var(--dourado);font-weight:800;">
-                        💵 TOTAL: R$ ${(x.total || 0).toFixed(2)}
+                        💵 TOTAL: R$ ${tp.toFixed(2)}
                     </div>
                 </div>
 
@@ -1140,14 +1242,12 @@ window.exportarPedidosPDF = function() {
         return;
     }
 
-    // Pega os filtros ativos
     const filtroStatus = document.getElementById('filtroPedidosStatus')?.value || 'todos';
     const filtroCliente = document.getElementById('filtroPedidosCliente')?.value?.trim() || '';
     const filtroTelefone = document.getElementById('filtroPedidosTelefone')?.value?.trim() || '';
     const filtroInicio = document.getElementById('filtroPedidosInicio')?.value || '';
     const filtroFim = document.getElementById('filtroPedidosFim')?.value || '';
 
-    // Monta string descritiva dos filtros ativos
     const filtrosAtivos = [];
     if (filtroStatus !== 'todos') filtrosAtivos.push(`Status: ${filtroStatus}`);
     if (filtroCliente) filtrosAtivos.push(`Cliente: "${filtroCliente}"`);
@@ -1155,7 +1255,6 @@ window.exportarPedidosPDF = function() {
     if (filtroInicio) filtrosAtivos.push(`De: ${filtroInicio.split('-').reverse().join('/')}`);
     if (filtroFim) filtrosAtivos.push(`Até: ${filtroFim.split('-').reverse().join('/')}`);
 
-    // Calcula totais
     let totalGeral = 0;
     let totalPago = 0;
     let totalPendente = 0;
@@ -1207,7 +1306,7 @@ window.exportarPedidosPDF = function() {
 
         totalGeral += x.total || 0;
         if (x.pagamentostatus === 'pago') totalPago += x.total || 0;
-        else totalPendente += x.total || 0;
+        else totalPendente += (x.total || 0) - (x.valorpago || 0);
 
         linhas += `
             <div style="border:1px solid #ddd;border-radius:8px;padding:14px;margin-bottom:12px;page-break-inside:avoid;">
@@ -1220,6 +1319,7 @@ window.exportarPedidosPDF = function() {
                     <div><strong>📱 Telefone:</strong> ${x.telefone || 'N/A'}</div>
                     <div><strong>📅 Data:</strong> ${Utils.formatarData(x.data)}</div>
                     <div><strong>💳 Forma:</strong> ${fmtForma(x.pagamento)} &nbsp;&nbsp; ${fmtStatus(x.pagamentostatus)}</div>
+                    ${(x.valorpago || 0) > 0 && x.pagamentostatus !== 'pago' ? `<div><strong>💰 Pago:</strong> R$ ${(x.valorpago || 0).toFixed(2)} &nbsp; <strong>Falta:</strong> R$ ${((x.total || 0) - (x.valorpago || 0)).toFixed(2)}</div>` : ''}
                     <div><strong>📋 Origem:</strong> ${origem} &nbsp;&nbsp; <strong>${localTexto}</strong></div>
                     ${taxa > 0 ? `<div><strong>🛵 Taxa:</strong> R$ ${taxa.toFixed(2)}</div>` : ''}
                     ${x.desconto ? `<div><strong>🎁 Desconto:</strong> ${x.desconto}</div>` : ''}
@@ -1258,7 +1358,7 @@ window.exportarPedidosPDF = function() {
                 <div class="resumo-item"><strong>${dados.length}</strong>Pedidos listados</div>
                 <div class="resumo-item"><strong>R$ ${totalGeral.toFixed(2)}</strong>Total geral</div>
                 <div class="resumo-item"><strong style="color:#22c55e;">R$ ${totalPago.toFixed(2)}</strong>Pago</div>
-                <div class="resumo-item"><strong style="color:#f59e0b;">R$ ${totalPendente.toFixed(2)}</strong>Pendente</div>
+                <div class="resumo-item"><strong style="color:#f59e0b;">R$ ${totalPendente.toFixed(2)}</strong>A receber</div>
             </div>
 
             ${linhas}
@@ -1318,8 +1418,8 @@ window.abrirWhatsapp = abrirWhatsapp;
 function exportarPedidosCSV() {
     const p = State.cache.pedidos || [];
     if (p.length === 0) { mostrarToast('Sem pedidos', 'warning'); return; }
-    let c = 'ID,Cliente,Telefone,Total,Status,Data\n';
-    p.forEach(x => c += `${x.pedido_id || x.id},"${x.cliente}","${x.telefone || ''}",${(x.total || 0).toFixed(2)},${x.status || 'novo'},${Utils.formatarData(x.data)}\n`);
+    let c = 'ID,Cliente,Telefone,Total,ValorPago,Status,Data\n';
+    p.forEach(x => c += `${x.pedido_id || x.id},"${x.cliente}","${x.telefone || ''}",${(x.total || 0).toFixed(2)},${(x.valorpago || 0).toFixed(2)},${x.status || 'novo'},${Utils.formatarData(x.data)}\n`);
     const blob = new Blob(['\uFEFF' + c], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -1397,6 +1497,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof fecharModalLembrete === 'function') fecharModalLembrete();
             if (typeof fecharModalDesconto === 'function') fecharModalDesconto();
             if (typeof fecharModalValorPago === 'function') fecharModalValorPago();
+            if (typeof fecharModalHistoricoPagamentos === 'function') fecharModalHistoricoPagamentos();
         }
     });
 
@@ -1442,9 +1543,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, true);
 });
 
-console.log('✅ Admin parte 1 carregado! v24.0 (pagamento corrigido + PDF pedidos)');
-console.log('🔗 Config compartilhada via js/config.js');
-console.log('👑 is_master lido direto do banco');
-console.log('🛡️ Sistema de permissões BLINDADO');
-console.log('⚡ Exclusão de pedido sem timeout (RPC)');
+console.log('✅ Admin parte 1 carregada! v27.0 (editar foto no estoque)');
+console.log('📸 Editar/trocar/remover foto no modal de edição');
+console.log('💰 valorpago + histórico de pagamentos');
 console.log('📄 PDF de Pedidos com filtros ativos');
