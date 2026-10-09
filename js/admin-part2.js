@@ -1,5 +1,5 @@
 // ============================================================
-// PARTE 2 - FUNÇÕES RESTANTES
+// PARTE 2 - FUNÇÕES RESTANTES (v18.0 - pagamento corrigido + PDF pagamentos)
 // ============================================================
 
 // ============================================================
@@ -563,16 +563,15 @@ function formatarItensPedido(itens) {
     return itens.map(i => `${i.quantidade}x ${i.nome}`).join(', ');
 }
 
-function formatarPagamento(pagamento) {
+function formatarPagamento(forma) {
     const mapa = {
         'pix': '📱 PIX',
         'cartao': '💳 Cartão',
         'dinheiro': '💵 Dinheiro',
         'credito': '💳 Crédito',
-        'pendente': '⏳ Pendente',
-        'pago': '✅ Pago'
+        'pendente': '⏳ Pendente'
     };
-    return mapa[pagamento] || pagamento || '—';
+    return mapa[forma] || forma || '—';
 }
 
 function montarMensagemLembrete(pedidos) {
@@ -586,7 +585,7 @@ function montarMensagemLembrete(pedidos) {
         ).join('\n') || 'Sem itens';
         const pedidoId = p.pedido_id || `#${p.id}`;
         const dataFormatada = Utils.formatarData(p.data);
-        const formaPgto = formatarPagamento(p.pagamentostatus);
+        const formaPgto = formatarPagamento(p.pagamento);
 
         return `💳 *LEMBRETE DE PAGAMENTO*\n\n` +
             `Olá *${nome}*!\n\n` +
@@ -610,7 +609,7 @@ function montarMensagemLembrete(pedidos) {
         ).join('\n') || '  (sem itens)';
         const pedidoId = p.pedido_id || `#${p.id}`;
         const dataFormatada = Utils.formatarData(p.data);
-        const formaPgto = formatarPagamento(p.pagamentostatus);
+        const formaPgto = formatarPagamento(p.pagamento);
         totalGeral += p.total || 0;
 
         msg += `━━━━━━━━━━━━━━━━━━━━\n`;
@@ -654,7 +653,8 @@ function renderizarPagamentos(p) {
         const itensTexto = formatarItensPedido(x.itens);
         const dataFormatada = Utils.formatarData(x.data);
         const pedidoId = x.pedido_id || `#${x.id}`;
-        const formaPgto = formatarPagamento(x.pagamentostatus);
+        // ✅ CORRIGIDO: forma em x.pagamento
+        const formaPgto = formatarPagamento(x.pagamento);
         const badgeDesconto = x.desconto ? `<span class="badge" style="background:#8b5cf6;color:white;">🎁 ${Utils.escapeHtml(x.desconto)}</span>` : '';
 
         return `<div class="card-item" style="flex-direction:column;align-items:stretch;">
@@ -718,12 +718,23 @@ function aplicarFiltroPagamentos() {
     const s = document.getElementById('filtroPagamentosStatus').value;
     const c = document.getElementById('filtroPagamentosCliente').value.toLowerCase().trim();
     const tel = document.getElementById('filtroPagamentosTelefone')?.value?.replace(/\D/g, '') || '';
+    const inicio = document.getElementById('filtroPagamentosInicio')?.value || '';
+    const fim = document.getElementById('filtroPagamentosFim')?.value || '';
+
     const filtered = State.cache.pedidos.filter(p => {
         if (s !== 'todos' && (p.pagamentostatus || 'pendente') !== s) return false;
         if (c && !p.cliente.toLowerCase().includes(c)) return false;
         if (tel) {
             const telPedido = (p.telefone || '').replace(/\D/g, '');
             if (!telPedido.includes(tel)) return false;
+        }
+        if (inicio) {
+            const dataPedido = (p.data || '').split('T')[0];
+            if (dataPedido < inicio) return false;
+        }
+        if (fim) {
+            const dataPedido = (p.data || '').split('T')[0];
+            if (dataPedido > fim) return false;
         }
         return true;
     });
@@ -732,6 +743,163 @@ function aplicarFiltroPagamentos() {
     renderizarPagamentos(filtered);
 }
 window.aplicarFiltroPagamentos = aplicarFiltroPagamentos;
+
+// ============================================================
+// PDF DE PAGAMENTOS (respeita filtros ativos)
+// ============================================================
+window.exportarPagamentosPDF = function() {
+    // Pega os pedidos filtrados (ou todos se não tiver filtro)
+    const s = document.getElementById('filtroPagamentosStatus')?.value || 'todos';
+    const c = document.getElementById('filtroPagamentosCliente')?.value?.toLowerCase().trim() || '';
+    const tel = document.getElementById('filtroPagamentosTelefone')?.value?.replace(/\D/g, '') || '';
+    const inicio = document.getElementById('filtroPagamentosInicio')?.value || '';
+    const fim = document.getElementById('filtroPagamentosFim')?.value || '';
+
+    const dados = (State.cache.pedidos || []).filter(p => {
+        if (s !== 'todos' && (p.pagamentostatus || 'pendente') !== s) return false;
+        if (c && !(p.cliente || '').toLowerCase().includes(c)) return false;
+        if (tel) {
+            const telPedido = (p.telefone || '').replace(/\D/g, '');
+            if (!telPedido.includes(tel)) return false;
+        }
+        if (inicio) {
+            const dataPedido = (p.data || '').split('T')[0];
+            if (dataPedido < inicio) return false;
+        }
+        if (fim) {
+            const dataPedido = (p.data || '').split('T')[0];
+            if (dataPedido > fim) return false;
+        }
+        return true;
+    });
+
+    if (dados.length === 0) {
+        mostrarToast('Sem pagamentos para exportar com esses filtros', 'warning');
+        return;
+    }
+
+    // Filtros ativos descritivos
+    const filtrosAtivos = [];
+    if (s !== 'todos') filtrosAtivos.push(`Status: ${s}`);
+    if (c) filtrosAtivos.push(`Cliente: "${c}"`);
+    if (tel) filtrosAtivos.push(`Telefone: "${tel}"`);
+    if (inicio) filtrosAtivos.push(`De: ${inicio.split('-').reverse().join('/')}`);
+    if (fim) filtrosAtivos.push(`Até: ${fim.split('-').reverse().join('/')}`);
+
+    // Totais
+    const pagos = dados.filter(x => x.pagamentostatus === 'pago');
+    const pendentes = dados.filter(x => x.pagamentostatus !== 'pago');
+    const totalPago = pagos.reduce((s, x) => s + (x.total || 0), 0);
+    const totalPendente = pendentes.reduce((s, x) => s + (x.total || 0), 0);
+    const totalGeral = totalPago + totalPendente;
+
+    let linhas = '';
+    dados.forEach(x => {
+        const st = x.pagamentostatus === 'pago'
+            ? '<span style="color:#22c55e;font-weight:bold;">✅ PAGO</span>'
+            : '<span style="color:#f59e0b;font-weight:bold;">⏳ PENDENTE</span>';
+        const forma = formatarPagamento(x.pagamento);
+        const pedidoId = x.pedido_id || `#${x.id}`;
+
+        linhas += `
+            <tr>
+                <td style="padding:8px;border-bottom:1px solid #eee;">
+                    <strong style="color:#CC5500;">${pedidoId}</strong><br>
+                    <small style="color:#666;">${Utils.formatarData(x.data)}</small>
+                </td>
+                <td style="padding:8px;border-bottom:1px solid #eee;">
+                    <strong>${x.cliente || 'N/A'}</strong><br>
+                    <small style="color:#666;">${x.telefone || '—'}</small>
+                </td>
+                <td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">${forma}</td>
+                <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;font-weight:bold;">R$ ${(x.total || 0).toFixed(2)}</td>
+                <td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">${st}</td>
+            </tr>
+        `;
+    });
+
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Relatorio de Pagamentos</title>
+            <style>
+                * { margin:0; padding:0; box-sizing:border-box; }
+                body { font-family: Arial, sans-serif; padding: 24px; color: #333; background: #fff; }
+                h1 { color: #CC5500; font-size: 22px; margin-bottom: 4px; }
+                .sub { color: #666; font-size: 12px; margin-bottom: 16px; }
+                .resumo { background: #f5f5f5; padding: 16px 20px; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; }
+                .resumo-item { text-align: center; }
+                .resumo-item strong { font-size: 18px; display: block; margin-bottom: 2px; }
+                .resumo-item small { color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+                .filtros { background: #fff7ed; border: 1px solid #fed7aa; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 12px; color: #9a3412; }
+                table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                th { background: #CC5500; color: white; padding: 10px 8px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+                .footer { margin-top: 24px; font-size: 11px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 12px; }
+                @media print { body { padding: 12px; } .resumo, .filtros, th { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+            </style>
+        </head>
+        <body>
+            <h1>💳 Relatorio de Pagamentos — Dindins Gourmet FX</h1>
+            <div class="sub">Gerado em ${new Date().toLocaleString('pt-BR')}</div>
+
+            ${filtrosAtivos.length > 0 ? `<div class="filtros"><strong>🔍 Filtros aplicados:</strong> ${filtrosAtivos.join(' | ')}</div>` : ''}
+
+            <div class="resumo">
+                <div class="resumo-item">
+                    <strong style="color:#22c55e;">R$ ${totalPago.toFixed(2)}</strong>
+                    <small>💰 Recebido</small>
+                </div>
+                <div class="resumo-item">
+                    <strong style="color:#f59e0b;">R$ ${totalPendente.toFixed(2)}</strong>
+                    <small>⏳ Pendente</small>
+                </div>
+                <div class="resumo-item">
+                    <strong style="color:#CC5500;">R$ ${totalGeral.toFixed(2)}</strong>
+                    <small>💵 Total Geral</small>
+                </div>
+                <div class="resumo-item">
+                    <strong>${dados.length}</strong>
+                    <small>📦 Pedidos</small>
+                </div>
+                <div class="resumo-item">
+                    <strong style="color:#22c55e;">${pagos.length}</strong>
+                    <small>✅ Pagos</small>
+                </div>
+                <div class="resumo-item">
+                    <strong style="color:#f59e0b;">${pendentes.length}</strong>
+                    <small>⏳ Pendentes</small>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pedido / Data</th>
+                        <th>Cliente</th>
+                        <th style="text-align:center;">Forma</th>
+                        <th style="text-align:right;">Total</th>
+                        <th style="text-align:center;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${linhas}
+                </tbody>
+            </table>
+
+            <div class="footer">Dindins Gourmet FX — Relatorio gerado automaticamente</div>
+        </body>
+        </html>
+    `;
+
+    const win = window.open('', '_blank');
+    if (!win) { mostrarToast('⚠️ Permita pop-ups para gerar PDF', 'warning'); return; }
+    win.document.write(html);
+    win.document.close();
+    setTimeout(() => { win.print(); }, 500);
+    mostrarToast('📄 PDF aberto. Escolha "Salvar como PDF".', 'info');
+};
 
 // ============================================================
 // RESUMO CONSOLIDADO DO CLIENTE FILTRADO
@@ -1035,7 +1203,7 @@ async function lembrarTodosPendentes() {
                     ${c.pedidos.map(p => {
                         const pid = p.pedido_id || `#${p.id}`;
                         const itensTexto = formatarItensPedido(p.itens);
-                        const formaPgto = formatarPagamento(p.pagamentostatus);
+                        const formaPgto = formatarPagamento(p.pagamento);
                         return `<div style="padding:4px 0;border-bottom:1px solid var(--border-color);">
                             <strong>${pid}</strong> — ${formaPgto} — <strong>R$ ${(p.total || 0).toFixed(2)}</strong>
                             <br>
@@ -1437,7 +1605,8 @@ window.exportarInsumosPDF = function() {
     mostrarToast('📄 PDF aberto. Escolha "Salvar como PDF".', 'info');
 };
 
-console.log('✅ Admin parte 2 carregada! v17.0');
+console.log('✅ Admin parte 2 carregada! v18.0 (pagamento corrigido + PDF pagamentos)');
+console.log('📄 PDF de Pagamentos com filtros ativos');
 console.log('📥 Exportação CSV/PDF de estoque e insumos');
 console.log('🎁 Desconto em pedidos via aba Pagamentos');
 console.log('💵 Valor pago parcial');
