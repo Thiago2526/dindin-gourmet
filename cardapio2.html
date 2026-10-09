@@ -309,17 +309,46 @@
         function validarCarrinho() {
             let alterou = false;
             const removidos = [];
+            const ajustados = [];
+
             Object.keys(carrinho).forEach(id => {
                 const prod = produtos.find(p => p.id == id);
-                if (!prod) { removidos.push(carrinho[id]?.nome || 'Item'); delete carrinho[id]; alterou = true; }
-                else if (carrinho[id].quantidade > prod.disponivel) {
-                    carrinho[id].quantidade = prod.disponivel;
-                    if (prod.disponivel === 0) delete carrinho[id];
+
+                // Item sumiu do cardápio OU esgotou
+                if (!prod) {
+                    removidos.push(carrinho[id]?.nome || 'Item');
+                    delete carrinho[id];
                     alterou = true;
-                    mostrarToast(`⚠️ Quantidade de "${prod.nome}" ajustada para ${prod.disponivel}.`, 'warning');
+                    return;
+                }
+
+                // Cliente tem mais no carrinho do que tem disponível
+                if (carrinho[id].quantidade > prod.disponivel) {
+                    if (prod.disponivel === 0) {
+                        removidos.push(prod.nome);
+                        delete carrinho[id];
+                    } else {
+                        ajustados.push({ nome: prod.nome, novaQtd: prod.disponivel });
+                        carrinho[id].quantidade = prod.disponivel;
+                    }
+                    alterou = true;
                 }
             });
-            if (removidos.length > 0) mostrarToast(`⚠️ Itens removidos: ${removidos.join(', ')}`, 'warning');
+
+            // Mensagem pra itens que esgotaram
+            if (removidos.length === 1) {
+                mostrarToast(`😢 Ops! "${removidos[0]}" esgotou agora e saiu do seu carrinho.`, 'warning');
+            } else if (removidos.length > 1) {
+                mostrarToast(`😢 Ops! ${removidos.length} itens esgotaram: ${removidos.join(', ')}. Removidos do carrinho.`, 'warning');
+            }
+
+            // Mensagem pra itens que foram ajustados
+            if (ajustados.length === 1) {
+                mostrarToast(`📦 Ops! O estoque de "${ajustados[0].nome}" diminuiu. Ajustamos para ${ajustados[0].novaQtd} unidade(s).`, 'info');
+            } else if (ajustados.length > 1) {
+                mostrarToast(`📦 Ops! ${ajustados.length} itens tiveram o estoque ajustado. Confira seu carrinho.`, 'info');
+            }
+
             if (alterou) salvarCarrinho();
         }
 
@@ -639,7 +668,7 @@
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🔥 Cardápio 2 - v18.0 (realtime + botão discreto) carregado!');
+        console.log('🔥 Cardápio 2 - v19.0 (mensagens amigáveis) carregado!');
     })();
     </script>
 </body>
