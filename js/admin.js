@@ -1130,7 +1130,7 @@ window.aplicarFiltroPedidos = aplicarFiltroPedidos;
 window.limparFiltroPedidos = limparFiltroPedidos;
 
 // ============================================================
-// EXCLUIR PEDIDO (DEVOLVE ESTOQUE)
+// EXCLUIR PEDIDO (DEVOLVE ESTOQUE) — VIA RPC (SEM TIMEOUT)
 // ============================================================
 async function excluirPedido(id) {
     const pedido = State.cache.pedidos.find(p => p.id === id);
@@ -1139,40 +1139,11 @@ async function excluirPedido(id) {
     if (!confirm('🗑️ Excluir este pedido?\n\nO estoque dos itens será DEVOLVIDO automaticamente.')) return;
 
     try {
-        if (pedido.itens && pedido.itens.length > 0) {
-            for (const item of pedido.itens) {
-                const nome = item.nome;
-                const qtd = item.quantidade || 0;
-                if (!nome || qtd <= 0) continue;
+        // Chama a RPC que faz tudo de uma vez (sem timeout)
+        const { data, error } = await sb.rpc('excluir_pedido_devolver_estoque', { p_pedido_id: id });
 
-                const { data: prod } = await sb
-                    .from('estoquecentral')
-                    .select('*')
-                    .ilike('nome', nome)
-                    .maybeSingle();
-
-                if (prod) {
-                    const novoTotal = (prod.quantidadetotal || 0) + qtd;
-                    await sb
-                        .from('estoquecentral')
-                        .update({ quantidadetotal: novoTotal })
-                        .eq('id', prod.id);
-
-                    try {
-                        await sb.from('historicoestoque').insert([{
-                            data: new Date().toLocaleString('pt-BR'),
-                            tipo: 'entrada',
-                            item: nome,
-                            quantidade: qtd,
-                            obs: `Devolução - Pedido ${pedido.pedido_id || '#' + id} excluído`
-                        }]);
-                    } catch (e) { }
-                }
-            }
-        }
-
-        const { error } = await sb.from('todospedidos').delete().eq('id', id);
-        if (error) throw error;
+        if (error) throw new Error(error.message);
+        if (!data || !data.success) throw new Error(data?.erro || 'Erro ao excluir');
 
         await carregarPedidos(State.pagination.pedidos.page);
         await carregarDashboard();
@@ -1327,7 +1298,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }, true);
 });
 
-console.log('✅ Admin parte 1 carregado! v22.0 (config.js + master por flag + proteção)');
+console.log('✅ Admin parte 1 carregado! v23.0 (excluir pedido via RPC — sem timeout)');
 console.log('🔗 Config compartilhada via js/config.js');
 console.log('👑 is_master lido direto do banco');
 console.log('🛡️ Sistema de permissões BLINDADO');
+console.log('⚡ Exclusão de pedido sem timeout (RPC)');
