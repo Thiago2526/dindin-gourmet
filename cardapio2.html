@@ -78,6 +78,7 @@
         .loading-overlay p { color:white; font-size:1.2em; font-weight:600; }
         .realtime-indicator { position:fixed; bottom:20px; left:20px; padding:6px 12px; border-radius:20px; font-size:0.75em; font-weight:600; z-index:99997; background:rgba(34,197,94,0.15); color:var(--success); border:1px solid rgba(34,197,94,0.3); }
         .realtime-indicator.offline { background:rgba(239,68,68,0.15); color:var(--danger); border-color:rgba(239,68,68,0.3); }
+        .realtime-indicator.reconnecting { background:rgba(245,158,11,0.15); color:#f59e0b; border-color:rgba(245,158,11,0.3); }
         .pix-box { background:linear-gradient(135deg,rgba(34,197,94,0.1),rgba(22,163,74,0.05)); border:2px solid var(--success); border-radius:var(--radius); padding:14px; margin-top:12px; }
         .pix-box .titulo { color:var(--success); font-weight:700; font-size:0.9em; margin-bottom:8px; }
         .pix-box .chave { background:var(--bg-input); padding:12px; border-radius:10px; font-size:1em; text-align:center; word-break:break-all; font-family:monospace; color:var(--text-primary); margin-bottom:8px; border:1px solid var(--border-color); }
@@ -120,7 +121,7 @@
         <p>Processando seu pedido...</p>
     </div>
 
-    <div id="realtimeIndicator" class="realtime-indicator">🟢 Conectado em tempo real</div>
+    <div id="realtimeIndicator" class="realtime-indicator">🟢 Estoque atualizando automaticamente</div>
 
     <div class="container">
         <div id="offlineBanner" class="offline-banner">📡 Você está sem internet</div>
@@ -129,7 +130,7 @@
             <h1>🔥 Cardápio 2 - Dindins Gourmet FX <span class="badge">Especial</span></h1>
             <div class="header-actions">
                 <button class="btn btn-theme" onclick="toggleTheme()" title="Alternar tema"><span id="themeIcon">🌙</span></button>
-                <button class="btn btn-primary" onclick="recarregarTudo()">🔄 Atualizar</button>
+                <button class="btn btn-theme" onclick="recarregarTudo()" title="Forçar atualização">🔄</button>
             </div>
         </div>
 
@@ -592,8 +593,16 @@
                 .subscribe((status) => {
                     const ind = document.getElementById('realtimeIndicator');
                     if (!ind) return;
-                    if (status === 'SUBSCRIBED') { ind.className = 'realtime-indicator'; ind.textContent = '🟢 Conectado em tempo real'; }
-                    else { ind.className = 'realtime-indicator offline'; ind.textContent = '🔴 Reconectando...'; }
+                    if (status === 'SUBSCRIBED') {
+                        ind.className = 'realtime-indicator';
+                        ind.textContent = '🟢 Estoque atualizando automaticamente';
+                    } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                        ind.className = 'realtime-indicator reconnecting';
+                        ind.textContent = '🟡 Reconectando...';
+                    } else {
+                        ind.className = 'realtime-indicator offline';
+                        ind.textContent = '🔴 Sem conexão em tempo real';
+                    }
                 });
         }
 
@@ -630,7 +639,7 @@
         window.toggleTheme = toggleTheme;
         window.recarregarTudo = recarregarTudo;
 
-        console.log('🔥 Cardápio 2 - v17.0 (config.js compartilhado) carregado!');
+        console.log('🔥 Cardápio 2 - v18.0 (realtime + botão discreto) carregado!');
     })();
     </script>
 </body>
