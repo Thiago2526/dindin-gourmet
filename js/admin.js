@@ -37,7 +37,6 @@ window.State = {
 };
 const State = window.State;
 
-// ✅ Campos pra controlar edição de foto no modal de estoque
 State.fotoEditarEstoque = null;
 State.fotoEditarEstoqueRemovida = false;
 
@@ -67,6 +66,18 @@ window.Utils = {
     escapeHtml: t => { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 };
 const Utils = window.Utils;
+
+// ✅ NOVO: extrai o endereço do obs, aceitando quebras de linha
+function extrairEnderecoDoObs(obs) {
+    if (!obs) return '';
+    // Procura "Endereço:" até encontrar " | Pagamento:" ou o final
+    const match = obs.match(/Endereço:\s*([\s\S]+?)(?=\s*\|\s*Pagamento:|$)/);
+    if (match && match[1]) {
+        return match[1].trim().replace(/\n+/g, ' | ');
+    }
+    return '';
+}
+window.extrairEnderecoDoObs = extrairEnderecoDoObs;
 
 // ============================================================
 // MAPA DE PERMISSÕES
@@ -1115,12 +1126,8 @@ function renderizarPedidos(p) {
             localTexto = '📍 Retirada no local';
         }
 
-        // ✅ Extrai o endereço do obs
-        let enderecoTexto = '';
-        const matchEndereco = obs.match(/Endereço:\s*([^|]+)/);
-        if (matchEndereco) {
-            enderecoTexto = matchEndereco[1].trim();
-        }
+        // ✅ Extrai endereço usando a função helper (aceita quebra de linha)
+        const enderecoTexto = extrairEnderecoDoObs(obs);
 
         const matchTaxa = obs.match(/taxa=([\d.]+)/);
         const taxa = matchTaxa ? parseFloat(matchTaxa[1]) || 0 : 0;
@@ -1297,12 +1304,8 @@ window.exportarPedidosPDF = function() {
             localTexto = '📍 Retirada no local';
         }
 
-        // ✅ Extrai endereço pro PDF também
-        let enderecoTexto = '';
-        const matchEndereco = obs.match(/Endereço:\s*([^|]+)/);
-        if (matchEndereco) {
-            enderecoTexto = matchEndereco[1].trim();
-        }
+        // ✅ Extrai endereço usando o helper
+        const enderecoTexto = extrairEnderecoDoObs(obs);
 
         const matchTaxa = obs.match(/taxa=([\d.]+)/);
         const taxa = matchTaxa ? parseFloat(matchTaxa[1]) || 0 : 0;
@@ -1559,8 +1562,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }, true);
 });
 
-console.log('✅ Admin parte 1 carregada! v28.0 (endereço na entrega)');
-console.log('📍 Endereço aparece em destaque no card do pedido');
-console.log('📄 PDF de Pedidos mostra o endereço');
+console.log('✅ Admin parte 1 carregada! v29.0 (endereço multi-linha corrigido)');
+console.log('🏠 Endereço agora aceita quebra de linha (2+ linhas)');
+console.log('📄 PDF de Pedidos mostra o endereço completo');
 console.log('📸 Editar/trocar/remover foto no modal de edição');
 console.log('💰 valorpago + histórico de pagamentos');
