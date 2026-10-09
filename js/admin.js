@@ -1020,7 +1020,8 @@ function renderizarPedidos(p) {
         if (obs.includes('Cardápio 1')) origem = '🍦 Cardápio 1';
         else if (obs.includes('Cardápio 2')) origem = '🔥 Cardápio 2';
 
-        const formaPagamento = fmtPagamento(x.pagamentostatus);
+        // ✅ CORRIGIDO: forma em x.pagamento (não x.pagamentostatus)
+        const formaPagamento = fmtPagamento(x.pagamento);
 
         let localTexto = '—';
         const matchSetor = obs.match(/Entrega:\s*([^|]+)/);
@@ -1130,7 +1131,153 @@ window.aplicarFiltroPedidos = aplicarFiltroPedidos;
 window.limparFiltroPedidos = limparFiltroPedidos;
 
 // ============================================================
-// EXCLUIR PEDIDO (DEVOLVE ESTOQUE) — VIA RPC (SEM TIMEOUT)
+// PDF DE PEDIDOS (respeita filtros ativos)
+// ============================================================
+window.exportarPedidosPDF = function() {
+    const dados = State.cache.pedidos || [];
+    if (dados.length === 0) {
+        mostrarToast('Sem pedidos para exportar', 'warning');
+        return;
+    }
+
+    // Pega os filtros ativos
+    const filtroStatus = document.getElementById('filtroPedidosStatus')?.value || 'todos';
+    const filtroCliente = document.getElementById('filtroPedidosCliente')?.value?.trim() || '';
+    const filtroTelefone = document.getElementById('filtroPedidosTelefone')?.value?.trim() || '';
+    const filtroInicio = document.getElementById('filtroPedidosInicio')?.value || '';
+    const filtroFim = document.getElementById('filtroPedidosFim')?.value || '';
+
+    // Monta string descritiva dos filtros ativos
+    const filtrosAtivos = [];
+    if (filtroStatus !== 'todos') filtrosAtivos.push(`Status: ${filtroStatus}`);
+    if (filtroCliente) filtrosAtivos.push(`Cliente: "${filtroCliente}"`);
+    if (filtroTelefone) filtrosAtivos.push(`Telefone: "${filtroTelefone}"`);
+    if (filtroInicio) filtrosAtivos.push(`De: ${filtroInicio.split('-').reverse().join('/')}`);
+    if (filtroFim) filtrosAtivos.push(`Até: ${filtroFim.split('-').reverse().join('/')}`);
+
+    // Calcula totais
+    let totalGeral = 0;
+    let totalPago = 0;
+    let totalPendente = 0;
+
+    function fmtForma(forma) {
+        if (!forma) return '—';
+        const v = String(forma).toLowerCase().trim();
+        if (v.includes('pix')) return '📱 PIX';
+        if (v.includes('cartao') || v.includes('cartão')) return '💳 Cartão';
+        if (v.includes('dinheiro')) return '💵 Dinheiro';
+        if (v.includes('credito') || v.includes('crédito')) return '💳 Crédito';
+        return forma;
+    }
+
+    function fmtStatus(s) {
+        if (s === 'pago') return '<span style="color:#22c55e;font-weight:bold;">✅ PAGO</span>';
+        return '<span style="color:#f59e0b;font-weight:bold;">⏳ PENDENTE</span>';
+    }
+
+    let linhas = '';
+    dados.forEach(x => {
+        const obs = x.obs || '';
+        let origem = '❓ Não identificado';
+        if (obs.includes('Cardápio 1')) origem = '🍦 Cardápio 1';
+        else if (obs.includes('Cardápio 2')) origem = '🔥 Cardápio 2';
+
+        let localTexto = '—';
+        const matchSetor = obs.match(/Entrega:\s*([^|]+)/);
+        if (matchSetor) {
+            localTexto = `📍 Entrega: ${matchSetor[1].trim()}`;
+        } else if (obs.includes('Retirada no local')) {
+            localTexto = '📍 Retirada no local';
+        }
+
+        const matchTaxa = obs.match(/taxa=([\d.]+)/);
+        const taxa = matchTaxa ? parseFloat(matchTaxa[1]) || 0 : 0;
+
+        let itensHtml = '';
+        let subtotal = 0;
+        if (x.itens && x.itens.length > 0) {
+            x.itens.forEach(it => {
+                const qtd = it.quantidade || 0;
+                const preco = it.preco || 0;
+                const sub = qtd * preco;
+                subtotal += sub;
+                itensHtml += `<div style="padding-left:20px;color:#555;">• ${qtd}x ${it.nome || ''} — R$ ${sub.toFixed(2)}</div>`;
+            });
+        }
+
+        totalGeral += x.total || 0;
+        if (x.pagamentostatus === 'pago') totalPago += x.total || 0;
+        else totalPendente += x.total || 0;
+
+        linhas += `
+            <div style="border:1px solid #ddd;border-radius:8px;padding:14px;margin-bottom:12px;page-break-inside:avoid;">
+                <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;padding-bottom:8px;margin-bottom:8px;">
+                    <strong style="color:#CC5500;font-size:15px;">📦 ${x.pedido_id || '#' + x.id}</strong>
+                    <strong style="color:#CC5500;font-size:15px;">R$ ${(x.total || 0).toFixed(2)}</strong>
+                </div>
+                <div style="font-size:13px;line-height:1.7;">
+                    <div><strong>👤 Cliente:</strong> ${x.cliente || 'N/A'}</div>
+                    <div><strong>📱 Telefone:</strong> ${x.telefone || 'N/A'}</div>
+                    <div><strong>📅 Data:</strong> ${Utils.formatarData(x.data)}</div>
+                    <div><strong>💳 Forma:</strong> ${fmtForma(x.pagamento)} &nbsp;&nbsp; ${fmtStatus(x.pagamentostatus)}</div>
+                    <div><strong>📋 Origem:</strong> ${origem} &nbsp;&nbsp; <strong>${localTexto}</strong></div>
+                    ${taxa > 0 ? `<div><strong>🛵 Taxa:</strong> R$ ${taxa.toFixed(2)}</div>` : ''}
+                    ${x.desconto ? `<div><strong>🎁 Desconto:</strong> ${x.desconto}</div>` : ''}
+                </div>
+                ${itensHtml ? `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed #ddd;font-size:13px;"><strong style="color:#555;">🛒 ITENS:</strong>${itensHtml}</div>` : ''}
+            </div>
+        `;
+    });
+
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Relatorio de Pedidos</title>
+            <style>
+                * { margin:0; padding:0; box-sizing:border-box; }
+                body { font-family: Arial, sans-serif; padding: 24px; color: #333; background: #fff; }
+                h1 { color: #CC5500; font-size: 22px; margin-bottom: 4px; }
+                .sub { color: #666; font-size: 12px; margin-bottom: 16px; }
+                .resumo { background: #f5f5f5; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 20px; flex-wrap: wrap; }
+                .resumo-item { font-size: 13px; }
+                .resumo-item strong { color: #CC5500; font-size: 16px; display: block; }
+                .filtros { background: #fff7ed; border: 1px solid #fed7aa; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 12px; color: #9a3412; }
+                .footer { margin-top: 24px; font-size: 11px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 12px; }
+                @media print { body { padding: 12px; } .resumo, .filtros { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+            </style>
+        </head>
+        <body>
+            <h1>📋 Relatorio de Pedidos — Dindins Gourmet FX</h1>
+            <div class="sub">Gerado em ${new Date().toLocaleString('pt-BR')}</div>
+
+            ${filtrosAtivos.length > 0 ? `<div class="filtros"><strong>🔍 Filtros aplicados:</strong> ${filtrosAtivos.join(' | ')}</div>` : ''}
+
+            <div class="resumo">
+                <div class="resumo-item"><strong>${dados.length}</strong>Pedidos listados</div>
+                <div class="resumo-item"><strong>R$ ${totalGeral.toFixed(2)}</strong>Total geral</div>
+                <div class="resumo-item"><strong style="color:#22c55e;">R$ ${totalPago.toFixed(2)}</strong>Pago</div>
+                <div class="resumo-item"><strong style="color:#f59e0b;">R$ ${totalPendente.toFixed(2)}</strong>Pendente</div>
+            </div>
+
+            ${linhas}
+
+            <div class="footer">Dindins Gourmet FX — Relatorio gerado automaticamente</div>
+        </body>
+        </html>
+    `;
+
+    const win = window.open('', '_blank');
+    if (!win) { mostrarToast('⚠️ Permita pop-ups para gerar PDF', 'warning'); return; }
+    win.document.write(html);
+    win.document.close();
+    setTimeout(() => { win.print(); }, 500);
+    mostrarToast('📄 PDF aberto. Escolha "Salvar como PDF".', 'info');
+};
+
+// ============================================================
+// EXCLUIR PEDIDO (DEVOLVE ESTOQUE) — VIA RPC
 // ============================================================
 async function excluirPedido(id) {
     const pedido = State.cache.pedidos.find(p => p.id === id);
@@ -1139,7 +1286,6 @@ async function excluirPedido(id) {
     if (!confirm('🗑️ Excluir este pedido?\n\nO estoque dos itens será DEVOLVIDO automaticamente.')) return;
 
     try {
-        // Chama a RPC que faz tudo de uma vez (sem timeout)
         const { data, error } = await sb.rpc('excluir_pedido_devolver_estoque', { p_pedido_id: id });
 
         if (error) throw new Error(error.message);
@@ -1262,7 +1408,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     verificarSessao();
 
-    // 🛡️ PROTEÇÃO CONTÍNUA: monitora as abas por 60 segundos
     let _protecaoTentativas = 0;
     const _protecaoIntervalo = setInterval(() => {
         if (State.adminData && !State.isMaster) {
@@ -1281,7 +1426,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (_protecaoTentativas >= 120) clearInterval(_protecaoIntervalo);
     }, 500);
 
-    // 🛡️ BLOQUEIO de clique em abas proibidas
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('.tab-btn');
         if (!btn || !State.adminData || State.isMaster) return;
@@ -1298,8 +1442,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }, true);
 });
 
-console.log('✅ Admin parte 1 carregado! v23.0 (excluir pedido via RPC — sem timeout)');
+console.log('✅ Admin parte 1 carregado! v24.0 (pagamento corrigido + PDF pedidos)');
 console.log('🔗 Config compartilhada via js/config.js');
 console.log('👑 is_master lido direto do banco');
 console.log('🛡️ Sistema de permissões BLINDADO');
 console.log('⚡ Exclusão de pedido sem timeout (RPC)');
+console.log('📄 PDF de Pedidos com filtros ativos');
