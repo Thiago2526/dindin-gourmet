@@ -103,6 +103,17 @@
                 <div class="form-group"><label>Preço R$</label><input type="number" id="editarEstoquePreco" step="0.01" min="0"></div>
                 <div class="form-group"><label>Quantidade</label><input type="number" id="editarEstoqueQtd" min="0"></div>
             </div>
+            <div class="form-group">
+                <label>📸 Foto</label>
+                <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">
+                    <div id="editarEstoqueFotoPreview" style="flex-shrink:0;"></div>
+                    <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:8px;">
+                        <input type="file" id="editarEstoqueFoto" accept="image/*" onchange="previewFotoEditarEstoque(this)">
+                        <button class="btn btn-danger btn-sm" onclick="removerFotoEditarEstoque()" type="button" style="align-self:flex-start;">🗑️ Remover foto</button>
+                        <small style="color:var(--text-muted);font-size:0.8em;">Deixe vazio para manter a foto atual</small>
+                    </div>
+                </div>
+            </div>
             <div class="btn-row">
                 <button class="btn btn-success" onclick="salvarEdicaoEstoque()">💾 Salvar</button>
                 <button class="btn btn-danger" onclick="fecharModalEditarEstoque()">✕</button>
@@ -162,7 +173,6 @@
                 <input type="text" id="valorPagoTotal" readonly style="background:var(--bg-secondary);font-weight:700;color:var(--dourado);">
             </div>
 
-            <!-- Histórico de pagamentos já feitos -->
             <div id="valorPagoHistorico" style="display:none;margin-bottom:14px;background:var(--bg-secondary);padding:12px;border-radius:10px;">
                 <div style="font-size:0.8em;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">💜 Pagamentos já registrados</div>
                 <div id="valorPagoHistoricoLista"></div>
@@ -569,7 +579,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js?v=1"></script>
-    <script src="js/admin.js?v=26"></script>
+    <script src="js/admin.js?v=27"></script>
     <script src="js/admin-part2.js?v=21"></script>
 </body>
 </html>
