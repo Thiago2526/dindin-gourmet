@@ -172,12 +172,10 @@
                 <label>Total do Pedido</label>
                 <input type="text" id="valorPagoTotal" readonly style="background:var(--bg-secondary);font-weight:700;color:var(--dourado);">
             </div>
-
             <div id="valorPagoHistorico" style="display:none;margin-bottom:14px;background:var(--bg-secondary);padding:12px;border-radius:10px;">
                 <div style="font-size:0.8em;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">💜 Pagamentos já registrados</div>
                 <div id="valorPagoHistoricoLista"></div>
             </div>
-
             <div class="form-group">
                 <label>Valor Pago pelo Cliente (R$) *</label>
                 <input type="text" id="valorPagoInput" placeholder="Ex: 25,00" oninput="atualizarPreviewValorPago()">
@@ -283,6 +281,7 @@
             <button class="tab-btn" data-tab="admins">👥 Admins</button>
             <button class="tab-btn" data-tab="config">⚙️ Config</button>
             <button class="tab-btn" data-tab="auditoria">📋 Auditoria</button>
+            <button class="tab-btn" data-tab="qrcode">📱 QR Code</button>
         </div>
 
         <!-- DASHBOARD -->
@@ -575,11 +574,73 @@
             <div id="listaAuditoria"></div>
             <div id="paginacaoAuditoria" class="pagination"></div>
         </div>
+
+        <!-- ✅ NOVO: QR CODE -->
+        <div class="conteudo" id="conteudo-qrcode">
+            <h3>📱 QR Codes
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-sm" onclick="carregarQRCodes()">🔄 Atualizar</button>
+                    <button class="btn btn-info btn-sm" onclick="imprimirQRCodes()">🖨️ Imprimir Todos</button>
+                </div>
+            </h3>
+            <p style="color:var(--text-secondary);margin-bottom:20px;font-size:0.9em;">Imprima e coloque no balcão, no cardápio físico, ou compartilhe com os clientes. Clientes escaneiam com a câmera do celular e abrem o link direto.</p>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;">
+                <div class="card-item" style="flex-direction:column;align-items:center;text-align:center;padding:24px;">
+                    <h4 style="color:var(--dourado);margin-bottom:12px;">🍦 Cardápio 1</h4>
+                    <div style="background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;">
+                        <img id="qrImgC1" alt="QR Cardápio 1" style="width:200px;height:200px;display:block;">
+                    </div>
+                    <div id="qrLinkC1" style="font-size:0.75em;color:var(--text-muted);word-break:break-all;margin-bottom:12px;font-family:monospace;"></div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
+                        <button class="btn btn-info btn-sm" onclick="copiarLinkQR('qrLinkC1')">📋 Copiar</button>
+                        <button class="btn btn-success btn-sm" onclick="baixarQRCode('qrImgC1', 'qrcode-cardapio1')">📥 Baixar PNG</button>
+                    </div>
+                </div>
+
+                <div class="card-item" style="flex-direction:column;align-items:center;text-align:center;padding:24px;">
+                    <h4 style="color:var(--dourado);margin-bottom:12px;">🔥 Cardápio 2</h4>
+                    <div style="background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;">
+                        <img id="qrImgC2" alt="QR Cardápio 2" style="width:200px;height:200px;display:block;">
+                    </div>
+                    <div id="qrLinkC2" style="font-size:0.75em;color:var(--text-muted);word-break:break-all;margin-bottom:12px;font-family:monospace;"></div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
+                        <button class="btn btn-info btn-sm" onclick="copiarLinkQR('qrLinkC2')">📋 Copiar</button>
+                        <button class="btn btn-success btn-sm" onclick="baixarQRCode('qrImgC2', 'qrcode-cardapio2')">📥 Baixar PNG</button>
+                    </div>
+                </div>
+
+                <div class="card-item" style="flex-direction:column;align-items:center;text-align:center;padding:24px;">
+                    <h4 style="color:var(--dourado);margin-bottom:12px;">📱 WhatsApp</h4>
+                    <div style="background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;">
+                        <img id="qrImgWhats" alt="QR WhatsApp" style="width:200px;height:200px;display:block;">
+                    </div>
+                    <div id="qrLinkWhats" style="font-size:0.75em;color:var(--text-muted);word-break:break-all;margin-bottom:12px;font-family:monospace;"></div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
+                        <button class="btn btn-info btn-sm" onclick="copiarLinkQR('qrLinkWhats')">📋 Copiar</button>
+                        <button class="btn btn-success btn-sm" onclick="baixarQRCode('qrImgWhats', 'qrcode-whatsapp')">📥 Baixar PNG</button>
+                    </div>
+                </div>
+
+                <div class="card-item" style="flex-direction:column;align-items:center;text-align:center;padding:24px;">
+                    <h4 style="color:var(--dourado);margin-bottom:12px;">🏠 Página Inicial</h4>
+                    <div style="background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;">
+                        <img id="qrImgHome" alt="QR Home" style="width:200px;height:200px;display:block;">
+                    </div>
+                    <div id="qrLinkHome" style="font-size:0.75em;color:var(--text-muted);word-break:break-all;margin-bottom:12px;font-family:monospace;"></div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
+                        <button class="btn btn-info btn-sm" onclick="copiarLinkQR('qrLinkHome')">📋 Copiar</button>
+                        <button class="btn btn-success btn-sm" onclick="baixarQRCode('qrImgHome', 'qrcode-home')">📥 Baixar PNG</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="js/config.js?v=1"></script>
-    <script src="js/admin.js?v=27"></script>
+    <script src="js/admin.js?v=30"></script>
     <script src="js/admin-part2.js?v=21"></script>
 </body>
 </html>
