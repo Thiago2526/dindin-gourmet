@@ -487,8 +487,7 @@
 
         <!-- SETORES -->
         <div class="conteudo" id="conteudo-setores">
-            <h3>📍 Setores
-                <div class="btn-group">
+            <h3>📍 Setores                <div class="btn-group">
                     <button class="btn btn-primary btn-sm" onclick="carregarSetores()">🔄 Atualizar</button>
                 </div>
             </h3>
@@ -588,49 +587,41 @@
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;">
                 <div class="card-item" style="flex-direction:column;align-items:center;text-align:center;padding:24px;">
                     <h4 style="color:var(--dourado);margin-bottom:12px;">🍦 Cardápio 1</h4>
-                    <div style="background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;">
-                        <img id="qrImgC1" alt="QR Cardápio 1" style="width:200px;height:200px;display:block;">
-                    </div>
+                    <div id="qrBoxC1" style="background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;width:224px;height:224px;"></div>
                     <div id="qrLinkC1" style="font-size:0.75em;color:var(--text-muted);word-break:break-all;margin-bottom:12px;font-family:monospace;"></div>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
                         <button class="btn btn-info btn-sm" onclick="copiarLinkQR('qrLinkC1')">📋 Copiar</button>
-                        <button class="btn btn-success btn-sm" onclick="baixarQRCode('qrImgC1', 'qrcode-cardapio1')">📥 Baixar PNG</button>
+                        <button class="btn btn-success btn-sm" onclick="baixarQRCode('qrBoxC1', 'qrcode-cardapio1')">📥 Baixar PNG</button>
                     </div>
                 </div>
 
                 <div class="card-item" style="flex-direction:column;align-items:center;text-align:center;padding:24px;">
                     <h4 style="color:var(--dourado);margin-bottom:12px;">🔥 Cardápio 2</h4>
-                    <div style="background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;">
-                        <img id="qrImgC2" alt="QR Cardápio 2" style="width:200px;height:200px;display:block;">
-                    </div>
+                    <div id="qrBoxC2" style="background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;width:224px;height:224px;"></div>
                     <div id="qrLinkC2" style="font-size:0.75em;color:var(--text-muted);word-break:break-all;margin-bottom:12px;font-family:monospace;"></div>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
                         <button class="btn btn-info btn-sm" onclick="copiarLinkQR('qrLinkC2')">📋 Copiar</button>
-                        <button class="btn btn-success btn-sm" onclick="baixarQRCode('qrImgC2', 'qrcode-cardapio2')">📥 Baixar PNG</button>
+                        <button class="btn btn-success btn-sm" onclick="baixarQRCode('qrBoxC2', 'qrcode-cardapio2')">📥 Baixar PNG</button>
                     </div>
                 </div>
 
                 <div class="card-item" style="flex-direction:column;align-items:center;text-align:center;padding:24px;">
                     <h4 style="color:var(--dourado);margin-bottom:12px;">📱 WhatsApp</h4>
-                    <div style="background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;">
-                        <img id="qrImgWhats" alt="QR WhatsApp" style="width:200px;height:200px;display:block;">
-                    </div>
+                    <div id="qrBoxWhats" style="background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;width:224px;height:224px;"></div>
                     <div id="qrLinkWhats" style="font-size:0.75em;color:var(--text-muted);word-break:break-all;margin-bottom:12px;font-family:monospace;"></div>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
                         <button class="btn btn-info btn-sm" onclick="copiarLinkQR('qrLinkWhats')">📋 Copiar</button>
-                        <button class="btn btn-success btn-sm" onclick="baixarQRCode('qrImgWhats', 'qrcode-whatsapp')">📥 Baixar PNG</button>
+                        <button class="btn btn-success btn-sm" onclick="baixarQRCode('qrBoxWhats', 'qrcode-whatsapp')">📥 Baixar PNG</button>
                     </div>
                 </div>
 
                 <div class="card-item" style="flex-direction:column;align-items:center;text-align:center;padding:24px;">
                     <h4 style="color:var(--dourado);margin-bottom:12px;">🏠 Página Inicial</h4>
-                    <div style="background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;">
-                        <img id="qrImgHome" alt="QR Home" style="width:200px;height:200px;display:block;">
-                    </div>
+                    <div id="qrBoxHome" style="background:#fff;padding:12px;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;width:224px;height:224px;"></div>
                     <div id="qrLinkHome" style="font-size:0.75em;color:var(--text-muted);word-break:break-all;margin-bottom:12px;font-family:monospace;"></div>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
                         <button class="btn btn-info btn-sm" onclick="copiarLinkQR('qrLinkHome')">📋 Copiar</button>
-                        <button class="btn btn-success btn-sm" onclick="baixarQRCode('qrImgHome', 'qrcode-home')">📥 Baixar PNG</button>
+                        <button class="btn btn-success btn-sm" onclick="baixarQRCode('qrBoxHome', 'qrcode-home')">📥 Baixar PNG</button>
                     </div>
                 </div>
             </div>
@@ -638,9 +629,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="js/config.js?v=1"></script>
-    <script src="js/admin.js?v=30"></script>
+    <script src="js/admin.js?v=31"></script>
     <script src="js/admin-part2.js?v=21"></script>
 </body>
 </html>
