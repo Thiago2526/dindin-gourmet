@@ -67,10 +67,9 @@ window.Utils = {
 };
 const Utils = window.Utils;
 
-// ✅ NOVO: extrai o endereço do obs, aceitando quebras de linha
+// ✅ Extrai o endereço do obs, aceitando quebras de linha
 function extrairEnderecoDoObs(obs) {
     if (!obs) return '';
-    // Procura "Endereço:" até encontrar " | Pagamento:" ou o final
     const match = obs.match(/Endereço:\s*([\s\S]+?)(?=\s*\|\s*Pagamento:|$)/);
     if (match && match[1]) {
         return match[1].trim().replace(/\n+/g, ' | ');
@@ -434,7 +433,7 @@ function mudarTab(tab) {
         pedidos: carregarPedidos, pagamentos: carregarPagamentos, financeiro: carregarFinanceiro,
         ranking: carregarRanking, historico: carregarHistorico, insumos: carregarInsumos,
         calculadora: carregarReceitas, setores: carregarSetores, admins: carregarListaAdmins,
-        config: carregarConfig, auditoria: carregarAuditoria
+        config: carregarConfig, auditoria: carregarAuditoria, qrcode: carregarQRCodes
     };
     if (loaders[tab]) loaders[tab]();
 }
@@ -1126,7 +1125,6 @@ function renderizarPedidos(p) {
             localTexto = '📍 Retirada no local';
         }
 
-        // ✅ Extrai endereço usando a função helper (aceita quebra de linha)
         const enderecoTexto = extrairEnderecoDoObs(obs);
 
         const matchTaxa = obs.match(/taxa=([\d.]+)/);
@@ -1174,7 +1172,6 @@ function renderizarPedidos(p) {
         const pedidoId = x.pedido_id || `#${x.id}`;
         const descontoTag = x.desconto ? `<span class="badge badge-pendente" style="background:#8b5cf6;color:white;">🎁 ${Utils.escapeHtml(x.desconto)}</span>` : '';
 
-        // ✅ Bloco de endereço (só aparece se tiver)
         const enderecoHtml = enderecoTexto
             ? `<div style="background:#fff7ed;border:1px solid #fed7aa;padding:10px 14px;border-radius:8px;margin-top:8px;font-size:0.9em;color:#9a3412;">
                 <strong>🏠 Endereço:</strong> ${Utils.escapeHtml(enderecoTexto)}
@@ -1248,7 +1245,7 @@ window.aplicarFiltroPedidos = aplicarFiltroPedidos;
 window.limparFiltroPedidos = limparFiltroPedidos;
 
 // ============================================================
-// PDF DE PEDIDOS (respeita filtros ativos)
+// PDF DE PEDIDOS
 // ============================================================
 window.exportarPedidosPDF = function() {
     const dados = State.cache.pedidos || [];
@@ -1304,7 +1301,6 @@ window.exportarPedidosPDF = function() {
             localTexto = '📍 Retirada no local';
         }
 
-        // ✅ Extrai endereço usando o helper
         const enderecoTexto = extrairEnderecoDoObs(obs);
 
         const matchTaxa = obs.match(/taxa=([\d.]+)/);
@@ -1462,6 +1458,142 @@ async function iniciarRealtime() {
 }
 
 // ============================================================
+// QR CODES
+// ============================================================
+async function carregarQRCodes() {
+    if (typeof QRCode === 'undefined') {
+        mostrarToast('⚠️ Biblioteca de QR Code não carregou. Recarregue a página.', 'warning');
+        return;
+    }
+
+    const origin = window.location.origin;
+    const urls = {
+        qrImgC1: `${origin}/cardapio1.html`,
+        qrImgC2: `${origin}/cardapio2.html`,
+        qrImgHome: `${origin}/`,
+        qrImgWhats: null
+    };
+
+    // WhatsApp
+    let whatsLimpo = (State.cache.config?.whatsapp || '').replace(/\D/g, '');
+    if (whatsLimpo) {
+        urls.qrImgWhats = `https://wa.me/55${whatsLimpo}`;
+    }
+
+    // Gera cada QR
+    for (const [imgId, url] of Object.entries(urls)) {
+        const linkId = imgId.replace('qrImg', 'qrLink');
+        const linkEl = document.getElementById(linkId);
+
+        if (!url) {
+            if (linkEl) linkEl.textContent = '⚠️ WhatsApp não configurado';
+            const img = document.getElementById(imgId);
+            if (img) img.src = '';
+            continue;
+        }
+
+        if (linkEl) linkEl.textContent = url;
+
+        try {
+            const dataUrl = await QRCode.toDataURL(url, {
+                width: 400,
+                margin: 2,
+                color: { dark: '#CC5500', light: '#ffffff' },
+                errorCorrectionLevel: 'H'
+            });
+            const img = document.getElementById(imgId);
+            if (img) img.src = dataUrl;
+        } catch (e) {
+            console.error('Erro ao gerar QR Code:', e);
+            mostrarToast('❌ Erro ao gerar QR Code.', 'error');
+        }
+    }
+}
+window.carregarQRCodes = carregarQRCodes;
+
+function baixarQRCode(imgId, nomeArquivo) {
+    const img = document.getElementById(imgId);
+    if (!img || !img.src) { mostrarToast('QR Code não carregado ainda', 'warning'); return; }
+    const link = document.createElement('a');
+    link.download = `${nomeArquivo}.png`;
+    link.href = img.src;
+    link.click();
+    mostrarToast('📥 Download iniciado!', 'success');
+}
+window.baixarQRCode = baixarQRCode;
+
+function copiarLinkQR(linkId) {
+    const el = document.getElementById(linkId);
+    if (!el) return;
+    const texto = el.textContent.trim();
+    if (!texto || texto.startsWith('⚠️')) { mostrarToast('Link não disponível', 'warning'); return; }
+    navigator.clipboard.writeText(texto).then(() => {
+        mostrarToast('📋 Link copiado!', 'success');
+    }).catch(() => {
+        mostrarToast('⚠️ Não foi possível copiar', 'warning');
+    });
+}
+window.copiarLinkQR = copiarLinkQR;
+
+function imprimirQRCodes() {
+    if (typeof QRCode === 'undefined') {
+        mostrarToast('⚠️ Biblioteca de QR Code não carregou. Recarregue a página.', 'warning');
+        return;
+    }
+
+    const cards = [
+        { titulo: '🍦 Cardápio 1', link: `${window.location.origin}/cardapio1.html` },
+        { titulo: '🔥 Cardápio 2', link: `${window.location.origin}/cardapio2.html` }
+    ];
+
+    const whatsLimpo = (State.cache.config?.whatsapp || '').replace(/\D/g, '');
+    if (whatsLimpo) cards.push({ titulo: '📱 WhatsApp', link: `https://wa.me/55${whatsLimpo}` });
+    cards.push({ titulo: '🏠 Página Inicial', link: `${window.location.origin}/` });
+
+    const gerarQr = (link) => {
+        return new Promise(resolve => {
+            QRCode.toDataURL(link, { width: 400, margin: 2, color: { dark: '#CC5500', light: '#ffffff' } })
+                .then(url => resolve(url))
+                .catch(() => resolve(''));
+        });
+    };
+
+    Promise.all(cards.map(c => gerarQr(c.link))).then(imgs => {
+        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR Codes - Dindins</title>
+        <style>
+            * { margin:0; padding:0; box-sizing:border-box; }
+            body { font-family: Arial, sans-serif; padding: 24px; background: #fff; }
+            h1 { color: #CC5500; text-align: center; margin-bottom: 24px; font-size: 26px; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+            .card { border: 2px solid #CC5500; border-radius: 16px; padding: 24px; text-align: center; page-break-inside: avoid; }
+            .card h2 { color: #CC5500; margin-bottom: 16px; font-size: 20px; }
+            .card img { width: 250px; height: 250px; display: block; margin: 0 auto 16px; }
+            .card p { font-size: 12px; color: #666; word-break: break-all; font-family: monospace; }
+            @media print { body { padding: 12px; } .card { break-inside: avoid; } }
+        </style></head><body>
+        <h1>🍦 Dindins Gourmet FX — QR Codes</h1>
+        <div class="grid">`;
+
+        cards.forEach((c, i) => {
+            html += `<div class="card">
+                <h2>${c.titulo}</h2>
+                <img src="${imgs[i]}" alt="${c.titulo}">
+                <p>${c.link}</p>
+            </div>`;
+        });
+
+        html += `</div></body></html>`;
+
+        const win = window.open('', '_blank');
+        if (!win) { mostrarToast('⚠️ Permita pop-ups para imprimir', 'warning'); return; }
+        win.document.write(html);
+        win.document.close();
+        setTimeout(() => win.print(), 500);
+    });
+}
+window.imprimirQRCodes = imprimirQRCodes;
+
+// ============================================================
 // CARREGAR TUDO
 // ============================================================
 async function carregarTudo() {
@@ -1562,8 +1694,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }, true);
 });
 
-console.log('✅ Admin parte 1 carregada! v29.0 (endereço multi-linha corrigido)');
-console.log('🏠 Endereço agora aceita quebra de linha (2+ linhas)');
-console.log('📄 PDF de Pedidos mostra o endereço completo');
+console.log('✅ Admin parte 1 carregada! v30.0 (QR Code)');
+console.log('📱 Aba QR Code adicionada com 4 QR Codes');
+console.log('🏠 Endereço multi-linha aceito');
+console.log('📄 PDF de Pedidos mostra o endereço');
 console.log('📸 Editar/trocar/remover foto no modal de edição');
 console.log('💰 valorpago + histórico de pagamentos');
