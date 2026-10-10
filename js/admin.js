@@ -1458,7 +1458,7 @@ async function iniciarRealtime() {
 }
 
 // ============================================================
-// QR CODES
+// QR CODES (biblioteca qrcodejs)
 // ============================================================
 async function carregarQRCodes() {
     if (typeof QRCode === 'undefined') {
@@ -1467,42 +1467,49 @@ async function carregarQRCodes() {
     }
 
     const origin = window.location.origin;
-    const urls = {
-        qrImgC1: `${origin}/cardapio1.html`,
-        qrImgC2: `${origin}/cardapio2.html`,
-        qrImgHome: `${origin}/`,
-        qrImgWhats: null
-    };
+    const itens = [
+        { boxId: 'qrBoxC1', linkId: 'qrLinkC1', url: `${origin}/cardapio1.html` },
+        { boxId: 'qrBoxC2', linkId: 'qrLinkC2', url: `${origin}/cardapio2.html` },
+        { boxId: 'qrBoxHome', linkId: 'qrLinkHome', url: `${origin}/` }
+    ];
 
-    // WhatsApp
+    // WhatsApp (se configurado)
     let whatsLimpo = (State.cache.config?.whatsapp || '').replace(/\D/g, '');
     if (whatsLimpo) {
-        urls.qrImgWhats = `https://wa.me/55${whatsLimpo}`;
+        itens.push({
+            boxId: 'qrBoxWhats',
+            linkId: 'qrLinkWhats',
+            url: `https://wa.me/55${whatsLimpo}`
+        });
+    } else {
+        const linkEl = document.getElementById('qrLinkWhats');
+        if (linkEl) linkEl.textContent = '⚠️ WhatsApp não configurado';
+        const boxEl = document.getElementById('qrBoxWhats');
+        if (boxEl) boxEl.innerHTML = '';
     }
 
     // Gera cada QR
-    for (const [imgId, url] of Object.entries(urls)) {
-        const linkId = imgId.replace('qrImg', 'qrLink');
-        const linkEl = document.getElementById(linkId);
+    for (const item of itens) {
+        const boxEl = document.getElementById(item.boxId);
+        const linkEl = document.getElementById(item.linkId);
 
-        if (!url) {
-            if (linkEl) linkEl.textContent = '⚠️ WhatsApp não configurado';
-            const img = document.getElementById(imgId);
-            if (img) img.src = '';
-            continue;
-        }
+        if (!boxEl) continue;
 
-        if (linkEl) linkEl.textContent = url;
+        // Limpa antes de gerar (pra não duplicar)
+        boxEl.innerHTML = '';
+
+        // Mostra o link
+        if (linkEl) linkEl.textContent = item.url;
 
         try {
-            const dataUrl = await QRCode.toDataURL(url, {
-                width: 400,
-                margin: 2,
-                color: { dark: '#CC5500', light: '#ffffff' },
-                errorCorrectionLevel: 'H'
+            new QRCode(boxEl, {
+                text: item.url,
+                width: 200,
+                height: 200,
+                colorDark: '#CC5500',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
             });
-            const img = document.getElementById(imgId);
-            if (img) img.src = dataUrl;
         } catch (e) {
             console.error('Erro ao gerar QR Code:', e);
             mostrarToast('❌ Erro ao gerar QR Code.', 'error');
@@ -1511,12 +1518,25 @@ async function carregarQRCodes() {
 }
 window.carregarQRCodes = carregarQRCodes;
 
-function baixarQRCode(imgId, nomeArquivo) {
-    const img = document.getElementById(imgId);
-    if (!img || !img.src) { mostrarToast('QR Code não carregado ainda', 'warning'); return; }
+function baixarQRCode(boxId, nomeArquivo) {
+    const box = document.getElementById(boxId);
+    if (!box) { mostrarToast('QR Code não encontrado', 'warning'); return; }
+
+    const canvas = box.querySelector('canvas');
+    const img = box.querySelector('img');
+
+    let dataUrl = '';
+    if (canvas) {
+        dataUrl = canvas.toDataURL('image/png');
+    } else if (img && img.src) {
+        dataUrl = img.src;
+    }
+
+    if (!dataUrl) { mostrarToast('QR Code não gerado ainda. Clique em Atualizar.', 'warning'); return; }
+
     const link = document.createElement('a');
     link.download = `${nomeArquivo}.png`;
-    link.href = img.src;
+    link.href = dataUrl;
     link.click();
     mostrarToast('📥 Download iniciado!', 'success');
 }
@@ -1537,28 +1557,57 @@ window.copiarLinkQR = copiarLinkQR;
 
 function imprimirQRCodes() {
     if (typeof QRCode === 'undefined') {
-        mostrarToast('⚠️ Biblioteca de QR Code não carregou. Recarregue a página.', 'warning');
+        mostrarToast('⚠️ Biblioteca de QR Code não carregou.', 'warning');
         return;
     }
 
+    const origin = window.location.origin;
     const cards = [
-        { titulo: '🍦 Cardápio 1', link: `${window.location.origin}/cardapio1.html` },
-        { titulo: '🔥 Cardápio 2', link: `${window.location.origin}/cardapio2.html` }
+        { titulo: '🍦 Cardápio 1', link: `${origin}/cardapio1.html` },
+        { titulo: '🔥 Cardápio 2', link: `${origin}/cardapio2.html` }
     ];
 
     const whatsLimpo = (State.cache.config?.whatsapp || '').replace(/\D/g, '');
     if (whatsLimpo) cards.push({ titulo: '📱 WhatsApp', link: `https://wa.me/55${whatsLimpo}` });
-    cards.push({ titulo: '🏠 Página Inicial', link: `${window.location.origin}/` });
+    cards.push({ titulo: '🏠 Página Inicial', link: `${origin}/` });
 
-    const gerarQr = (link) => {
-        return new Promise(resolve => {
-            QRCode.toDataURL(link, { width: 400, margin: 2, color: { dark: '#CC5500', light: '#ffffff' } })
-                .then(url => resolve(url))
-                .catch(() => resolve(''));
+    // Cria um container temporário pra gerar os QRs
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    document.body.appendChild(tempContainer);
+
+    cards.forEach((c, i) => {
+        const div = document.createElement('div');
+        div.id = 'tempQR' + i;
+        tempContainer.appendChild(div);
+
+        new QRCode(div, {
+            text: c.link,
+            width: 250,
+            height: 250,
+            colorDark: '#CC5500',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
         });
-    };
+    });
 
-    Promise.all(cards.map(c => gerarQr(c.link))).then(imgs => {
+    // Espera a biblioteca gerar
+    setTimeout(() => {
+        const results = [];
+        cards.forEach((c, i) => {
+            const div = document.getElementById('tempQR' + i);
+            const canvas = div?.querySelector('canvas');
+            const img = div?.querySelector('img');
+            let dataUrl = '';
+            if (canvas) dataUrl = canvas.toDataURL('image/png');
+            else if (img && img.src) dataUrl = img.src;
+            results.push(dataUrl);
+        });
+
+        // Remove container temporário
+        document.body.removeChild(tempContainer);
+
         let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR Codes - Dindins</title>
         <style>
             * { margin:0; padding:0; box-sizing:border-box; }
@@ -1577,7 +1626,7 @@ function imprimirQRCodes() {
         cards.forEach((c, i) => {
             html += `<div class="card">
                 <h2>${c.titulo}</h2>
-                <img src="${imgs[i]}" alt="${c.titulo}">
+                <img src="${results[i]}" alt="${c.titulo}">
                 <p>${c.link}</p>
             </div>`;
         });
@@ -1589,7 +1638,7 @@ function imprimirQRCodes() {
         win.document.write(html);
         win.document.close();
         setTimeout(() => win.print(), 500);
-    });
+    }, 500);
 }
 window.imprimirQRCodes = imprimirQRCodes;
 
@@ -1694,8 +1743,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }, true);
 });
 
-console.log('✅ Admin parte 1 carregada! v30.0 (QR Code)');
-console.log('📱 Aba QR Code adicionada com 4 QR Codes');
+console.log('✅ Admin parte 1 carregada! v31.0 (QR Code - qrcodejs)');
+console.log('📱 Aba QR Code com biblioteca qrcodejs (cdnjs)');
 console.log('🏠 Endereço multi-linha aceito');
 console.log('📄 PDF de Pedidos mostra o endereço');
 console.log('📸 Editar/trocar/remover foto no modal de edição');
