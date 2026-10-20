@@ -67,7 +67,6 @@ window.Utils = {
 };
 const Utils = window.Utils;
 
-// ✅ Extrai o endereço do obs, aceitando quebras de linha
 function extrairEnderecoDoObs(obs) {
     if (!obs) return '';
     const match = obs.match(/Endereço:\s*([\s\S]+?)(?=\s*\|\s*Pagamento:|$)/);
@@ -191,18 +190,72 @@ async function verificarConexao() {
 }
 
 // ============================================================
-// PREVIEW FOTO (cadastro)
+// UPLOAD DE FOTO PARA O SUPABASE STORAGE
+// ============================================================
+async function uploadFotoStorage(file) {
+    if (!file) return null;
+
+    // Valida tipo
+    if (!file.type.startsWith('image/')) {
+        throw new Error('O arquivo precisa ser uma imagem.');
+    }
+
+    // Valida tamanho (máx 5 MB)
+    if (file.size > 5 * 1024 * 1024) {
+        throw new Error('A imagem é muito grande (máx 5 MB).');
+    }
+
+    // Gera um nome único
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${fileExt}`;
+    const filePath = fileName;
+
+    // Faz o upload
+    const { data, error } = await sb.storage
+        .from('produtos')
+        .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+        });
+
+    if (error) throw error;
+
+    // Pega a URL pública
+    const { data: { publicUrl } } = sb.storage
+        .from('produtos')
+        .getPublicUrl(filePath);
+
+    return publicUrl;
+}
+window.uploadFotoStorage = uploadFotoStorage;
+
+// ============================================================
+// PREVIEW FOTO (cadastro) — agora faz upload
 // ============================================================
 async function previewFotoAdmin(input) {
-    if (input.files && input.files[0]) {
-        const r = new FileReader();
-        r.onload = e => {
-            State.fotoEmBase64 = e.target.result;
-            const c = document.getElementById('previewFotoContainer');
-            const i = document.getElementById('previewFotoAdmin');
-            if (c && i) { c.style.display = 'block'; i.src = e.target.result; }
-        };
-        r.readAsDataURL(input.files[0]);
+    if (!input.files || !input.files[0]) return;
+
+    const file = input.files[0];
+    const btn = document.querySelector('#conteudo-estoque .btn-primary');
+    const textoOriginal = btn ? btn.textContent : '';
+
+    try {
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ Enviando foto...'; }
+
+        const url = await uploadFotoStorage(file);
+        State.fotoEmBase64 = url; // agora guarda a URL, não o base64
+
+        const c = document.getElementById('previewFotoContainer');
+        const i = document.getElementById('previewFotoAdmin');
+        if (c && i) { c.style.display = 'block'; i.src = url; }
+
+        mostrarToast('📸 Foto enviada com sucesso!', 'success');
+    } catch (e) {
+        console.error('Erro ao enviar foto:', e);
+        mostrarToast('❌ Erro ao enviar foto: ' + e.message, 'error');
+        input.value = '';
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = textoOriginal; }
     }
 }
 window.previewFotoAdmin = previewFotoAdmin;
@@ -728,7 +781,13 @@ async function carregarEstoque() {
         const { data, error } = await sb.from('estoquecentral').select('*').order('nome');
         if (error) throw error;
         State.cache.estoque = data || [];
-        renderizarEstoque(State.cache.estoque);
+
+        // Aplica o filtro atual (se houver)
+        if (typeof aplicarFiltroEstoque === 'function') {
+            aplicarFiltroEstoque();
+        } else {
+            renderizarEstoque(State.cache.estoque);
+        }
 
         const sel = document.getElementById('alocarSabor');
         if (sel) {
@@ -747,7 +806,7 @@ function renderizarEstoque(data) {
     if (!l) return;
 
     if (data.length === 0) {
-        l.innerHTML = '<div class="empty-state"><span class="empty-icon">📦</span><div>Estoque vazio</div></div>';
+        l.innerHTML = '<div class="empty-state"><span class="empty-icon">📦</span><div>Nenhum item encontrado com esse filtro</div></div>';
         return;
     }
 
@@ -827,14 +886,24 @@ async function cadastrarItem() {
         if (!nome || !Utils.validarPreco(preco)) { mostrarToast('Preencha corretamente', 'warning'); return; }
         const { data: ex } = await sb.from('estoquecentral').select('*').eq('nome', nome).maybeSingle();
         if (ex) {
-            await sb.from('estoquecentral').update({ quantidadetotal: (ex.quantidadetotal || 0) + qtd, preco, emoji, foto: State.fotoEmBase64 || ex.foto }).eq('id', ex.id);
+            await sb.from('estoquecentral').update({
+                quantidadetotal: (ex.quantidadetotal || 0) + qtd,
+                preco, emoji,
+                foto: State.fotoEmBase64 || ex.foto
+            }).eq('id', ex.id);
             mostrarToast('Atualizado!');
         } else {
-            await sb.from('estoquecentral').insert([{ nome, emoji, preco, quantidadetotal: qtd || 50, alocadocardapio2: 0, foto: State.fotoEmBase64 }]);
+            await sb.from('estoquecentral').insert([{
+                nome, emoji, preco,
+                quantidadetotal: qtd || 50,
+                alocadocardapio2: 0,
+                foto: State.fotoEmBase64
+            }]);
             mostrarToast('Cadastrado!');
         }
         State.fotoEmBase64 = null;
         document.getElementById('previewFotoContainer').style.display = 'none';
+        document.getElementById('estoqueFoto').value = '';
         document.getElementById('estoqueNome').value = '';
         document.getElementById('estoquePreco').value = '';
         await carregarEstoque();
@@ -905,16 +974,29 @@ function renderizarPreviewFotoEditarEstoque(fotoOriginal) {
     }
 }
 
-window.previewFotoEditarEstoque = function(input) {
-    if (input.files && input.files[0]) {
-        const r = new FileReader();
-        r.onload = e => {
-            State.fotoEditarEstoque = e.target.result;
-            State.fotoEditarEstoqueRemovida = false;
-            const item = State.cache.estoque.find(x => x.id == document.getElementById('editarEstoqueId').value);
-            renderizarPreviewFotoEditarEstoque(item?.foto);
-        };
-        r.readAsDataURL(input.files[0]);
+window.previewFotoEditarEstoque = async function(input) {
+    if (!input.files || !input.files[0]) return;
+
+    const btn = document.querySelector('#modalEditarEstoque .btn-success');
+    const textoOriginal = btn ? btn.textContent : '';
+
+    try {
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ Enviando...'; }
+
+        const url = await uploadFotoStorage(input.files[0]);
+        State.fotoEditarEstoque = url;
+        State.fotoEditarEstoqueRemovida = false;
+
+        const item = State.cache.estoque.find(x => x.id == document.getElementById('editarEstoqueId').value);
+        renderizarPreviewFotoEditarEstoque(item?.foto);
+
+        mostrarToast('📸 Foto enviada!', 'success');
+    } catch (e) {
+        console.error('Erro ao enviar foto:', e);
+        mostrarToast('❌ Erro: ' + e.message, 'error');
+        input.value = '';
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = textoOriginal; }
     }
 };
 
@@ -1473,7 +1555,6 @@ async function carregarQRCodes() {
         { boxId: 'qrBoxHome', linkId: 'qrLinkHome', url: `${origin}/` }
     ];
 
-    // WhatsApp (se configurado)
     let whatsLimpo = (State.cache.config?.whatsapp || '').replace(/\D/g, '');
     if (whatsLimpo) {
         itens.push({
@@ -1488,17 +1569,14 @@ async function carregarQRCodes() {
         if (boxEl) boxEl.innerHTML = '';
     }
 
-    // Gera cada QR
     for (const item of itens) {
         const boxEl = document.getElementById(item.boxId);
         const linkEl = document.getElementById(item.linkId);
 
         if (!boxEl) continue;
 
-        // Limpa antes de gerar (pra não duplicar)
         boxEl.innerHTML = '';
 
-        // Mostra o link
         if (linkEl) linkEl.textContent = item.url;
 
         try {
@@ -1571,7 +1649,6 @@ function imprimirQRCodes() {
     if (whatsLimpo) cards.push({ titulo: '📱 WhatsApp', link: `https://wa.me/55${whatsLimpo}` });
     cards.push({ titulo: '🏠 Página Inicial', link: `${origin}/` });
 
-    // Cria um container temporário pra gerar os QRs
     const tempContainer = document.createElement('div');
     tempContainer.style.position = 'absolute';
     tempContainer.style.left = '-9999px';
@@ -1592,7 +1669,6 @@ function imprimirQRCodes() {
         });
     });
 
-    // Espera a biblioteca gerar
     setTimeout(() => {
         const results = [];
         cards.forEach((c, i) => {
@@ -1605,7 +1681,6 @@ function imprimirQRCodes() {
             results.push(dataUrl);
         });
 
-        // Remove container temporário
         document.body.removeChild(tempContainer);
 
         let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR Codes - Dindins</title>
@@ -1743,9 +1818,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, true);
 });
 
-console.log('✅ Admin parte 1 carregada! v31.0 (QR Code - qrcodejs)');
-console.log('📱 Aba QR Code com biblioteca qrcodejs (cdnjs)');
-console.log('🏠 Endereço multi-linha aceito');
-console.log('📄 PDF de Pedidos mostra o endereço');
-console.log('📸 Editar/trocar/remover foto no modal de edição');
-console.log('💰 valorpago + histórico de pagamentos');
+console.log('✅ Admin parte 1 carregada! v32.0 (Storage de fotos)');
+console.log('📸 Fotos agora vão para o Supabase Storage (bucket "produtos")');
+console.log('💾 Banco guarda apenas a URL da imagem, não o base64');
